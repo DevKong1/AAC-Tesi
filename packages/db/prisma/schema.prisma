@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
+    provider = "mongodb"
     url      = env("DATABASE_URL")
 }
 
 model Post {
-    id      String @id @default(cuid())
+    id      String @id @default(cuid()) @map("_id")
     title   String
     content String
 }
@@ -21,7 +21,7 @@ model Post {
 // uncomment the @db.Text annotations below
 // @see https://next-auth.js.org/schemas/models
 model Account {
-    id                String  @id @default(cuid())
+    id                String  @id @default(cuid()) @map("_id")
     userId            String
     type              String
     provider          String
@@ -39,7 +39,7 @@ model Account {
 }
 
 model Session {
-    id           String   @id @default(cuid())
+    id           String   @id @default(cuid()) @map("_id")
     sessionToken String   @unique
     userId       String
     expires      DateTime
@@ -47,7 +47,7 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String    @id @default(cuid()) @map("_id")
     name          String?
     email         String?   @unique
     emailVerified DateTime?
@@ -57,7 +57,7 @@ model User {
 }
 
 model VerificationToken {
-    identifier String
+    identifier String   @id @map("_id")
     token      String   @unique
     expires    DateTime
 
