@@ -5,6 +5,7 @@ import { Stack, useRouter } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
 
 import { api, type RouterOutputs } from "../src/utils/api";
+import BoardAddItem from "./components/BoardAddItem";
 
 const PostCard: React.FC<{
   post: RouterOutputs["post"]["all"][number];
@@ -92,39 +93,16 @@ const Index = () => {
   });
 
   return (
-    <SafeAreaView className="bg-[#1F104A]">
-      {/* Changes page title visible on the header */}
-      <Stack.Screen options={{ title: "Home Page" }} />
+    <SafeAreaView className="bg-[#1d4289] ">
       <View className="h-full w-full p-4">
         <Text className="mx-auto pb-2 text-5xl font-bold text-white">
-          Create <Text className="text-pink-400">T3</Text> Turbo
+          AI <Text className="text-pink-400">AAC</Text>
         </Text>
 
-        <Button
-          onPress={() => void postQuery.refetch()}
-          title="Refresh posts"
-          color={"#f472b6"}
-        />
-
-        <View className="py-2">
-          <Text className="font-semibold italic text-white">
-            Press on a post
-          </Text>
+        {/* TODO SAVE AND LOAD BOARDS */}
+        <View className="py-6">
+         <BoardAddItem />
         </View>
-
-        <FlashList
-          data={postQuery.data}
-          estimatedItemSize={20}
-          ItemSeparatorComponent={() => <View className="h-2" />}
-          renderItem={(p) => (
-            <PostCard
-              post={p.item}
-              onDelete={() => deletePostMutation.mutate(p.item.id)}
-            />
-          )}
-        />
-
-        <CreatePost />
       </View>
     </SafeAreaView>
   );
