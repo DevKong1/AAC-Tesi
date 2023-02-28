@@ -5,7 +5,7 @@ import { Stack, useRouter } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
 
 import { api, type RouterOutputs } from "../src/utils/api";
-import BoardAddItem from "./components/BoardAddItem";
+import AddBoardButton from "./components/AddBoardButton";
 
 const PostCard: React.FC<{
   post: RouterOutputs["post"]["all"][number];
@@ -86,6 +86,7 @@ const CreatePost: React.FC = () => {
 };
 
 const Index = () => {
+  const [boards, setBoards] = React.useState([]);
   const postQuery = api.post.all.useQuery();
 
   const deletePostMutation = api.post.delete.useMutation({
@@ -100,9 +101,16 @@ const Index = () => {
         </Text>
 
         {/* TODO SAVE AND LOAD BOARDS */}
-        <View className="py-6">
-         <BoardAddItem />
+        <View className="flex w-full flex-col items-center justify-center py-6">
+          {boards.length > 0 ? (
+            <Text>Boards TODO</Text>
+          ) : (
+            <Text className="text-white">
+              Create a new board by tapping the button below...
+            </Text>
+          )}
         </View>
+        <AddBoardButton />
       </View>
     </SafeAreaView>
   );
