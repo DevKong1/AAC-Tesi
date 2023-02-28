@@ -17,7 +17,8 @@ const RootLayout = () => {
         */}
         <Stack
           screenOptions={{
-            headerShown: false
+            headerShown: false,
+            contentStyle: { backgroundColor: "#1d4289" },
           }}
         />
         <StatusBar />

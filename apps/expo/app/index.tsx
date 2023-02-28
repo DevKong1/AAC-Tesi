@@ -94,7 +94,7 @@ const Index = () => {
   });
 
   return (
-    <SafeAreaView className="bg-[#1d4289] ">
+    <SafeAreaView>
       <View className="h-full w-full p-4">
         <Text className="mx-auto pb-2 text-5xl font-bold text-white">
           AI <Text className="text-pink-400">AAC</Text>
