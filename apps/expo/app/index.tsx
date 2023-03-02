@@ -6,7 +6,12 @@ import AddBoardButton from "./components/AddBoardButton";
 import { useBoardStore } from "./store/store";
 
 const Index = () => {
-  const state = useBoardStore();
+  const boardStore = useBoardStore();
+  const boards = boardStore.boards;
+
+  React.useEffect(() => {
+    boardStore.fetch();
+  }, []);
 
   return (
     <SafeAreaView>
@@ -17,12 +22,12 @@ const Index = () => {
 
         {/* TODO SAVE AND LOAD BOARDS */}
         <View className="flex w-full flex-col items-center justify-center py-6">
-          {state.boards.length > 0 ? (
-            <Text>Boards TODO</Text>
-          ) : (
+          {boards.length <= 0 ? (
             <Text className="text-white">
               Create a new board by tapping the button below...
             </Text>
+          ) : (
+            <Text>Boards TODO</Text>
           )}
         </View>
         <AddBoardButton />
