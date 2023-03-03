@@ -17,6 +17,7 @@ interface BoardsState {
 
 interface PictogramState {
   pictograms: Pictogram[];
+  categories: string[];
   loaded: boolean;
   fetch: () => Promise<void>;
 }
@@ -66,13 +67,21 @@ export const useBoardStore = create<BoardsState>((set) => ({
   },
 }));
 
-export const usePictoramStore = create<PictogramState>((set) => ({
+export const usePictoramStore = create<PictogramState>((set, get) => ({
   pictograms: [],
+  categories: [],
   loaded: false,
   fetch: async () => {
     console.log("Loading pictorams...");
     await import("../../assets/dictionaries/Dizionario_en.json")
-      .then((res) => set({ pictograms: res.default as Pictogram[] }))
+      .then((res) => {
+        set({ pictograms: res.default as Pictogram[] });
+        set({
+          categories: [
+            ...new Set(get().pictograms.flatMap((el) => el.categories)),
+          ],
+        });
+      })
       .finally(() => {
         set({ loaded: true });
         console.log("Loaded pictograms");
