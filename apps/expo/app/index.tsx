@@ -1,11 +1,14 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-import AddBoardButton from "./components/AddBoardButton";
+import AddButton from "./components/AddButton";
 import { useBoardStore } from "./store/store";
 
 const Index = () => {
+  const router = useRouter();
+
   const boardStore = useBoardStore();
   const boards = boardStore.boards;
 
@@ -30,7 +33,12 @@ const Index = () => {
             <Text>Boards TODO</Text>
           )}
         </View>
-        <AddBoardButton />
+        <TouchableOpacity
+          className="w-full"
+          onPress={() => router.push(`../views/board`)}
+        >
+          <AddButton text="Add new board" />
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

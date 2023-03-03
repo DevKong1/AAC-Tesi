@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import { type Pictogram } from "../../src/types/commonTypes";
-import AddPictogramButton from "../components/AddPictogramButton";
+import AddButton from "../components/AddButton";
 
 const Board = () => {
   const router = useRouter();
@@ -20,6 +20,7 @@ const Board = () => {
   return (
     <SafeAreaView>
       <View className="h-full w-full p-4">
+        <Text className="py-4 text-white">Board</Text>
         <View className="flex h-full w-full flex-col items-center p-4">
           {pictograms.length > 0 ? (
             <Text>Boards TODO</Text>
@@ -32,7 +33,7 @@ const Board = () => {
             className="w-full"
             onPress={() => router.push(`./pictogramSelection`)}
           >
-            <AddPictogramButton />
+            <AddButton text="Add Pictorgram" />
           </TouchableOpacity>
         </View>
       </View>
