@@ -10,7 +10,9 @@ const PictogramSelection = () => {
   const pictograms = pictogramStore.pictograms;
 
   React.useEffect(() => {
-    pictogramStore.loaded ? null : pictogramStore.fetch();
+    setTimeout(() => {
+      pictogramStore.loaded ? null : pictogramStore.fetch();
+    }, 50);
   }, []);
 
   return (
@@ -20,6 +22,7 @@ const PictogramSelection = () => {
           className="w-full appearance-none rounded bg-white py-2 px-3 leading-tight shadow"
           placeholder="Search for a pictogram..."
         />
+        <Text>{pictograms[0]?._id}</Text>
       </View>
     </SafeAreaView>
   );

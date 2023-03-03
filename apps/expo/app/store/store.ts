@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import * as FileSystem from "expo-file-system";
 import { create } from "zustand";
 
