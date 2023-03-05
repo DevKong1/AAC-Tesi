@@ -1,4 +1,3 @@
-import { lazy } from "react";
 import * as FileSystem from "expo-file-system";
 import { create } from "zustand";
 
@@ -17,9 +16,9 @@ interface BoardsState {
 
 interface PictogramState {
   pictograms: Pictogram[];
-  categories: string[];
   loaded: boolean;
-  fetch: () => Promise<void>;
+  setPictograms: (pictograms: Pictogram[]) => void;
+  setLoaded: (boards: boolean) => void;
 }
 
 type configFile = {
@@ -64,27 +63,5 @@ export const useBoardStore = create<BoardsState>((set) => ({
     set((state) => ({
       boards: state.boards.map((el) => (el.id === board.id ? board : el)),
     }));
-  },
-}));
-
-export const usePictoramStore = create<PictogramState>((set, get) => ({
-  pictograms: [],
-  categories: [],
-  loaded: false,
-  fetch: async () => {
-    console.log("Loading pictorams...");
-    await import("../../assets/dictionaries/Dizionario_en.json")
-      .then((res) => {
-        set({ pictograms: res.default as Pictogram[] });
-        set({
-          categories: [
-            ...new Set(get().pictograms.flatMap((el) => el.categories)),
-          ],
-        });
-      })
-      .finally(() => {
-        set({ loaded: true });
-        console.log("Loaded pictograms");
-      });
   },
 }));

@@ -7,20 +7,25 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
 
 import { type Pictogram } from "../../src/types/commonTypes";
 import { usePictoramStore } from "../store/store";
 
 const PictogramSelection = () => {
-  const pictogramStore = usePictoramStore();
-  const pictograms = pictogramStore.pictograms;
-  const categories = pictogramStore.categories;
+  const { data: pictograms, isLoading } = useQuery(["pictograms"], async () => {
+    console.log("Loading pictorams...");
+    return (await import("../../assets/dictionaries/Dizionario_en.json"))
+      .default;
+  });
 
-  React.useEffect(() => {
-    setTimeout(() => {
-      pictogramStore.loaded ? null : pictogramStore.fetch();
-    }, 50);
-  }, []);
+  if (isLoading)
+    return (
+      <View className="h-3/4 w-full items-center justify-center">
+        <ActivityIndicator size="large" color="#f472b6" />
+        <Text className="py-4 text-xs text-white">Loading</Text>
+      </View>
+    );
 
   return (
     <SafeAreaView className="h-full w-full flex-col items-center rounded">
@@ -30,21 +35,18 @@ const PictogramSelection = () => {
           placeholder="Search for a pictogram..."
         />
       </View>
-      {pictogramStore.loaded ? (
-        <FlatList
-          className="w-full"
-          data={categories}
-          renderItem={({ item }) => {
-            return <Text>{item}</Text>;
-          }}
-          keyExtractor={(item) => item}
-        />
-      ) : (
-        <View className="h-3/4 w-full items-center justify-center">
-          <ActivityIndicator size="large" color="#f472b6" />
-          <Text className="py-4 text-xs text-white">Loading</Text>
-        </View>
-      )}
+      <FlatList
+        className="w-full"
+        data={[
+          ...new Set(
+            (pictograms as Pictogram[]).flatMap((el) => el.categories),
+          ),
+        ]}
+        renderItem={({ item }) => {
+          return <Text>{item}</Text>;
+        }}
+        keyExtractor={(item) => item}
+      />
     </SafeAreaView>
   );
 };
