@@ -14,32 +14,46 @@ import { useQuery } from "@tanstack/react-query";
 
 import { type Pictogram } from "../../src/types/commonTypes";
 
+const PictogramCard: React.FC<{
+  text: string;
+  alt: string;
+  image: ImageSourcePropType;
+  onPress: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ text, alt, image, onPress }) => {
+  return (
+    <TouchableOpacity className="mx-auto my-6 h-56 w-[30%] rounded-lg  bg-white/10 p-4">
+      <View className="flex flex-col items-center justify-center">
+        <Image
+          className="h-4/5 w-4/5 flex-auto object-cover"
+          source={image as ImageSourcePropType}
+          alt={alt}
+        />
+        <Text className="color-white pt-4  font-bold">{text}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 const CategoriesView: React.FC<{
   categories: string[][];
   setCategory: React.Dispatch<React.SetStateAction<string>>;
-}> = ({ categories }) => {
+}> = ({ categories, setCategory }) => {
   return (
     <View className="h-full w-full">
       <FlatList
-        numColumns={2}
+        numColumns={3}
         data={categories}
         renderItem={({ item }) => {
           return (
-            <View className="mx-auto my-6 w-2/5 rounded-lg  bg-white/10 p-4">
-              <TouchableOpacity className="items-center justify-center">
-                <View className="w-full">
-                  <Image
-                    className="h-12 object-contain"
-                    source={item[1] as ImageSourcePropType}
-                    alt={`Image of ${item[0] as string}`}
-                  />
-                </View>
-                <Text className="color-white"> {item[0] as string}</Text>
-              </TouchableOpacity>
-            </View>
+            <PictogramCard
+              text={item[0] as string}
+              alt={`Image of ${item[0] as string}`}
+              image={item[1] as ImageSourcePropType}
+              onPress={setCategory}
+            />
           );
         }}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(_, i) => i.toString()}
       />
     </View>
   );
@@ -78,16 +92,12 @@ const PictogramsView: React.FC = () => {
 
 const PictogramSelection = () => {
   const categories = [
-    ["basic concepts", require("../../assets/pictograms/img_9202.png")],
-    ["preposition", require("../../assets/pictograms/img_11709.png")],
-    ["verb", require("../../assets/pictograms/img_11741.png")],
-    ["animal", require("../../assets/pictograms/img_6901.png")],
-    ["feeling", require("../../assets/pictograms/img_7251.png")],
-    ["color", require("../../assets/pictograms/img_34483.png")],
-    [
-      "core vocabulary-communication",
-      require("../../assets/pictograms/img_34826.png"),
-    ],
+    ["BASIC CONCEPTS", require("../../assets/pictograms/img_9202.png")],
+    ["PREPOSITION", require("../../assets/pictograms/img_11709.png")],
+    ["VERB", require("../../assets/pictograms/img_11741.png")],
+    ["ANIMAL", require("../../assets/pictograms/img_6901.png")],
+    ["FEELING", require("../../assets/pictograms/img_7251.png")],
+    ["COLOR", require("../../assets/pictograms/img_34483.png")],
   ];
   const [selectedCategory, setCategory] = React.useState("");
   const [searchText, setText] = React.useState("");

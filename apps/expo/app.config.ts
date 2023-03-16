@@ -1,11 +1,11 @@
 import { type ConfigContext, type ExpoConfig } from "@expo/config";
 
 const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
-  name: "expo",
-  slug: "expo",
-  scheme: "expo",
+  name: "PictoAI",
+  slug: "PictoAI",
+  scheme: "PictoAI",
   version: "1.0.0",
-  orientation: "portrait",
+  orientation: "landscape",
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   splash: {

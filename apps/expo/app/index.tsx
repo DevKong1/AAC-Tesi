@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -18,11 +18,10 @@ const Index = () => {
 
   return (
     <SafeAreaView>
-      <View className="h-full w-full p-4">
-        <Text className="mx-auto pb-2 text-5xl font-bold text-white">
-          AI <Text className="text-pink-400">AAC</Text>
-        </Text>
-
+      <View className="flex h-full w-full p-4">
+        <View>
+          <Text className="font-logo text-text text-9xl">PictoAI</Text>
+        </View>
         {/* TODO SAVE AND LOAD BOARDS */}
         <View className="flex w-full flex-col items-center justify-center py-6">
           {boards.length <= 0 ? (
