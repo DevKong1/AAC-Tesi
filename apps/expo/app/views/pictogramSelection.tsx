@@ -28,7 +28,7 @@ const PictogramCard: React.FC<{
           source={image as ImageSourcePropType}
           alt={alt}
         />
-        <Text className="color-white pt-4  font-bold">{text}</Text>
+        <Text className="color-white pt-4 font-bold">{text}</Text>
       </View>
     </TouchableOpacity>
   );

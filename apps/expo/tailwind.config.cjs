@@ -5,7 +5,7 @@ module.exports = {
   theme: {
     colors: {
       background: "#FFEEEB",
-      text: "#5C5C5C",
+      default: "#5C5C5C",
       games: "#C6D7F9",
       reading: "#B9D2C3",
       talking: "#EBDBD8",
@@ -19,7 +19,10 @@ module.exports = {
       list: "#A3B0B4",
     },
     fontFamily: {
-      text: "Kreon",
+      text: "KreonRegular",
+      textmedium: "KreonMedium",
+      textbold: "KreonBold",
+      textsemibold: "KreonSemiBold",
       logo: "Montserrat",
     },
   },
