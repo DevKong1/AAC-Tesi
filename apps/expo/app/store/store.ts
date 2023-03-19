@@ -1,14 +1,24 @@
 import * as FileSystem from "expo-file-system";
+import * as Speech from "expo-speech";
+import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
-
-import { type Board, type Pictogram } from "../../src/types/commonTypes";
 
 interface CompanionState {
   currentMood: string;
   currentText: string;
-  speak: (text: string) => void;
+  speak: (text: string) => Promise<void>;
 }
 
+export const useCompanionStore = create<CompanionState>((set, get) => ({
+  currentMood: "",
+  currentText: "",
+  speak: async (text) => {
+    set({ currentText: text });
+    Speech.speak(text, { language: "it-IT" });
+    await sleep(2000);
+    set({ currentText: "" });
+  },
+}));
 /* interface BoardsState {
   boards: Board[];
   loaded: boolean;

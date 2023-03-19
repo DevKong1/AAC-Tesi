@@ -1,16 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+import { sleep } from "@tanstack/query-core/build/lib/utils";
 
 import BottomIcons from "./components/BottomIcons";
 import MenuCard from "./components/MenuCard";
+import { useCompanionStore } from "./store/store";
 
 const Index = () => {
+  const companionStore = useCompanionStore();
+
   const iconSize = 160;
   const fontSize = 42;
   const cardWidth = "28%";
   const cardHeight = "60%";
+
+  useEffect(() => {
+    companionStore.speak("Benvenuto, Giacomo!");
+  }, []);
 
   //TODO RESPONSIVE
   return (
