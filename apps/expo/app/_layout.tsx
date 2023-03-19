@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack } from "expo-router";
@@ -7,6 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import Companion from "./components/Companion";
 import useFonts from "./hooks/useFonts";
 
 // Keep the splash screen visible while we fetch resources
@@ -69,6 +69,7 @@ const RootLayout = () => {
           />
         </LinearGradient>
         <StatusBar />
+        <Companion />
       </SafeAreaProvider>
     </QueryClientProvider>
   );

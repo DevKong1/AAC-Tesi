@@ -3,7 +3,13 @@ import { create } from "zustand";
 
 import { type Board, type Pictogram } from "../../src/types/commonTypes";
 
-interface BoardsState {
+interface CompanionState {
+  currentMood: string;
+  currentText: string;
+  speak: (text: string) => void;
+}
+
+/* interface BoardsState {
   boards: Board[];
   loaded: boolean;
   fetch: () => Promise<void>;
@@ -65,3 +71,4 @@ export const useBoardStore = create<BoardsState>((set) => ({
     }));
   },
 }));
+ */

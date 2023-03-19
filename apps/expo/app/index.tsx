@@ -1,23 +1,16 @@
 import React from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 
+import BottomIcons from "./components/BottomIcons";
 import MenuCard from "./components/MenuCard";
-import { useBoardStore } from "./store/store";
 
 const Index = () => {
   const iconSize = 160;
   const fontSize = 42;
   const cardWidth = "28%";
-  const cardHeight = "50%";
-
-  const boardStore = useBoardStore();
-  const boards = boardStore.boards;
-
-  React.useEffect(() => {
-    boardStore.fetch();
-  }, []);
+  const cardHeight = "60%";
 
   //TODO RESPONSIVE
   return (
@@ -31,7 +24,7 @@ const Index = () => {
             alt="University of Bologna Logo"
           />
         </View>
-        <View className="flex flex-grow flex-row content-center items-start justify-center">
+        <View className="mb-16 flex flex-grow flex-row content-center items-start justify-center">
           <MenuCard
             text="Giochiamo"
             fontSize={fontSize}
@@ -74,6 +67,7 @@ const Index = () => {
             }
           />
         </View>
+        <BottomIcons />
       </View>
     </SafeAreaView>
   );
