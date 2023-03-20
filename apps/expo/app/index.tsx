@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { sleep } from "@tanstack/query-core/build/lib/utils";
 
 import BottomIcons from "./components/BottomIcons";
 import MenuCard from "./components/MenuCard";
@@ -17,7 +16,7 @@ const Index = () => {
   const cardHeight = "60%";
 
   useEffect(() => {
-    companionStore.speak("Benvenuto, Giacomo!");
+    companionStore.speak("Benvenuto, Giacomo!", "4xl");
   }, []);
 
   //TODO RESPONSIVE
@@ -37,7 +36,7 @@ const Index = () => {
             text="Giochiamo"
             fontSize={fontSize}
             bgcolor="#C6D7F9"
-            path="/views/board"
+            path="/views/GamesPage"
             width={cardWidth}
             height={cardHeight}
             icon={

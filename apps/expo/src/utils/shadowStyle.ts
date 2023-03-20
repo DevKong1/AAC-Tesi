@@ -2,13 +2,23 @@ import { StyleSheet } from "react-native";
 
 export const shadowStyle = StyleSheet.create({
   light: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+
+    elevation: 5,
+  },
+  chatBubble: {
     //iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
-    //Android
-    elevation: 5,
+    elevation: 7,
   },
   icon: {
     //iOS

@@ -4,7 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import { shadowStyle } from "../../src/utils/shadowStyle";
 
-const BottomIcons: React.FC<{}> = () => {
+const BottomIcons: React.FC = () => {
   const router = useRouter();
   const iconSize = 60;
   const iconColor = "#5C5C5C";

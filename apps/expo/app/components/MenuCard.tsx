@@ -11,8 +11,8 @@ const MenuCard: React.FC<{
   fontSize: number;
   icon: ReactNode;
   bgcolor: string;
-  height: string;
-  width: string;
+  height: string | number;
+  width: string | number;
   path: Href;
 }> = ({ text, icon, bgcolor, path, height, width, fontSize }) => {
   const router = useRouter();
@@ -33,7 +33,7 @@ const MenuCard: React.FC<{
       <MaterialIcons>{icon}</MaterialIcons>
       <Text
         style={{ fontSize: fontSize }}
-        className={`text-default font-text pt-8`}
+        className={`text-default font-text pt-8 text-center`}
       >
         {text}
       </Text>

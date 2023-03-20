@@ -4,19 +4,40 @@ import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
 interface CompanionState {
+  isVisible: boolean;
   currentMood: string;
   currentText: string;
-  speak: (text: string) => Promise<void>;
+  textSize: string;
+  position: string;
+  speak: (text: string, size?: string, position?: string) => Promise<void>;
 }
 
 export const useCompanionStore = create<CompanionState>((set, get) => ({
+  isVisible: true,
   currentMood: "",
   currentText: "",
-  speak: async (text) => {
+  textSize: "4xl",
+  position: "left",
+  speak: async (text, size?, position?) => {
+    if (
+      size &&
+      ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl"].includes(size)
+    ) {
+      set({ textSize: size });
+    }
+    if (position && ["top", "left"].includes(position)) {
+      set({ position: position });
+    }
     set({ currentText: text });
-    Speech.speak(text, { language: "it-IT" });
-    await sleep(2000);
-    set({ currentText: "" });
+    Speech.speak(text, {
+      language: "it-IT",
+      // TODO Is this ok (?)
+      onDone: (async () => {
+        await sleep(1000);
+        set({ currentText: "", textSize: "4xl", position: "left" });
+        return;
+      }) as () => void,
+    });
   },
 }));
 /* interface BoardsState {
