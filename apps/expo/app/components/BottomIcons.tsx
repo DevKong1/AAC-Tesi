@@ -3,8 +3,10 @@ import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { shadowStyle } from "../../src/utils/shadowStyle";
+import { useCompanionStore } from "../store/store";
 
 const BottomIcons: React.FC = () => {
+  const companionStore = useCompanionStore();
   const router = useRouter();
   const iconSize = 60;
   const iconColor = "#5C5C5C";
@@ -19,18 +21,18 @@ const BottomIcons: React.FC = () => {
           color={iconColor}
         />
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => companionStore.changeVolume()}>
         <MaterialIcons
           style={shadowStyle.icon}
-          name="volume-up"
+          name={companionStore.volumeOn ? "volume-up" : "volume-off"}
           size={iconSize}
           color={iconColor}
         />
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => companionStore.changeBubble()}>
         <MaterialIcons
           style={shadowStyle.icon}
-          name="chat"
+          name={companionStore.bubbleOn ? "chat" : "chat-bubble"}
           size={iconSize}
           color={iconColor}
         />

@@ -1,3 +1,5 @@
+import { type ReactNode } from "react";
+
 export type keyword = {
   type: number;
   meaning: string | null;
@@ -7,24 +9,36 @@ export type keyword = {
 };
 
 export type Pictogram = {
-  schematic: boolean;
-  sex: boolean;
-  violence: boolean;
-  aac: boolean;
-  aacColor: boolean;
-  skin: boolean;
-  hair: boolean;
-  downloads: number;
-  categories: string[];
-  synsets: string;
-  tags: string[];
+  schematic?: boolean;
+  sex?: boolean;
+  violence?: boolean;
+  aac?: boolean;
+  aacColor?: boolean;
+  skin?: boolean;
+  hair?: boolean;
+  downloads?: number;
+  categories?: string[];
+  synsets?: string;
+  tags?: string[];
   _id: number;
-  created: Date;
-  lastUpdated: Date;
-  keywords: keyword[];
+  created?: Date;
+  lastUpdated?: Date;
+  keywords?: keyword[];
 };
 
 export type Board = {
   id: string;
   pictograms: Pictogram[];
+};
+
+export type CategoryType = {
+  text: string;
+  icon: ReactNode;
+};
+
+export type WhatsItGameProperties = {
+  pictograms: Pictogram[];
+  answer: string;
+  //TODO
+  picture: string;
 };

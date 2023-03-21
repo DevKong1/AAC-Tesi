@@ -1,30 +1,48 @@
+import { type ReactNode } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+
+import { type CategoryType } from "../../src/types/commonTypes";
 
 const CategoryTab: React.FC<{
   text: string;
+  icon: ReactNode;
+  isSelected: boolean;
   width: string | number;
-}> = ({ text, width }) => {
+  setCategory: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ text, icon, isSelected, width, setCategory }) => {
   return (
     <TouchableOpacity
+      onPress={() => setCategory(text)}
       style={{ width: width }}
-      className="bg-default flex h-full flex-col justify-center align-middle"
+      className={`flex h-3/4 flex-col justify-center pt-5 align-middle ${
+        isSelected ? "border-default border-b-2" : ""
+      }`}
     >
       <View className="flex-row justify-center">
-        <Text className="text-2xl">{text}</Text>
+        <Text className="font-text text-default pr-2 text-2xl">{text}</Text>
+        {icon}
       </View>
     </TouchableOpacity>
   );
 };
 
-const CategoryTabs: React.FC = () => {
+const CategoryTabs: React.FC<{
+  categories: CategoryType[];
+  selectedCategory: string;
+  setCategory: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ categories, selectedCategory, setCategory }) => {
   return (
-    <View className="flex h-full w-full flex-row justify-center align-middle">
-      <CategoryTab text="Tutto" width="20%" />
-      <CategoryTab text="Frutta" width="20%" />
-      <CategoryTab text="Animali" width="20%" />
-      <CategoryTab text="Oggetti" width="20%" />
-      <CategoryTab text="Azioni" width="20%" />
+    <View className="mx-8 flex h-full flex-row justify-center align-middle">
+      {categories.map(({ text, icon }) => (
+        <CategoryTab
+          key={text}
+          text={text}
+          icon={icon}
+          isSelected={selectedCategory == text}
+          width={`${100 / categories.length}%`}
+          setCategory={setCategory}
+        />
+      ))}
     </View>
   );
 };

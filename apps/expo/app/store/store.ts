@@ -9,7 +9,11 @@ interface CompanionState {
   currentText: string;
   textSize: string;
   position: string;
+  volumeOn: boolean;
+  bubbleOn: boolean;
   speak: (text: string, size?: string, position?: string) => Promise<void>;
+  changeVolume: () => void;
+  changeBubble: () => void;
 }
 
 export const useCompanionStore = create<CompanionState>((set, get) => ({
@@ -18,9 +22,12 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   currentText: "",
   textSize: "4xl",
   position: "left",
+  volumeOn: true,
+  bubbleOn: true,
   speak: async (text, size?, position?) => {
     if (
       size &&
+      // redundant but otherwise tailwind wont load the style
       ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl"].includes(size)
     ) {
       set({ textSize: size });
@@ -29,16 +36,23 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
       set({ position: position });
     }
     set({ currentText: text });
-    Speech.speak(text, {
-      language: "it-IT",
-      // TODO Is this ok (?)
-      onDone: (async () => {
-        await sleep(1000);
-        set({ currentText: "", textSize: "4xl", position: "left" });
-        return;
-      }) as () => void,
-    });
+    if (!get().volumeOn) {
+      await sleep(5000);
+      set({ currentText: "", textSize: "4xl", position: "left" });
+    } else {
+      Speech.speak(text, {
+        language: "it-IT",
+        // TODO Is this ok (?)
+        onDone: (async () => {
+          await sleep(1000);
+          set({ currentText: "", textSize: "4xl", position: "left" });
+          return;
+        }) as () => void,
+      });
+    }
   },
+  changeVolume: () => set({ volumeOn: !get().volumeOn }),
+  changeBubble: () => set({ bubbleOn: !get().bubbleOn }),
 }));
 /* interface BoardsState {
   boards: Board[];

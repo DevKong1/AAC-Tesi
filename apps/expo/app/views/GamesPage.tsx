@@ -1,22 +1,66 @@
 import React, { useEffect } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Entypo,
+  FontAwesome5,
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 
+import { type CategoryType } from "../../src/types/commonTypes";
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
 import MenuCard from "../components/MenuCard";
 import { useCompanionStore } from "../store/store";
 
-const GamesPage = () => {
-  const [selectedCategory, setCategories] = React.useState([]);
+export default function GamesPage() {
+  const [selectedCategory, setCategory] = React.useState("Tutto");
 
   const companionStore = useCompanionStore();
 
-  const iconSize = 160;
+  const iconSize = 130;
   const fontSize = 32;
+  const iconColor = "#5C5C5C";
   const cardWidth = "25%";
   const cardHeight = "80%";
+  const categoryIconSize = 28;
+  const categories = [
+    {
+      text: "Tutto",
+      icon: (
+        <Ionicons name="infinite" size={categoryIconSize} color={iconColor} />
+      ),
+    },
+    {
+      text: "Frutta",
+      icon: (
+        <AntDesign name="apple1" size={categoryIconSize} color={iconColor} />
+      ),
+    },
+    {
+      text: "Animali",
+      icon: (
+        <FontAwesome5 name="cat" size={categoryIconSize} color={iconColor} />
+      ),
+    },
+    {
+      text: "Oggetti",
+      icon: <Entypo name="pencil" size={categoryIconSize} color={iconColor} />,
+    },
+    {
+      text: "Azioni",
+      icon: (
+        <MaterialCommunityIcons
+          name="hand-wave"
+          size={categoryIconSize}
+          color={iconColor}
+        />
+      ),
+    },
+  ] as CategoryType[];
 
   useEffect(() => {
     companionStore.speak(
@@ -30,7 +74,11 @@ const GamesPage = () => {
     <SafeAreaView>
       <View className="flex h-full w-full flex-col justify-center">
         <View className="h-1/5">
-          <CategoryTabs />
+          <CategoryTabs
+            selectedCategory={selectedCategory}
+            categories={categories}
+            setCategory={setCategory}
+          />
         </View>
         <View className="m-auto flex h-2/5 flex-row content-center items-start justify-center">
           <MenuCard
@@ -42,9 +90,9 @@ const GamesPage = () => {
             height={cardHeight}
             icon={
               <MaterialIcons
-                name="videogame-asset"
+                name="videocam"
                 size={iconSize}
-                color="#5C5C5C"
+                color={iconColor}
               />
             }
           />
@@ -53,14 +101,19 @@ const GamesPage = () => {
             text="Che cos’è??"
             fontSize={fontSize}
             bgcolor="#C6D7F9"
-            path="/views/GamesPage"
+            path="/views/WhatsItPage"
+            params={{
+              pictograms: [{ _id: 100 }],
+              answer: "2000",
+              picture: "nop",
+            }}
             width={cardWidth}
             height={cardHeight}
             icon={
               <MaterialIcons
-                name="videogame-asset"
+                name="photo-camera"
                 size={iconSize}
-                color="#5C5C5C"
+                color={iconColor}
               />
             }
           />
@@ -74,9 +127,9 @@ const GamesPage = () => {
             height={cardHeight}
             icon={
               <MaterialIcons
-                name="videogame-asset"
+                name="library-books"
                 size={iconSize}
-                color="#5C5C5C"
+                color={iconColor}
               />
             }
           />
@@ -90,11 +143,7 @@ const GamesPage = () => {
             width={cardWidth}
             height={cardHeight}
             icon={
-              <MaterialIcons
-                name="videogame-asset"
-                size={iconSize}
-                color="#5C5C5C"
-              />
+              <MaterialIcons name="chat" size={iconSize} color={iconColor} />
             }
           />
           <View className="w-8" />
@@ -107,9 +156,9 @@ const GamesPage = () => {
             height={cardHeight}
             icon={
               <MaterialIcons
-                name="videogame-asset"
+                name="audiotrack"
                 size={iconSize}
-                color="#5C5C5C"
+                color={iconColor}
               />
             }
           />
@@ -118,6 +167,4 @@ const GamesPage = () => {
       <BottomIcons />
     </SafeAreaView>
   );
-};
-
-export default GamesPage;
+}

@@ -4,6 +4,19 @@ import { Image, Text, View } from "react-native";
 import { shadowStyle } from "../../src/utils/shadowStyle";
 import { useCompanionStore } from "../store/store";
 
+const textSizes = {
+  xs: "text-xs",
+  sm: "text-sm",
+  base: "text-base",
+  lg: "text-lg",
+  xl: "text-xl",
+  "2xl": "text-2xl",
+  "3xl": "text-3xl",
+  "4xl": "text-4xl",
+};
+
+type ObjectKey = keyof typeof textSizes;
+
 const Companion: React.FC = () => {
   const companionStore = useCompanionStore();
   const isVisible = companionStore.isVisible;
@@ -15,7 +28,8 @@ const Companion: React.FC = () => {
   //TODO Animated Avatar
   return (
     <View className="absolute bottom-4 right-4">
-      {text !== "" && (
+      {/* Bubble */}
+      {text !== "" && companionStore.bubbleOn && (
         <View
           style={shadowStyle.chatBubble}
           // If position isn't left it's top
@@ -24,14 +38,16 @@ const Companion: React.FC = () => {
           } flex flex-1 items-center justify-center rounded-full bg-slate-50 p-6`}
         >
           <Text
-            className={`font-text text-default text-center text-${textSize}`}
+            className={`font-text text-default text-center ${
+              textSizes[textSize as ObjectKey]
+            }`}
           >
             {text}
           </Text>
           {/* TODO BUBBLE ARROW*/}
         </View>
       )}
-
+      {/* Companion */}
       {isVisible && (
         <View
           className={`max-h-52 max-w-xs opacity-100 transition-all duration-200`}

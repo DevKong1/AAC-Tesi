@@ -16,7 +16,7 @@ const Index = () => {
   const cardHeight = "60%";
 
   useEffect(() => {
-    companionStore.speak("Benvenuto, Giacomo!", "4xl");
+    companionStore.speak("Benvenuto, Giacomo!", "3xl");
   }, []);
 
   //TODO RESPONSIVE
@@ -81,23 +81,3 @@ const Index = () => {
 };
 
 export default Index;
-
-{
-  /* OLD CODE TODO REMOVE
-<View className="flex w-full flex-col items-center justify-center py-6">
-{boards.length <= 0 ? (
-  <Text className="text-white">
-    Create a new board by tapping the button below...
-  </Text>
-) : (
-  <Text>Boards TODO</Text>
-)}
-</View>
-<TouchableOpacity
-className="w-full"
-onPress={() => router.push(`../views/board`)}
->
-<AddButton text="Add new board" />
-</TouchableOpacity>
-*/
-}

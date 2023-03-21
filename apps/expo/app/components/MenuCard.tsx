@@ -1,8 +1,6 @@
 import { type ReactNode } from "react";
 import { Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { type Href } from "expo-router/src/link/href";
-import { MaterialIcons } from "@expo/vector-icons";
 
 import { shadowStyle } from "../../src/utils/shadowStyle";
 
@@ -13,8 +11,9 @@ const MenuCard: React.FC<{
   bgcolor: string;
   height: string | number;
   width: string | number;
-  path: Href;
-}> = ({ text, icon, bgcolor, path, height, width, fontSize }) => {
+  path: string;
+  params?: object;
+}> = ({ text, icon, bgcolor, path, height, width, fontSize, params }) => {
   const router = useRouter();
 
   return (
@@ -28,9 +27,9 @@ const MenuCard: React.FC<{
         },
       ]}
       className="m-auto flex flex-col items-center justify-center rounded-[30px]"
-      onPress={() => router.push(path)}
+      onPress={() => router.push({ pathname: path, params })}
     >
-      <MaterialIcons>{icon}</MaterialIcons>
+      {icon}
       <Text
         style={{ fontSize: fontSize }}
         className={`text-default font-text pt-8 text-center`}
