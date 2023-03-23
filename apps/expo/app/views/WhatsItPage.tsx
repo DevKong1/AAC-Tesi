@@ -13,18 +13,21 @@ import { useCompanionStore } from "../store/store";
 
 async function fetchPictogram(id: number) {
   try {
+    console.log(id);
     const res = await fetch(
       `exp://26.114.23.199:19000/assets/pictograms/img_${id}`,
     );
     return res.blob();
   } catch (err) {
     console.log(err);
-    return undefined;
+    return null;
   }
 }
 
 export default function WhatsItPage() {
-  const [game, setGame] = useState({} as WhatsItGameProperties);
+  const [game, setGame] = useState({
+    pictograms: [{}],
+  } as WhatsItGameProperties);
   const companionStore = useCompanionStore();
 
   const fontSize = 32;
@@ -43,11 +46,12 @@ export default function WhatsItPage() {
   }, []);
 
   const userQueries = useQueries({
-    queries: game.pictograms?.map((pic) => {
+    queries: game.pictograms.map((pic) => {
       return {
         queryKey: ["pictograms", pic._id],
         queryFn: () => fetchPictogram(pic._id),
-        enabled: game.pictograms && game.pictograms.length > 0,
+        enabled: !!pic._id,
+        staleTime: Infinity,
       };
     }),
   });
