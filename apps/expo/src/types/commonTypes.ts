@@ -24,6 +24,7 @@ export type Pictogram = {
   created?: Date;
   lastUpdated?: Date;
   keywords?: keyword[];
+  image?: Blob;
 };
 
 export type Board = {
@@ -37,8 +38,9 @@ export type CategoryType = {
 };
 
 export type WhatsItGameProperties = {
+  id: string;
   pictograms: Pictogram[];
-  answer: string;
+  answer: number;
   //TODO
   picture: string;
 };

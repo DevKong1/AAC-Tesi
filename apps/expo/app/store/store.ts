@@ -11,6 +11,7 @@ interface CompanionState {
   position: string;
   volumeOn: boolean;
   bubbleOn: boolean;
+  reset: () => void;
   speak: (text: string, size?: string, position?: string) => Promise<void>;
   changeVolume: () => void;
   changeBubble: () => void;
@@ -24,6 +25,9 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   position: "left",
   volumeOn: true,
   bubbleOn: true,
+  reset: () => {
+    set({ currentText: "", textSize: "4xl", position: "left" });
+  },
   speak: async (text, size?, position?) => {
     if (
       size &&
@@ -38,14 +42,14 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
     set({ currentText: text });
     if (!get().volumeOn) {
       await sleep(5000);
-      set({ currentText: "", textSize: "4xl", position: "left" });
+      get().reset();
     } else {
       Speech.speak(text, {
         language: "it-IT",
         // TODO Is this ok (?)
         onDone: (async () => {
           await sleep(1000);
-          set({ currentText: "", textSize: "4xl", position: "left" });
+          get().reset();
           return;
         }) as () => void,
       });
