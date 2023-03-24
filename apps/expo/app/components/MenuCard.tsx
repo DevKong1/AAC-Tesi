@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 
-import { shadowStyle } from "../../src/utils/shadowStyle";
+import { shadowStyle } from "../utils/shadowStyle";
 
 const MenuCard: React.FC<{
   text: string;

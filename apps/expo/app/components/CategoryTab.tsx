@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-import { type CategoryType } from "../../src/types/commonTypes";
+import { type CategoryType } from "../utils/types/commonTypes";
 
 const CategoryTab: React.FC<{
   text: string;

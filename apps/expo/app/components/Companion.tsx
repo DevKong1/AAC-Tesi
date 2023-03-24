@@ -1,8 +1,8 @@
 import React from "react";
 import { Image, Text, View } from "react-native";
 
-import { shadowStyle } from "../../src/utils/shadowStyle";
 import { useCompanionStore } from "../store/store";
+import { shadowStyle } from "../utils/shadowStyle";
 
 const textSizes = {
   xs: "text-xs",

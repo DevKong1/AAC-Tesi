@@ -2,8 +2,8 @@ import { TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { shadowStyle } from "../../src/utils/shadowStyle";
 import { useCompanionStore } from "../store/store";
+import { shadowStyle } from "../utils/shadowStyle";
 
 const BottomIcons: React.FC = () => {
   const companionStore = useCompanionStore();

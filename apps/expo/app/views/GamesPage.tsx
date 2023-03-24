@@ -10,11 +10,11 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 
-import { type CategoryType } from "../../src/types/commonTypes";
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
 import MenuCard from "../components/MenuCard";
 import { useCompanionStore } from "../store/store";
+import { type CategoryType } from "../utils/types/commonTypes";
 
 export default function GamesPage() {
   const [selectedCategory, setCategory] = React.useState("Tutto");

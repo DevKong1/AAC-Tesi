@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 
-import { type Pictogram } from "../../src/types/commonTypes";
+import { type Pictogram } from "../utils/types/commonTypes";
 
 const PictogramCard: React.FC<{
   text: string;

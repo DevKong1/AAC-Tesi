@@ -3,7 +3,7 @@ import * as Crypto from "expo-crypto";
 import {
   Pictogram,
   type WhatsItGameProperties,
-} from "../../src/types/commonTypes";
+} from "../utils/types/commonTypes";
 
 // TODO Predicting it will be async
 export const generateWhatsItGame = async () => {
