@@ -1,4 +1,4 @@
-const pictograms = {
+const pictograms: {[key: number]: any} = {
   2239: require("../../assets/pictograms/img_2239.png"),
   2243: require("../../assets/pictograms/img_2243.png"),
   2242: require("../../assets/pictograms/img_2242.png"),

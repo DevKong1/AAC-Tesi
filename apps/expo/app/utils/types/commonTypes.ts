@@ -23,8 +23,7 @@ export type Pictogram = {
   _id: number;
   created?: Date;
   lastUpdated?: Date;
-  keywords?: keyword[];
-  image?: Blob;
+  keywords: keyword[];
 };
 
 export type Board = {
@@ -41,6 +40,5 @@ export type WhatsItGameProperties = {
   id: string;
   pictograms: Pictogram[];
   answer: number;
-  //TODO
-  picture: string;
+  picture: any;
 };
