@@ -9,12 +9,18 @@ interface CompanionState {
   currentText: string;
   textSize: string;
   position: string;
+  bubblePosition: string;
   volumeOn: boolean;
   bubbleOn: boolean;
   reset: () => void;
-  speak: (text: string, size?: string, position?: string) => Promise<void>;
+  speak: (
+    text: string,
+    size?: string,
+    bubblePosition?: string,
+  ) => Promise<void>;
   changeVolume: () => void;
   changeBubble: () => void;
+  setPosition: (newPosition: string) => void;
 }
 
 export const useCompanionStore = create<CompanionState>((set, get) => ({
@@ -22,13 +28,14 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   currentMood: "",
   currentText: "",
   textSize: "4xl",
-  position: "left",
+  position: "default",
+  bubblePosition: "left",
   volumeOn: true,
   bubbleOn: true,
   reset: () => {
-    set({ currentText: "", textSize: "4xl", position: "left" });
+    set({ currentText: "", textSize: "4xl", bubblePosition: "left" });
   },
-  speak: async (text, size?, position?) => {
+  speak: async (text, size?, bubblePosition?) => {
     if (
       size &&
       // redundant but otherwise tailwind wont load the style
@@ -36,9 +43,10 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
     ) {
       set({ textSize: size });
     }
-    if (position && ["top", "left"].includes(position)) {
-      set({ position: position });
+    if (bubblePosition && ["top", "left"].includes(bubblePosition)) {
+      set({ bubblePosition: bubblePosition });
     }
+    Speech.stop();
     set({ currentText: text });
     if (!get().volumeOn) {
       await sleep(5000);
@@ -55,8 +63,16 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
       });
     }
   },
-  changeVolume: () => set({ volumeOn: !get().volumeOn }),
+  changeVolume: () => {
+    Speech.stop();
+    set({ currentText: "", volumeOn: !get().volumeOn });
+  },
   changeBubble: () => set({ bubbleOn: !get().bubbleOn }),
+  setPosition: (newPosition) => {
+    ["default", "gamesPage"].includes(newPosition)
+      ? set({ position: newPosition })
+      : null;
+  },
 }));
 /* interface BoardsState {
   boards: Board[];

@@ -18,10 +18,14 @@ const PictogramCard: React.FC<{
           backgroundColor: bgcolor,
         },
       ]}
-      className="m-auto flex h-full h-3/4 w-full w-3/4 flex-col items-center justify-center rounded-[30px]"
+      className="mx-auto flex h-full h-3/4 w-full w-3/4 flex-col items-center justify-center rounded-[30px]"
       onPress={() => onPress(pictogram._id)}
     >
-      <Image className="flex h-3/5 w-3/5" source={pictograms[pictogram._id]} />
+      <Image
+        style={{ resizeMode: "contain" }}
+        className="h-3/5 w-full"
+        source={pictograms[pictogram._id]}
+      />
       <Text
         style={{ fontSize: fontSize }}
         className={`text-default font-text w-5/6 text-center`}

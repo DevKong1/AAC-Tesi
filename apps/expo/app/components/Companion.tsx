@@ -24,17 +24,24 @@ const Companion: React.FC = () => {
   const text = companionStore.currentText;
   const textSize = companionStore.textSize;
   const position = companionStore.position;
+  const bubblePosition = companionStore.bubblePosition;
 
   //TODO Animated Avatar
   return (
-    <View className="absolute bottom-4 right-4">
+    <View
+      className={`absolute ${
+        position == "gamesPage" ? "right-[22%] bottom-2" : "bottom-4 right-4"
+      }`}
+    >
       {/* Bubble */}
       {text !== "" && companionStore.bubbleOn && (
         <View
           style={shadowStyle.chatBubble}
           // If position isn't left it's top
           className={`absolute ${
-            position === "left" ? "bottom-4 right-72" : "bottom-56 right-4"
+            bubblePosition === "left"
+              ? "bottom-4 right-72"
+              : "bottom-48 right-4"
           } flex flex-1 items-center justify-center rounded-full bg-slate-50 p-6`}
         >
           <Text
@@ -53,7 +60,7 @@ const Companion: React.FC = () => {
           className={`max-h-52 max-w-xs opacity-100 transition-all duration-200`}
         >
           <Image
-            className="m-auto h-52 w-64 object-scale-down"
+            className=" m-auto h-44 w-52 object-scale-down"
             alt="Avatar cartoonato di un'insegnante"
             source={require("../../assets/images/companion.png")}
           />

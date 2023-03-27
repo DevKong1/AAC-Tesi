@@ -38,6 +38,7 @@ export type CategoryType = {
 
 export type WhatsItGameProperties = {
   id: string;
+  text: string;
   pictograms: Pictogram[];
   answer: number;
   picture: any;

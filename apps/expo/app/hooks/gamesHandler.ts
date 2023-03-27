@@ -12,6 +12,7 @@ export const generateWhatsItGame = async () => {
   //TODO Implement
   return {
     id: Crypto.randomUUID(),
+    text: "Indovina cos'ha in mano il bambino!",
     pictograms: [
       (dictionary as Pictogram[]).find((el) => el._id == 2462),
       (dictionary as Pictogram[]).find((el) => el._id == 4918),

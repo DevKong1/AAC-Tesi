@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Image, Text, View } from "react-native";
+import { BackHandler, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import { generateWhatsItGame } from "../hooks/gamesHandler";
 import { useCompanionStore } from "../store/store";
+import { shadowStyle } from "../utils/shadowStyle";
 import {
   type Pictogram,
   type WhatsItGameProperties,
@@ -28,6 +30,7 @@ import {
   } */
 
 export default function WhatsItPage() {
+  const router = useRouter();
   const [game, setGame] = useState({
     pictograms: [] as Pictogram[],
   } as WhatsItGameProperties);
@@ -39,18 +42,32 @@ export default function WhatsItPage() {
     const generateGame = async () => {
       const game = await generateWhatsItGame();
 
+      companionStore.setPosition("gamesPage");
+      companionStore.speak(game.text, "3xl", "top");
       // set state with the result
       setGame(game);
     };
     generateGame().catch((err) => console.log(err));
-    companionStore.speak("A", "3xl");
+  }, []);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        companionStore.setPosition("default");
+        router.back();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   const playerGuess = (guess: number) => {
     return;
   };
 
-  /* 
+  /*  
     const userQueries = useQueries({
     queries: game.pictograms.map((pic) => {
       return {
@@ -65,28 +82,27 @@ export default function WhatsItPage() {
   return (
     <SafeAreaView>
       {game.pictograms && game.pictograms.length == 6 ? (
-        <View className="flex h-full w-full flex-col justify-center">
-          <View className="h-[10%] w-full flex-row justify-center">
-            <Text className="text-default pt-4 text-4xl font-semibold">
+        <View className=" flex h-full w-full flex-col justify-center">
+          <View className=" h-[7%] w-full flex-row justify-center">
+            <Text className="text-default text-4xl font-semibold">
               Inovina cosa c'è nell'immagine!
             </Text>
           </View>
-          <View className="flex h-[90%] w-full flex-col justify-center">
-            <View className="flex h-1/2 w-full flex-row justify-center">
+          <View className="flex h-[93%] w-full flex-col justify-center">
+            <View className="flex h-1/2 w-full flex-row">
               {game.pictograms.slice(0, 4).map((pic) => (
-                <View className="w-1/4">
+                <View className="m-auto w-1/4" key={pic._id}>
                   <PictogramCard
                     pictogram={pic}
                     fontSize={fontSize}
                     bgcolor="#C6D7F9"
                     onPress={playerGuess}
-                    key={pic._id}
                   />
                 </View>
               ))}
             </View>
-            <View className="mb-20 flex h-1/2 w-full flex-row justify-center">
-              <View className="h-full w-1/4">
+            <View className="flex h-1/2 w-full flex-row justify-center">
+              <View className="flex h-full w-1/4 items-start">
                 <PictogramCard
                   pictogram={game.pictograms[4]!}
                   fontSize={fontSize}
@@ -94,11 +110,20 @@ export default function WhatsItPage() {
                   onPress={playerGuess}
                 />
               </View>
-              <View className="w-1/2">
-                <Image
-                  className="h-full w-full object-contain"
-                  source={game.picture}
-                />
+              <View className="flex w-1/2 items-center justify-center pb-24">
+                <View
+                  style={shadowStyle.light}
+                  className="h-full w-full border border-transparent "
+                >
+                  <Image
+                    style={{
+                      backgroundColor: "white",
+                      resizeMode: "contain",
+                    }}
+                    className="h-full w-full"
+                    source={game.picture}
+                  />
+                </View>
               </View>
               <View className="w-1/4">
                 <PictogramCard
