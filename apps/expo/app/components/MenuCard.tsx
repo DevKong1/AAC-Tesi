@@ -1,6 +1,5 @@
 import { type ReactNode } from "react";
 import { Text, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
 
 import { shadowStyle } from "../utils/shadowStyle";
 
@@ -9,25 +8,18 @@ const MenuCard: React.FC<{
   fontSize: number;
   icon: ReactNode;
   bgcolor: string;
-  height: string | number;
-  width: string | number;
-  path: string;
-  params?: object;
-}> = ({ text, icon, bgcolor, path, height, width, fontSize, params }) => {
-  const router = useRouter();
-
+  onPress: () => void;
+}> = ({ text, icon, fontSize, bgcolor, onPress }) => {
   return (
     <TouchableOpacity
       style={[
         shadowStyle.light,
         {
           backgroundColor: bgcolor,
-          height: height,
-          width: width,
         },
       ]}
-      className="m-auto flex flex-col items-center justify-center rounded-[30px]"
-      onPress={() => router.push({ pathname: path, params })}
+      className="mx-auto flex h-full w-full flex-col items-center justify-center rounded-[30px]"
+      onPress={onPress}
     >
       {icon}
       <Text

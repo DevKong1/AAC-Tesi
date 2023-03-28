@@ -18,7 +18,7 @@ interface CompanionState {
     size?: string,
     bubblePosition?: string,
   ) => Promise<void>;
-  changeVolume: () => void;
+  changeVolume: () => Promise<void>;
   changeBubble: () => void;
   setPosition: (newPosition: string) => void;
 }
@@ -38,7 +38,7 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   speak: async (text, size?, bubblePosition?) => {
     if (
       size &&
-      // redundant but otherwise tailwind wont load the style
+      // Redundant but otherwise tailwind wont load the style
       ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl"].includes(size)
     ) {
       set({ textSize: size });
@@ -46,8 +46,9 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
     if (bubblePosition && ["top", "left"].includes(bubblePosition)) {
       set({ bubblePosition: bubblePosition });
     }
-    Speech.stop();
+    await Speech.stop();
     set({ currentText: text });
+    // Just show bubble if no volume
     if (!get().volumeOn) {
       await sleep(5000);
       get().reset();
@@ -57,14 +58,15 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
         // TODO Is this ok (?)
         onDone: (async () => {
           await sleep(1000);
-          get().reset();
+          // We dont want to reset another text
+          if (!(await Speech.isSpeakingAsync())) get().reset();
           return;
         }) as () => void,
       });
     }
   },
-  changeVolume: () => {
-    Speech.stop();
+  changeVolume: async () => {
+    await Speech.stop();
     set({ currentText: "", volumeOn: !get().volumeOn });
   },
   changeBubble: () => set({ bubbleOn: !get().bubbleOn }),

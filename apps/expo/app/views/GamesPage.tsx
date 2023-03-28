@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import {
   AntDesign,
   Entypo,
@@ -17,6 +18,7 @@ import { useCompanionStore } from "../store/store";
 import { type CategoryType } from "../utils/types/commonTypes";
 
 export default function GamesPage() {
+  const router = useRouter();
   const [selectedCategory, setCategory] = React.useState("Tutto");
 
   const companionStore = useCompanionStore();
@@ -24,8 +26,6 @@ export default function GamesPage() {
   const iconSize = 130;
   const fontSize = 32;
   const iconColor = "#5C5C5C";
-  const cardWidth = "25%";
-  const cardHeight = "80%";
   const categoryIconSize = 28;
   const categories = [
     {
@@ -80,88 +80,83 @@ export default function GamesPage() {
             setCategory={setCategory}
           />
         </View>
-        <View className="m-auto flex h-2/5 flex-row content-center items-start justify-center">
-          <MenuCard
-            text="A parole tue!"
-            fontSize={fontSize}
-            bgcolor="#C6D7F9"
-            path="/views/GamesPage"
-            width={cardWidth}
-            height={cardHeight}
-            icon={
-              <MaterialIcons
-                name="videocam"
-                size={iconSize}
-                color={iconColor}
-              />
-            }
-          />
+        <View className="mx-auto flex h-2/5 flex-row items-center justify-center">
+          <View className="flex h-4/5 w-1/4">
+            <MenuCard
+              text="A parole tue!"
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={() => router.push("/views/GamesPage")}
+              icon={
+                <MaterialIcons
+                  name="videocam"
+                  size={iconSize}
+                  color={iconColor}
+                />
+              }
+            />
+          </View>
           <View className="w-8" />
-          <MenuCard
-            text="Che cos’è??"
-            fontSize={fontSize}
-            bgcolor="#C6D7F9"
-            path="/views/WhatsItPage"
-            params={{
-              pictograms: [{ _id: 100 }],
-              answer: "2000",
-              picture: "nop",
-            }}
-            width={cardWidth}
-            height={cardHeight}
-            icon={
-              <MaterialIcons
-                name="photo-camera"
-                size={iconSize}
-                color={iconColor}
-              />
-            }
-          />
+          <View className="flex h-4/5 w-1/4">
+            <MenuCard
+              text="Che cos’è??"
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={() => router.push("/views/WhatsItPage")}
+              icon={
+                <MaterialIcons
+                  name="photo-camera"
+                  size={iconSize}
+                  color={iconColor}
+                />
+              }
+            />
+          </View>
           <View className="w-8" />
-          <MenuCard
-            text="Crea una storia"
-            fontSize={fontSize}
-            bgcolor="#C6D7F9"
-            path="/views/GamesPage"
-            width={cardWidth}
-            height={cardHeight}
-            icon={
-              <MaterialIcons
-                name="library-books"
-                size={iconSize}
-                color={iconColor}
-              />
-            }
-          />
+          <View className="flex h-4/5 w-1/4">
+            <MenuCard
+              text="Crea una storia"
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={() => router.push("/views/GamesPage")}
+              icon={
+                <MaterialIcons
+                  name="library-books"
+                  size={iconSize}
+                  color={iconColor}
+                />
+              }
+            />
+          </View>
         </View>
-        <View className="m-auto flex h-2/5 flex-row content-center items-start justify-center">
-          <MenuCard
-            text="Quiz"
-            fontSize={fontSize}
-            bgcolor="#C6D7F9"
-            path="/views/GamesPage"
-            width={cardWidth}
-            height={cardHeight}
-            icon={
-              <MaterialIcons name="chat" size={iconSize} color={iconColor} />
-            }
-          />
+        <View className="mx-auto flex h-2/5 flex-row items-center justify-center">
+          <View className="flex h-4/5 w-1/4">
+            <MenuCard
+              text="Quiz"
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={() => router.push("/views/GamesPage")}
+              icon={
+                <MaterialIcons name="chat" size={iconSize} color={iconColor} />
+              }
+            />
+          </View>
           <View className="w-8" />
-          <MenuCard
-            text="Cosa senti?"
-            fontSize={fontSize}
-            bgcolor="#C6D7F9"
-            path="/views/GamesPage"
-            width={cardWidth}
-            height={cardHeight}
-            icon={
-              <MaterialIcons
-                name="audiotrack"
-                size={iconSize}
-                color={iconColor}
-              />
-            }
-          />
+          <View className="flex h-4/5 w-1/4">
+            <MenuCard
+              text="Cosa senti?"
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={() => router.push("/views/GamesPage")}
+              icon={
+                <MaterialIcons
+                  name="audiotrack"
+                  size={iconSize}
+                  color={iconColor}
+                />
+              }
+            />
+          </View>
         </View>
       </View>
       <BottomIcons />

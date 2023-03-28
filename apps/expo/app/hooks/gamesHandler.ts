@@ -1,10 +1,9 @@
 import * as Crypto from "expo-crypto";
 
 import dictionary from "../../assets/dictionaries/Dizionario_it.json";
-import pictograms from "../utils/pictograms";
-import {
+import type {
   Pictogram,
-  type WhatsItGameProperties,
+  WhatsItGameProperties,
 } from "../utils/types/commonTypes";
 
 // TODO Predicting it will be async
