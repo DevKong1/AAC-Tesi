@@ -53,7 +53,7 @@ const Index = () => {
               text="Leggiamo"
               fontSize={fontSize}
               bgcolor="#B9D2C3"
-              onPress={() => router.push("/views/board")}
+              onPress={() => router.push("/views/ReadingPage")}
               icon={
                 <MaterialIcons
                   name="menu-book"
@@ -69,7 +69,7 @@ const Index = () => {
               text="Parliamo"
               fontSize={fontSize}
               bgcolor="#EBDBD8"
-              onPress={() => router.push("/views/board")}
+              onPress={() => router.push("/views/TalkingPage")}
               icon={
                 <MaterialIcons
                   name="record-voice-over"

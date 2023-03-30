@@ -8,8 +8,9 @@ const PictogramCard: React.FC<{
   pictogram: Pictogram;
   fontSize: number;
   bgcolor: string;
-  onPress: (id: number) => void;
-}> = ({ pictogram, fontSize, bgcolor, onPress }) => {
+  onPress: (...args: any) => void;
+  args?: any;
+}> = ({ pictogram, fontSize, bgcolor, onPress, args }) => {
   return (
     <TouchableOpacity
       style={[
@@ -18,8 +19,8 @@ const PictogramCard: React.FC<{
           backgroundColor: bgcolor,
         },
       ]}
-      className="mx-auto flex h-3/4 w-3/4 flex-col items-center justify-center rounded-[30px]"
-      onPress={() => onPress(pictogram._id)}
+      className="mx-auto flex h-5/6 w-5/6  flex-col items-center justify-center rounded-[30px]"
+      onPress={() => onPress(args)}
     >
       <Image
         style={{ resizeMode: "contain" }}

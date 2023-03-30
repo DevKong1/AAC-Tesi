@@ -1,66 +1,24 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import {
-  AntDesign,
-  Entypo,
-  FontAwesome5,
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
 import MenuCard from "../components/MenuCard";
 import { useCompanionStore } from "../store/store";
-import { type CategoryType } from "../utils/types/commonTypes";
+import categories from "../utils/categories";
 
 export default function GamesPage() {
   const router = useRouter();
-  const [selectedCategory, setCategory] = React.useState("Tutto");
+  const [selectedCategory, setCategory] = useState("Tutto");
 
   const companionStore = useCompanionStore();
 
   const iconSize = 130;
   const fontSize = 32;
   const iconColor = "#5C5C5C";
-  const categoryIconSize = 28;
-  const categories = [
-    {
-      text: "Tutto",
-      icon: (
-        <Ionicons name="infinite" size={categoryIconSize} color={iconColor} />
-      ),
-    },
-    {
-      text: "Frutta",
-      icon: (
-        <AntDesign name="apple1" size={categoryIconSize} color={iconColor} />
-      ),
-    },
-    {
-      text: "Animali",
-      icon: (
-        <FontAwesome5 name="cat" size={categoryIconSize} color={iconColor} />
-      ),
-    },
-    {
-      text: "Oggetti",
-      icon: <Entypo name="pencil" size={categoryIconSize} color={iconColor} />,
-    },
-    {
-      text: "Azioni",
-      icon: (
-        <MaterialCommunityIcons
-          name="hand-wave"
-          size={categoryIconSize}
-          color={iconColor}
-        />
-      ),
-    },
-  ] as CategoryType[];
 
   useEffect(() => {
     companionStore.speak(

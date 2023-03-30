@@ -70,14 +70,14 @@ export default function WhatsItPage() {
     return () => backHandler.remove();
   }, []);
 
-  const playerGuess = (guess: number) => {
+  const playerGuess = (guess: Pictogram) => {
     companionStore.setPosition("default");
     companionStore.speak(
-      guess == game.answer
+      guess._id == game.answer
         ? "Yaaay!\nHai indovinato!"
         : "Purtroppo non era la risposta giusta!",
     );
-    setGuess(guess);
+    setGuess(guess._id);
   };
 
   /*   
@@ -203,23 +203,25 @@ export default function WhatsItPage() {
         <View className="flex h-[93%] w-full flex-col justify-center">
           <View className="flex h-1/2 w-full flex-row">
             {game.pictograms.slice(0, 4).map((pic) => (
-              <View className="m-auto w-1/4" key={pic._id}>
+              <View className="m-auto h-[90%] w-1/4" key={pic._id}>
                 <PictogramCard
                   pictogram={pic}
                   fontSize={fontSize}
                   bgcolor="#C6D7F9"
                   onPress={playerGuess}
+                  args={pic}
                 />
               </View>
             ))}
           </View>
           <View className="flex h-1/2 w-full flex-row justify-center">
-            <View className="flex h-full w-1/4 items-start">
+            <View className="flex h-[90%] w-1/4 items-start">
               <PictogramCard
                 pictogram={game.pictograms[4]!}
                 fontSize={fontSize}
                 bgcolor="#C6D7F9"
                 onPress={playerGuess}
+                args={game.pictograms[4]!}
               />
             </View>
             <View className="flex w-1/2 items-center justify-center pb-24">
@@ -237,12 +239,13 @@ export default function WhatsItPage() {
                 />
               </View>
             </View>
-            <View className="w-1/4">
+            <View className="h-[90%] w-1/4">
               <PictogramCard
                 pictogram={game.pictograms[5]!}
                 fontSize={fontSize}
                 bgcolor="#C6D7F9"
                 onPress={playerGuess}
+                args={game.pictograms[5]!}
               />
             </View>
           </View>

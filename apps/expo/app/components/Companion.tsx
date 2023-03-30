@@ -29,8 +29,8 @@ const Companion: React.FC = () => {
   //TODO Animated Avatar
   return (
     <View
-      className={`absolute ${
-        position == "gamesPage" ? "right-[22%] bottom-2" : "bottom-4 right-4"
+      className={`absolute bottom-0 ${
+        position == "gamesPage" ? "right-[22%]" : "right-4"
       }`}
     >
       {/* Bubble */}
@@ -60,7 +60,7 @@ const Companion: React.FC = () => {
           className={`max-h-52 max-w-xs opacity-100 transition-all duration-200`}
         >
           <Image
-            className=" m-auto h-44 w-52 object-scale-down"
+            className="m-auto h-44 w-52"
             alt="Avatar cartoonato di un'insegnante"
             source={require("../../assets/images/companion.png")}
           />
