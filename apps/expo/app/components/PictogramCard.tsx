@@ -25,7 +25,8 @@ const PictogramCard: React.FC<{
       <Image
         style={{ resizeMode: "contain" }}
         className="h-3/5 w-full"
-        source={pictograms[pictogram._id]}
+        //TODO ONLY FOR DEBUG
+        source={pictograms[2239]}
       />
       <Text
         style={{ fontSize: fontSize }}

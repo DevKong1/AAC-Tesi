@@ -21,6 +21,7 @@ interface CompanionState {
   changeVolume: () => Promise<void>;
   changeBubble: () => void;
   setPosition: (newPosition: string) => void;
+  setVisible: (value: boolean) => void;
 }
 
 export const useCompanionStore = create<CompanionState>((set, get) => ({
@@ -36,6 +37,7 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
     set({ currentText: "", textSize: "4xl", bubblePosition: "left" });
   },
   speak: async (text, size?, bubblePosition?) => {
+    if (!get().isVisible) return;
     if (
       size &&
       // Redundant but otherwise tailwind wont load the style
@@ -75,6 +77,7 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
       ? set({ position: newPosition })
       : null;
   },
+  setVisible: (value) => set({ isVisible: value }),
 }));
 /* interface BoardsState {
   boards: Board[];

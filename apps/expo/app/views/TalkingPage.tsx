@@ -1,5 +1,8 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Dimensions, Text, View } from "react-native";
+import Carousel, {
+  type ICarouselInstance,
+} from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -10,9 +13,11 @@ import PictogramCard from "../components/PictogramCard";
 import { getPictograms } from "../hooks/talkingHandler";
 import { useCompanionStore } from "../store/store";
 import categories from "../utils/categories";
-import { Pictogram } from "../utils/types/commonTypes";
+import { type Pictogram } from "../utils/types/commonTypes";
 
 export default function TalkingPage() {
+  const r = useRef<ICarouselInstance>(null);
+  const { width, height } = Dimensions.get("window");
   const companionStore = useCompanionStore();
   const [selectedCategory, selectCategory] = useState(categories[0]!.text);
   const [pictograms, setPictograms] = useState([] as Pictogram[]);
@@ -23,6 +28,12 @@ export default function TalkingPage() {
   const addPictogram = (pressed: Pictogram) => {
     if (pressed.keywords[0]) companionStore.speak(pressed.keywords[0].keyword);
     selectPictograms((old) => [...old, pressed]);
+    console.log(r.current?.getCurrentIndex(), selectedPictograms.length);
+    r.current?.scrollTo({
+      index: selectedPictograms.length,
+      animated: true,
+      onFinished: () => console.log(r.current?.getCurrentIndex()),
+    });
   };
 
   const removePictogram = (index: number) => {
@@ -30,6 +41,12 @@ export default function TalkingPage() {
       ...old.slice(0, index),
       ...old.slice(index + 1),
     ]);
+    console.log(r.current?.getCurrentIndex(), selectedPictograms.length);
+    r.current?.scrollTo({
+      index: selectedPictograms.length - 1,
+      animated: true,
+      onFinished: () => console.log(r.current?.getCurrentIndex()),
+    });
   };
 
   const listView = () => {
@@ -37,7 +54,11 @@ export default function TalkingPage() {
   };
 
   const loadPictograms = async () => {
-    const loadedPictograms = await getPictograms();
+    const loadedPictograms = await getPictograms(
+      undefined,
+      undefined,
+      selectedCategory,
+    );
     setPictograms(loadedPictograms);
   };
 
@@ -56,18 +77,31 @@ export default function TalkingPage() {
         {selectedPictograms.length > 0 ? (
           <View className="flex h-full w-full flex-row items-center justify-center">
             <View></View>
-            <View className="flex h-full grow flex-row items-center justify-center">
-              {selectedPictograms.map((el, index) => (
-                <View key={index} className="flex h-full w-52">
+            <View className="flex h-full w-[90%] flex-row items-center justify-center">
+              <Carousel
+                ref={r}
+                loop={false}
+                pagingEnabled={true}
+                style={{
+                  width: width * 0.9,
+                  height: height * 0.2,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                width={208}
+                height={height * 0.2}
+                data={selectedPictograms}
+                scrollAnimationDuration={1000}
+                renderItem={(el) => (
                   <PictogramCard
-                    pictogram={el}
+                    pictogram={el.item}
                     fontSize={fontSize}
                     bgcolor="#C6D7F9"
                     onPress={removePictogram}
-                    args={index}
+                    args={el.index}
                   />
-                </View>
-              ))}
+                )}
+              />
             </View>
             <View></View>
           </View>
