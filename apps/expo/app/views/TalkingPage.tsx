@@ -37,16 +37,18 @@ export default function TalkingPage() {
   };
 
   const removePictogram = (index: number) => {
+    const current = r.current!.getCurrentIndex();
     selectPictograms((old) => [
       ...old.slice(0, index),
       ...old.slice(index + 1),
     ]);
-    console.log(r.current?.getCurrentIndex(), selectedPictograms.length);
-    r.current?.scrollTo({
-      index: selectedPictograms.length - 1,
-      animated: true,
-      onFinished: () => console.log(r.current?.getCurrentIndex()),
-    });
+    // Scroll only if we remove an element before the selected
+    if (index <= current) {
+      r.current?.scrollTo({
+        index: current - 1,
+        animated: true,
+      });
+    }
   };
 
   const listView = () => {
