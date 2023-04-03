@@ -12,6 +12,17 @@ export const shadowStyle = StyleSheet.create({
 
     elevation: 5,
   },
+  heavy: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 3.84,
+
+    elevation: 10,
+  },
   chatBubble: {
     //iOS
     shadowColor: "#000",

@@ -45,7 +45,7 @@ const Companion: React.FC = () => {
           } flex flex-1 items-center justify-center rounded-full bg-slate-50 p-6`}
         >
           <Text
-            className={`font-text text-default text-center ${
+            className={`font-text text-default py-4 text-center ${
               textSizes[textSize as ObjectKey]
             }`}
           >

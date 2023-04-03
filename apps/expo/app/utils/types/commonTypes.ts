@@ -43,3 +43,15 @@ export type WhatsItGameProperties = {
   answer: number;
   picture: any;
 };
+
+export type Book = {
+  id: string;
+  title: string;
+  cover: any;
+  pages: Pictogram[][];
+};
+
+export type BookSettings = {
+  columns: number;
+  rows: number;
+};

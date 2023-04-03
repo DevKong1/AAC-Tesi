@@ -3,7 +3,7 @@ import { TouchableOpacity } from "react-native";
 
 import { shadowStyle } from "../utils/shadowStyle";
 
-const ListButton: React.FC<{
+const IconButton: React.FC<{
   icon: ReactNode;
   color: string;
   onPress: () => void;
@@ -19,4 +19,4 @@ const ListButton: React.FC<{
   );
 };
 
-export default ListButton;
+export default IconButton;
