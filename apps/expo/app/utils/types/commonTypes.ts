@@ -48,7 +48,7 @@ export type Book = {
   id: string;
   title: string;
   cover: any;
-  pages: Pictogram[][];
+  pictograms: Pictogram[];
 };
 
 export type BookSettings = {

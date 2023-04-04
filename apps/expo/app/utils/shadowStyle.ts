@@ -41,4 +41,15 @@ export const shadowStyle = StyleSheet.create({
     textShadowRadius: 5,
     textShadowOffset: { width: 0, height: 2 },
   },
+  whiteShadow: {
+    shadowColor: "#FFF",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 3.84,
+
+    elevation: 10,
+  },
 });
