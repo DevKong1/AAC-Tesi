@@ -22,7 +22,6 @@ const Companion: React.FC = () => {
   const isVisible = companionStore.isVisible;
   const mood = companionStore.currentMood;
   const text = companionStore.currentText;
-  const textSize = companionStore.textSize;
   const position = companionStore.position;
   const bubblePosition = companionStore.bubblePosition;
 
@@ -30,7 +29,7 @@ const Companion: React.FC = () => {
   return (
     <View
       className={`absolute bottom-0 ${
-        position == "gamesPage" ? "right-[22%]" : "right-4"
+        position == "gamesPage" ? "right-[22%]" : "right-2 lg:right-4"
       }`}
     >
       {/* Bubble */}
@@ -40,14 +39,12 @@ const Companion: React.FC = () => {
           // If position isn't left it's top
           className={`absolute ${
             bubblePosition === "left"
-              ? "bottom-4 right-72"
-              : "bottom-48 right-4"
+              ? "bottom-4 right-36 lg:right-72"
+              : "bottom-36 right-4 lg:bottom-48"
           } flex flex-1 items-center justify-center rounded-full bg-slate-50 p-6`}
         >
           <Text
-            className={`font-text text-default py-4 text-center ${
-              textSizes[textSize as ObjectKey]
-            }`}
+            className={`font-text text-default py-4 text-center text-base lg:text-3xl`}
           >
             {text}
           </Text>
@@ -57,10 +54,11 @@ const Companion: React.FC = () => {
       {/* Companion */}
       {isVisible && (
         <View
-          className={`max-h-52 max-w-xs opacity-100 transition-all duration-200`}
+          className={`h-36 w-36 opacity-100 transition-all duration-200 lg:h-44 lg:w-52`}
         >
           <Image
-            className="m-auto h-44 w-52"
+            style={{ resizeMode: "contain" }}
+            className="h-full w-full"
             alt="Avatar cartoonato di un'insegnante"
             source={require("../../assets/images/companion.png")}
           />

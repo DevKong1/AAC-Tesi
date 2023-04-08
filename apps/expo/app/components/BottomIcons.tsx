@@ -3,12 +3,13 @@ import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useCompanionStore } from "../store/store";
+import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 
 const BottomIcons: React.FC = () => {
   const companionStore = useCompanionStore();
   const router = useRouter();
-  const iconSize = 60;
+  const iconSize = isDeviceLarge() ? 60 : 36;
   const iconColor = "#5C5C5C";
 
   return (

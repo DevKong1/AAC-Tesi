@@ -2,21 +2,23 @@ import React, { useEffect } from "react";
 import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
 
+import dictionary from "../assets/dictionaries/Dizionario_it.json";
 import BottomIcons from "./components/BottomIcons";
-import MenuCard from "./components/MenuCard";
+import PictogramCard from "./components/PictogramCard";
 import { useCompanionStore } from "./store/store";
+import { isDeviceLarge } from "./utils/commonFunctions";
+import { type Pictogram } from "./utils/types/commonTypes";
 
 const Index = () => {
   const companionStore = useCompanionStore();
+  const dictionaryArray = dictionary as Pictogram[];
   const router = useRouter();
 
-  const iconSize = 160;
-  const fontSize = 42;
+  const fontSize = isDeviceLarge() ? 42 : 22;
 
   useEffect(() => {
-    companionStore.speak("Benvenuto, Giacomo!", "3xl");
+    companionStore.speak("Benvenuto, Giacomo!", isDeviceLarge() ? "3xl" : "lg");
   }, []);
 
   //TODO RESPONSIVE
@@ -24,59 +26,41 @@ const Index = () => {
     <SafeAreaView>
       <View className="flex h-full w-full p-4">
         <View className="flex flex-row">
-          <Text className="font-logo text-default pr-4 text-9xl">PictoAI</Text>
+          <Text className="font-logo text-default pr-4 text-4xl lg:text-9xl">
+            PictoAI
+          </Text>
           <Image
             source={require("../assets/images/logo.png")}
-            className="h-[98px] w-[98px]"
+            className=" h-10 w-10 lg:h-[98px] lg:w-[98px]"
             alt="University of Bologna Logo"
           />
         </View>
-        <View className="mx-auto flex flex-grow flex-row items-center justify-center pb-24">
-          <View className="flex h-3/5 w-[28%]">
-            <MenuCard
-              text="Giochiamo"
+        <View className="mx-auto flex flex-grow flex-row items-center justify-center">
+          <View className="flex h-[66%] w-[33%]">
+            <PictogramCard
+              pictogram={dictionaryArray.find((el) => (el._id = 23392))}
               fontSize={fontSize}
               bgcolor="#C6D7F9"
+              text="Giochiamo"
               onPress={() => router.push("/views/GamesPage")}
-              icon={
-                <MaterialIcons
-                  name="videogame-asset"
-                  size={iconSize}
-                  color="#5C5C5C"
-                />
-              }
             />
           </View>
-          <View className="w-8" />
-          <View className="flex h-3/5 w-[28%]">
-            <MenuCard
-              text="Leggiamo"
+          <View className="flex h-[66%] w-[33%]">
+            <PictogramCard
+              pictogram={dictionaryArray.find((el) => (el._id = 28643))}
               fontSize={fontSize}
               bgcolor="#B9D2C3"
+              text="Leggiamo"
               onPress={() => router.push("/views/ReadingPage")}
-              icon={
-                <MaterialIcons
-                  name="menu-book"
-                  size={iconSize}
-                  color="#5C5C5C"
-                />
-              }
             />
           </View>
-          <View className="w-8" />
-          <View className="flex h-3/5 w-[28%]">
-            <MenuCard
-              text="Parliamo"
+          <View className="flex h-[66%] w-[33%]">
+            <PictogramCard
+              pictogram={dictionaryArray.find((el) => (el._id = 28663))}
               fontSize={fontSize}
               bgcolor="#EBDBD8"
+              text="Parliamo"
               onPress={() => router.push("/views/TalkingPage")}
-              icon={
-                <MaterialIcons
-                  name="record-voice-over"
-                  size={iconSize}
-                  color="#5C5C5C"
-                />
-              }
             />
           </View>
         </View>

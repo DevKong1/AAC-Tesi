@@ -42,7 +42,7 @@ export default function ReadingPage() {
   const loadBooks = async () => {
     const books = await getBooks();
 
-    companionStore.speak("Leggiamo insieme un bel libro!", "3xl", "top");
+    companionStore.speak("Leggiamo insieme un bel libro!", "top");
     // set state with the result
     setBooks(books);
   };

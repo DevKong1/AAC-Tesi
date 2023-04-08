@@ -14,12 +14,14 @@ const CategoryTab: React.FC<{
     <TouchableOpacity
       onPress={() => setCategory(text)}
       style={{ width: width }}
-      className={`flex h-3/4 flex-col justify-center pt-5 align-middle ${
+      className={`flex h-3/4 flex-col justify-center align-middle lg:pt-5 ${
         isSelected ? "border-default border-b-2" : ""
       }`}
     >
       <View className="flex-row justify-center">
-        <Text className="font-text text-default pr-2 text-2xl">{text}</Text>
+        <Text className="font-text text-default pr-2 text-base lg:text-2xl">
+          {text}
+        </Text>
         {icon}
       </View>
     </TouchableOpacity>

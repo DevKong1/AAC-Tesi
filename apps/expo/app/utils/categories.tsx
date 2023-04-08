@@ -6,9 +6,10 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 
+import { isDeviceLarge } from "./commonFunctions";
 import { type CategoryType } from "./types/commonTypes";
 
-const categoryIconSize = 28;
+const categoryIconSize = isDeviceLarge() ? 28 : 20;
 const iconColor = "#5C5C5C";
 const categories: CategoryType[] = [
   {

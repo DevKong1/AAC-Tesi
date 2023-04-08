@@ -13,6 +13,7 @@ import PictogramCard from "../components/PictogramCard";
 import { getPictograms } from "../hooks/talkingHandler";
 import { useCompanionStore } from "../store/store";
 import categories from "../utils/categories";
+import { isDeviceLarge } from "../utils/commonFunctions";
 import { type Pictogram } from "../utils/types/commonTypes";
 
 export default function TalkingPage() {
@@ -23,7 +24,8 @@ export default function TalkingPage() {
   const [pictograms, setPictograms] = useState([] as Pictogram[]);
   const [selectedPictograms, selectPictograms] = useState([] as Pictogram[]);
 
-  const fontSize = 26;
+  const iconSize = isDeviceLarge() ? 64 : 32;
+  const fontSize = isDeviceLarge() ? 26 : 16;
 
   const addPictogram = (pressed: Pictogram) => {
     if (pressed.keywords[0]) companionStore.speak(pressed.keywords[0].keyword);
@@ -114,7 +116,7 @@ export default function TalkingPage() {
             </View>
           </View>
         ) : (
-          <Text className="text-default text-3xl font-semibold">
+          <Text className="text-default text-base font-semibold lg:text-3xl">
             Seleziona un pittogramma...
           </Text>
         )}
@@ -128,11 +130,13 @@ export default function TalkingPage() {
       </View>
       <View className="flex h-[50%] w-full flex-row">
         <View className="flex h-full w-[10%] items-center justify-center">
-          <View className="mb-20 flex h-1/2 w-2/3">
+          <View className="flex h-3/4 w-2/3 lg:mb-20 lg:h-1/2">
             <IconButton
               onPress={listView}
               color={"#A3B0B4"}
-              icon={<MaterialIcons name="list" size={64} color={"white"} />}
+              icon={
+                <MaterialIcons name="list" size={iconSize} color={"white"} />
+              }
             />
           </View>
         </View>
@@ -177,7 +181,9 @@ export default function TalkingPage() {
             <IconButton
               onPress={listView}
               color={"#E49691"}
-              icon={<MaterialIcons name="refresh" size={64} color={"white"} />}
+              icon={
+                <MaterialIcons name="refresh" size={iconSize} color={"white"} />
+              }
             />
           </View>
         </View>
@@ -187,7 +193,13 @@ export default function TalkingPage() {
           <IconButton
             onPress={readAll}
             color={"#89BF93"}
-            icon={<MaterialIcons name="play-arrow" size={64} color={"white"} />}
+            icon={
+              <MaterialIcons
+                name="play-arrow"
+                size={iconSize}
+                color={"white"}
+              />
+            }
           />
         </View>
         <View className="w-8"></View>
@@ -197,7 +209,9 @@ export default function TalkingPage() {
               selectPictograms([]);
             }}
             color={"#f05252"}
-            icon={<MaterialIcons name="clear" size={64} color={"white"} />}
+            icon={
+              <MaterialIcons name="clear" size={iconSize} color={"white"} />
+            }
           />
         </View>
       </View>

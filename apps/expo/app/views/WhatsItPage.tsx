@@ -4,11 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
+import dictionary from "../../assets/dictionaries/Dizionario_it.json";
 import BottomIcons from "../components/BottomIcons";
 import MenuCard from "../components/MenuCard";
 import PictogramCard from "../components/PictogramCard";
 import { generateWhatsItGame } from "../hooks/gamesHandler";
 import { useCompanionStore } from "../store/store";
+import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import {
   type Pictogram,
@@ -38,8 +40,9 @@ export default function WhatsItPage() {
   } as WhatsItGameProperties);
   const [guess, setGuess] = useState(undefined as number | undefined);
   const companionStore = useCompanionStore();
+  const dictionaryArray = dictionary as Pictogram[];
 
-  const fontSize = 26;
+  const fontSize = isDeviceLarge() ? 26 : 16;
   const iconSize = 160;
   const iconFontSize = 42;
 
@@ -47,7 +50,7 @@ export default function WhatsItPage() {
     const game = await generateWhatsItGame();
 
     companionStore.setPosition("gamesPage");
-    companionStore.speak(game.text, "3xl", "top");
+    companionStore.speak(game.text, "top");
     // set state with the result
     setGame(game);
   };
@@ -109,80 +112,65 @@ export default function WhatsItPage() {
   // Ended Game Screen
   if (guess) {
     return (
-      <SafeAreaView>
-        <View className="flex h-full w-full flex-col">
-          <View className="flex h-[40%] w-full flex-row justify-center">
-            <View
-              style={shadowStyle.light}
-              className="h-full w-1/2 border border-transparent"
-            >
-              <Image
-                style={{
-                  backgroundColor: "white",
-                  resizeMode: "contain",
-                }}
-                className="h-full w-full"
-                source={game.picture}
-              />
-            </View>
-            <View className="flex h-full w-1/4 flex-col items-center justify-center">
-              <Text className="text-default text-2xl font-semibold">
-                Risposta:
-              </Text>
-              <PictogramCard
-                pictogram={game.pictograms.find((el) => el._id == game.answer)!}
-                fontSize={fontSize}
-                bgcolor="#C6D7F9"
-                onPress={() => null}
-              />
-            </View>
+      <SafeAreaView className="flex h-full w-full flex-col">
+        <View className="flex h-[40%] w-full flex-row justify-center">
+          <View
+            style={shadowStyle.light}
+            className="h-full w-1/2 border border-transparent"
+          >
+            <Image
+              style={{
+                backgroundColor: "white",
+                resizeMode: "contain",
+              }}
+              className="h-full w-full"
+              source={game.picture}
+            />
           </View>
-          <View className="flex h-[60%] w-full flex-col justify-center pb-16">
-            <View className="flex h-1/4 w-full items-center justify-center">
-              <Text className="text-default text-3xl font-semibold">
-                {guess == game.answer
-                  ? "Complimenti hai indovinato!"
-                  : "Purtroppo non hai indovinato!"}
-              </Text>
+          <View className="flex h-full w-1/4 flex-col items-center justify-center">
+            <Text className="text-default text-base font-semibold lg:text-2xl">
+              Risposta:
+            </Text>
+            <PictogramCard
+              pictogram={game.pictograms.find((el) => el._id == game.answer)!}
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={() => null}
+            />
+          </View>
+        </View>
+        <View className=" flex h-[60%] w-full flex-col justify-center pb-4 lg:pb-16">
+          <View className="flex h-1/4 w-full items-center justify-center">
+            <Text className="text-default text-base font-semibold lg:text-3xl">
+              {guess == game.answer
+                ? "Complimenti hai indovinato!"
+                : "Purtroppo non hai indovinato!"}
+            </Text>
+          </View>
+          <View className=" flex h-3/4 w-full flex-row items-center justify-center">
+            <View className="flex h-full w-1/4 items-center justify-center">
+              <PictogramCard
+                pictogram={dictionaryArray.find((el) => (el._id = 37162))}
+                text="Gioca ancora"
+                fontSize={fontSize}
+                bgcolor="#FFFFCA"
+                onPress={async () => {
+                  await generateGame();
+                  setGuess(undefined);
+                }}
+              />
             </View>
-            <View className="flex h-3/4 w-full flex-row items-center justify-center ">
-              <View className="flex h-full w-1/4 items-center justify-center">
-                <MenuCard
-                  text="Gioca ancora"
-                  fontSize={iconFontSize}
-                  bgcolor="#FFFFCA"
-                  onPress={async () => {
-                    await generateGame();
-                    setGuess(undefined);
-                  }}
-                  icon={
-                    <MaterialIcons
-                      name="refresh"
-                      size={iconSize}
-                      color="#5C5C5C"
-                    />
-                  }
-                />
-              </View>
-              <View className="w-8" />
-              <View className="flex h-full w-1/4 items-center justify-center">
-                <MenuCard
-                  text="Esci"
-                  fontSize={iconFontSize}
-                  bgcolor="#F69898"
-                  onPress={() => {
-                    companionStore.setPosition("default");
-                    router.back();
-                  }}
-                  icon={
-                    <MaterialIcons
-                      name="clear"
-                      size={iconSize}
-                      color="#5C5C5C"
-                    />
-                  }
-                />
-              </View>
+            <View className="flex h-full w-1/4 items-center justify-center">
+              <PictogramCard
+                pictogram={dictionaryArray.find((el) => (el._id = 2806))}
+                text="Esci"
+                fontSize={fontSize}
+                bgcolor="#F69898"
+                onPress={() => {
+                  companionStore.setPosition("default");
+                  router.back();
+                }}
+              />
             </View>
           </View>
         </View>
@@ -196,7 +184,7 @@ export default function WhatsItPage() {
     <SafeAreaView>
       <View className="flex h-full w-full flex-col justify-center">
         <View className="h-[7%] w-full flex-row justify-center">
-          <Text className="text-default text-4xl font-semibold">
+          <Text className="text-default text-lg font-semibold lg:text-4xl">
             Inovina cosa c'è nell'immagine!
           </Text>
         </View>
@@ -215,7 +203,7 @@ export default function WhatsItPage() {
             ))}
           </View>
           <View className="flex h-1/2 w-full flex-row justify-center">
-            <View className="flex h-[90%] w-1/4 items-start">
+            <View className="flex h-full w-1/4 items-start">
               <PictogramCard
                 pictogram={game.pictograms[4]!}
                 fontSize={fontSize}
@@ -224,10 +212,10 @@ export default function WhatsItPage() {
                 args={game.pictograms[4]!}
               />
             </View>
-            <View className="flex w-1/2 items-center justify-center pb-24">
+            <View className=" flex w-1/2 items-center justify-center pb-6 lg:pb-24">
               <View
                 style={shadowStyle.light}
-                className="h-full w-full border border-transparent"
+                className="h-full w-5/6 border border-transparent lg:w-full"
               >
                 <Image
                   style={{
@@ -239,7 +227,7 @@ export default function WhatsItPage() {
                 />
               </View>
             </View>
-            <View className="h-[90%] w-1/4">
+            <View className="h-full w-1/4">
               <PictogramCard
                 pictogram={game.pictograms[5]!}
                 fontSize={fontSize}
@@ -251,7 +239,6 @@ export default function WhatsItPage() {
           </View>
         </View>
       </View>
-      <BottomIcons />
     </SafeAreaView>
   );
 }

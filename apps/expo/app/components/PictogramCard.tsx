@@ -5,12 +5,36 @@ import { shadowStyle } from "../utils/shadowStyle";
 import { type Pictogram } from "../utils/types/commonTypes";
 
 const PictogramCard: React.FC<{
-  pictogram: Pictogram;
+  pictogram: Pictogram | undefined;
+  text?: string;
   fontSize: number;
   bgcolor: string;
   onPress: (...args: any) => void;
   args?: any;
-}> = ({ pictogram, fontSize, bgcolor, onPress, args }) => {
+}> = ({ pictogram, text, fontSize, bgcolor, onPress, args }) => {
+  if (!pictogram) {
+    return (
+      <TouchableOpacity
+        style={[
+          shadowStyle.light,
+          {
+            backgroundColor: bgcolor,
+          },
+        ]}
+        className="mx-auto flex h-5/6 w-5/6  flex-col items-center justify-center rounded-[30px]"
+        onPress={() => onPress(args)}
+      >
+        <Text
+          style={{ fontSize: fontSize }}
+          className={`text-default font-text w-5/6 text-center`}
+        >
+          {/* TODO PASS WORD */}
+          {text ? text : "Undefined"}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <TouchableOpacity
       style={[
@@ -33,7 +57,9 @@ const PictogramCard: React.FC<{
         className={`text-default font-text w-5/6 text-center`}
       >
         {/* TODO PASS WORD */}
-        {pictogram.keywords.length > 0
+        {text
+          ? text
+          : pictogram.keywords.length > 0
           ? pictogram.keywords[0]!.keyword
           : "Undefined"}
       </Text>
