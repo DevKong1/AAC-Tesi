@@ -4,23 +4,9 @@ import { Image, Text, View } from "react-native";
 import { useCompanionStore } from "../store/store";
 import { shadowStyle } from "../utils/shadowStyle";
 
-const textSizes = {
-  xs: "text-xs",
-  sm: "text-sm",
-  base: "text-base",
-  lg: "text-lg",
-  xl: "text-xl",
-  "2xl": "text-2xl",
-  "3xl": "text-3xl",
-  "4xl": "text-4xl",
-};
-
-type ObjectKey = keyof typeof textSizes;
-
 const Companion: React.FC = () => {
   const companionStore = useCompanionStore();
   const isVisible = companionStore.isVisible;
-  const mood = companionStore.currentMood;
   const text = companionStore.currentText;
   const position = companionStore.position;
   const bubblePosition = companionStore.bubblePosition;

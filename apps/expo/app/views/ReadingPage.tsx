@@ -5,14 +5,7 @@ import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  AntDesign,
-  Entypo,
-  FontAwesome5,
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import BookCard from "../components/BookCard";
 import BottomIcons from "../components/BottomIcons";
@@ -20,6 +13,7 @@ import IconButton from "../components/IconButton";
 import PictogramCard from "../components/PictogramCard";
 import { getBooks } from "../hooks/booksHandler";
 import { useCompanionStore } from "../store/store";
+import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
 
@@ -32,8 +26,9 @@ export default function ReadingPage() {
   const [currentBook, setCurrentBook] = useState(undefined as Book | undefined);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const iconSize = 90;
-  const fontSize = 32;
+  const iconSize = isDeviceLarge() ? 90 : 42;
+  const fontSize = isDeviceLarge() ? 32 : 16;
+
   const iconColor = "#5C5C5C";
   // TODO Import reading settings
   const rows = 3;
@@ -51,19 +46,39 @@ export default function ReadingPage() {
     loadBooks().catch((err) => console.log(err));
   }, []);
 
+  const getCurrentPictograms = (row: number, col: number) => {
+    // We show pictograms based on user viewing preferences
+    return currentPage * rows * columns + columns * row + col;
+  };
+
+  const isNextPageEmpty = () => {
+    if (currentBook)
+      return (
+        currentBook!.pictograms.length < (currentPage + 1) * rows * columns
+      );
+    else return true;
+  };
+
   if (currentBook) {
     return (
       <SafeAreaView className="flex h-full w-full flex-row">
-        <View className="flex h-full w-[8%] flex-row items-center justify-center">
-          <View className="flex h-full w-[90%] items-center justify-center bg-[#e1ada3] pl-5">
-            <MaterialIcons
-              name="arrow-back-ios"
-              style={shadowStyle.whiteShadow}
-              size={iconSize}
-              color={iconColor}
-            />
+        <View className="flex h-full w-[8%] flex-row">
+          <View className="flex grow bg-[#e1ada3]">
+            <TouchableOpacity
+              className="ml-2 h-full w-full items-center justify-center"
+              onPress={() =>
+                currentPage > 0 ? setCurrentPage((el) => el - 1) : null
+              }
+            >
+              <MaterialIcons
+                name="arrow-back-ios"
+                style={shadowStyle.whiteShadow}
+                size={iconSize}
+                color={iconColor}
+              />
+            </TouchableOpacity>
           </View>
-          <View className="h-full w-[10%] bg-[#f0e1de]" />
+          <View className="flex h-full w-2 bg-[#f0e1de]" />
         </View>
         <View className="flex h-full w-[84%] flex-col">
           <View className="h-[75%] w-full">
@@ -81,13 +96,11 @@ export default function ReadingPage() {
                     style={{ width: `${(100 / columns).toFixed(0)}%` }}
                     className="flex h-full"
                   >
-                    {currentBook.pictograms[
-                      currentPage * rows * columns + columns * row + col
-                    ] ? (
+                    {currentBook.pictograms[getCurrentPictograms(row, col)] ? (
                       <PictogramCard
                         pictogram={
                           currentBook.pictograms[
-                            currentPage * rows * columns + columns * row + col
+                            getCurrentPictograms(row, col)
                           ]!
                         }
                         fontSize={fontSize}
@@ -103,7 +116,7 @@ export default function ReadingPage() {
 
           <View className="flex h-[25%] w-full flex-row items-center justify-center">
             <View className="h-full w-1/3 items-center justify-center">
-              <Text className="text-default text-2xl font-semibold">
+              <Text className="text-default text-base font-semibold lg:text-2xl">
                 Capitolo:
               </Text>
             </View>
@@ -115,7 +128,7 @@ export default function ReadingPage() {
                   icon={
                     <MaterialIcons
                       name="play-arrow"
-                      size={64}
+                      size={iconSize}
                       color={"white"}
                     />
                   }
@@ -125,15 +138,22 @@ export default function ReadingPage() {
             <View className="h-full w-1/3" />
           </View>
         </View>
-        <View className="flex h-full w-[8%] flex-row items-center justify-center">
-          <View className="h-full w-[10%] bg-[#e5ece8]" />
-          <View className="flex h-full w-[90%] items-center justify-center bg-[#bed4c6]">
-            <MaterialIcons
-              name="arrow-forward-ios"
-              style={shadowStyle.whiteShadow}
-              size={iconSize}
-              color={iconColor}
-            />
+        <View className="flex h-full w-[8%] flex-row">
+          <View className="h-full w-2 bg-[#e5ece8]" />
+          <View className="flex grow bg-[#bed4c6]">
+            <TouchableOpacity
+              className="h-full w-full items-center justify-center"
+              onPress={() => {
+                isNextPageEmpty() ? null : setCurrentPage((el) => el + 1);
+              }}
+            >
+              <MaterialIcons
+                name="arrow-forward-ios"
+                style={shadowStyle.whiteShadow}
+                size={iconSize}
+                color={iconColor}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
