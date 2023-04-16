@@ -36,7 +36,7 @@ const Index = () => {
           />
         </View>
         <View className="mx-auto flex flex-grow flex-row items-center justify-center">
-          <View className="flex h-[66%] w-[33%]">
+          <View className="flex h-[66%] w-[25%]">
             <PictogramCard
               pictogram={dictionaryArray.find((el) => (el._id = 23392))}
               fontSize={fontSize}
@@ -45,7 +45,7 @@ const Index = () => {
               onPress={() => router.push("/views/GamesPage")}
             />
           </View>
-          <View className="flex h-[66%] w-[33%]">
+          <View className="flex h-[66%] w-[25%]">
             <PictogramCard
               pictogram={dictionaryArray.find((el) => (el._id = 28643))}
               fontSize={fontSize}
@@ -54,13 +54,22 @@ const Index = () => {
               onPress={() => router.push("/views/ReadingPage")}
             />
           </View>
-          <View className="flex h-[66%] w-[33%]">
+          <View className="flex h-[66%] w-[25%]">
             <PictogramCard
               pictogram={dictionaryArray.find((el) => (el._id = 28663))}
               fontSize={fontSize}
               bgcolor="#EBDBD8"
               text="Parliamo"
               onPress={() => router.push("/views/TalkingPage")}
+            />
+          </View>
+          <View className="flex h-[66%] w-[25%]">
+            <PictogramCard
+              pictogram={dictionaryArray.find((el) => (el._id = 2359))}
+              fontSize={fontSize}
+              bgcolor="#D9D9FD"
+              text="Diario"
+              onPress={() => router.push("/views/DiaryPage")}
             />
           </View>
         </View>

@@ -55,3 +55,8 @@ export type BookSettings = {
   columns: number;
   rows: number;
 };
+
+export type DiaryPage = {
+  date: Date;
+  pictograms: Pictogram[];
+};
