@@ -85,7 +85,7 @@ export default function TalkingPage() {
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
-      <View className="flex h-[20%] w-full flex-row items-center justify-center">
+      <View className="flex h-[23%] w-full flex-row items-center justify-center">
         {selectedPictograms.length > 0 ? (
           <View className="flex h-full w-full flex-row items-center justify-center">
             <View className="flex h-full w-full items-center justify-center">
@@ -95,12 +95,12 @@ export default function TalkingPage() {
                 pagingEnabled={true}
                 style={{
                   width: width,
-                  height: height * 0.2,
+                  height: height * 0.23,
                   justifyContent: "center",
                   alignItems: "center",
                 }}
                 width={208}
-                height={height * 0.2}
+                height={height * 0.23}
                 data={selectedPictograms}
                 scrollAnimationDuration={1000}
                 renderItem={(el) => (
@@ -121,7 +121,7 @@ export default function TalkingPage() {
           </Text>
         )}
       </View>
-      <View className="flex h-[15%] w-full">
+      <View className="flex h-[12%] w-full">
         <CategoryTabs
           selectedCategory={selectedCategory}
           categories={categories}

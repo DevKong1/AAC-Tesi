@@ -37,7 +37,7 @@ export default function ReadingPage() {
   const loadBooks = async () => {
     const books = await getBooks();
 
-    companionStore.speak("Leggiamo insieme un bel libro!", "top");
+    companionStore.speak("Leggiamo insieme un bel libro!");
     // set state with the result
     setBooks(books);
   };
@@ -46,9 +46,20 @@ export default function ReadingPage() {
     loadBooks().catch((err) => console.log(err));
   }, []);
 
-  const getCurrentPictograms = (row: number, col: number) => {
+  const getPictogramIndex = (row: number, col: number) => {
     // We show pictograms based on user viewing preferences
     return currentPage * rows * columns + columns * row + col;
+  };
+
+  const getCurrentPictogramsText = () => {
+    if (currentBook) {
+      const start = currentPage * rows * columns;
+      const end = start + rows * columns;
+      return currentBook!.pictograms
+        .slice(start, end)
+        .flatMap((el) => (el.keywords[0] ? el.keywords[0].keyword : ""))
+        .join(" ");
+    } else return "";
   };
 
   const isNextPageEmpty = () => {
@@ -57,6 +68,10 @@ export default function ReadingPage() {
         currentBook!.pictograms.length < (currentPage + 1) * rows * columns
       );
     else return true;
+  };
+
+  const readAll = () => {
+    companionStore.speak(getCurrentPictogramsText());
   };
 
   if (currentBook) {
@@ -96,16 +111,24 @@ export default function ReadingPage() {
                     style={{ width: `${(100 / columns).toFixed(0)}%` }}
                     className="flex h-full"
                   >
-                    {currentBook.pictograms[getCurrentPictograms(row, col)] ? (
+                    {currentBook.pictograms[getPictogramIndex(row, col)] ? (
                       <PictogramCard
                         pictogram={
-                          currentBook.pictograms[
-                            getCurrentPictograms(row, col)
-                          ]!
+                          currentBook.pictograms[getPictogramIndex(row, col)]!
                         }
                         fontSize={fontSize}
                         bgcolor={"#B9D2C3"}
-                        onPress={() => null}
+                        onPress={() => {
+                          const current =
+                            currentBook.pictograms[
+                              getPictogramIndex(row, col)
+                            ]!;
+                          companionStore.speak(
+                            current.keywords[0]
+                              ? current.keywords[0].keyword
+                              : "",
+                          );
+                        }}
                       />
                     ) : null}
                   </View>
@@ -117,13 +140,13 @@ export default function ReadingPage() {
           <View className="flex h-[25%] w-full flex-row items-center justify-center">
             <View className="h-full w-1/3 items-center justify-center">
               <Text className="text-default text-base font-semibold lg:text-2xl">
-                Capitolo:
+                Pagina:
               </Text>
             </View>
             <View className="h-full w-1/3 items-center justify-center">
               <View className="h-2/3 w-1/2">
                 <IconButton
-                  onPress={() => null}
+                  onPress={readAll}
                   color={"#89BF93"}
                   icon={
                     <MaterialIcons
@@ -156,6 +179,7 @@ export default function ReadingPage() {
             </TouchableOpacity>
           </View>
         </View>
+        <BottomIcons />
       </SafeAreaView>
     );
   }

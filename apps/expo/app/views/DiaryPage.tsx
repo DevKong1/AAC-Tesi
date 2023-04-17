@@ -20,7 +20,9 @@ export default function ReadingPage() {
   const companionStore = useCompanionStore();
 
   const [pages, setPages] = useState([] as DiaryPage[]);
-  const [selectedPage, selectPage] = useState({} as DiaryPage);
+  const [selectedPage, selectPage] = useState(
+    undefined as DiaryPage | undefined,
+  );
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
