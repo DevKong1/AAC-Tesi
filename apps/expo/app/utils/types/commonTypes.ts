@@ -2,10 +2,10 @@ import { type ReactNode } from "react";
 
 export type keyword = {
   type: number;
-  meaning: string | null;
+  meaning?: string;
   keyword: string;
   hasLocution: boolean;
-  plural: string | null;
+  plural?: string;
 };
 
 export type Pictogram = {
@@ -18,11 +18,11 @@ export type Pictogram = {
   hair?: boolean;
   downloads?: number;
   categories?: string[];
-  synsets?: string;
+  synsets?: string[];
   tags?: string[];
   _id: number;
-  created?: Date;
-  lastUpdated?: Date;
+  created?: string;
+  lastUpdated?: string;
   keywords: keyword[];
 };
 

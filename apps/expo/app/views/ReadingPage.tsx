@@ -12,6 +12,7 @@ import BottomIcons from "../components/BottomIcons";
 import IconButton from "../components/IconButton";
 import PictogramCard from "../components/PictogramCard";
 import { getBooks } from "../hooks/booksHandler";
+import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
@@ -112,7 +113,7 @@ export default function ReadingPage() {
                     {currentBook.pictograms[getPictogramIndex(row, col)] ? (
                       <PictogramCard
                         pictogram={
-                          currentBook.pictograms[getPictogramIndex(row, col)]
+                          currentBook.pictograms[getPictogramIndex(row, col)]!
                         }
                         fontSize={fontSize}
                         bgcolor={"#B9D2C3"}
@@ -143,16 +144,11 @@ export default function ReadingPage() {
             </View>
             <View className="h-full w-1/3 items-center justify-center">
               <View className="h-2/3 w-1/2">
-                <IconButton
+                <PictogramCard
+                  pictogram={getPictogram(36257)}
+                  noCaption={true}
+                  bgcolor="#89BF93"
                   onPress={readAll}
-                  color={"#89BF93"}
-                  icon={
-                    <MaterialIcons
-                      name="play-arrow"
-                      size={iconSize}
-                      color={"white"}
-                    />
-                  }
                 />
               </View>
             </View>
