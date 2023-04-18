@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import { BackHandler, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
 
-import dictionary from "../../assets/dictionaries/Dizionario_it.json";
 import BottomIcons from "../components/BottomIcons";
-import MenuCard from "../components/MenuCard";
 import PictogramCard from "../components/PictogramCard";
 import { generateWhatsItGame } from "../hooks/gamesHandler";
+import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
@@ -40,11 +38,8 @@ export default function WhatsItPage() {
   } as WhatsItGameProperties);
   const [guess, setGuess] = useState(undefined as number | undefined);
   const companionStore = useCompanionStore();
-  const dictionaryArray = dictionary as Pictogram[];
 
   const fontSize = isDeviceLarge() ? 26 : 16;
-  const iconSize = 160;
-  const iconFontSize = 42;
 
   const generateGame = async () => {
     const game = await generateWhatsItGame();
@@ -150,7 +145,7 @@ export default function WhatsItPage() {
           <View className=" flex h-3/4 w-full flex-row items-center justify-center">
             <View className="flex h-full w-1/4 items-center justify-center">
               <PictogramCard
-                pictogram={dictionaryArray.find((el) => (el._id = 37162))}
+                pictogram={getPictogram(37162)}
                 text="Gioca ancora"
                 fontSize={fontSize}
                 bgcolor="#FFFFCA"
@@ -162,7 +157,7 @@ export default function WhatsItPage() {
             </View>
             <View className="flex h-full w-1/4 items-center justify-center">
               <PictogramCard
-                pictogram={dictionaryArray.find((el) => (el._id = 2806))}
+                pictogram={getPictogram(2806)}
                 text="Esci"
                 fontSize={fontSize}
                 bgcolor="#F69898"
@@ -181,61 +176,59 @@ export default function WhatsItPage() {
 
   // Main Game Screen
   return (
-    <SafeAreaView>
-      <View className="flex h-full w-full flex-col justify-center">
-        <View className="h-[7%] w-full flex-row justify-center">
-          <Text className="text-default text-lg font-semibold lg:text-4xl">
-            Inovina cosa c'è nell'immagine!
-          </Text>
+    <SafeAreaView className="flex h-full w-full flex-col justify-center">
+      <View className="h-[7%] w-full flex-row justify-center">
+        <Text className="text-default text-lg font-semibold lg:text-4xl">
+          Inovina cosa c'è nell'immagine!
+        </Text>
+      </View>
+      <View className="flex h-[93%] w-full flex-col justify-center">
+        <View className="flex h-1/2 w-full flex-row">
+          {game.pictograms.slice(0, 4).map((pic) => (
+            <View className="m-auto h-[90%] w-1/4" key={pic._id}>
+              <PictogramCard
+                pictogram={pic}
+                fontSize={fontSize}
+                bgcolor="#C6D7F9"
+                onPress={playerGuess}
+                args={pic}
+              />
+            </View>
+          ))}
         </View>
-        <View className="flex h-[93%] w-full flex-col justify-center">
-          <View className="flex h-1/2 w-full flex-row">
-            {game.pictograms.slice(0, 4).map((pic) => (
-              <View className="m-auto h-[90%] w-1/4" key={pic._id}>
-                <PictogramCard
-                  pictogram={pic}
-                  fontSize={fontSize}
-                  bgcolor="#C6D7F9"
-                  onPress={playerGuess}
-                  args={pic}
-                />
-              </View>
-            ))}
+        <View className="flex h-1/2 w-full flex-row justify-center">
+          <View className="flex h-full w-1/4 items-start">
+            <PictogramCard
+              pictogram={game.pictograms[4]!}
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={playerGuess}
+              args={game.pictograms[4]!}
+            />
           </View>
-          <View className="flex h-1/2 w-full flex-row justify-center">
-            <View className="flex h-full w-1/4 items-start">
-              <PictogramCard
-                pictogram={game.pictograms[4]!}
-                fontSize={fontSize}
-                bgcolor="#C6D7F9"
-                onPress={playerGuess}
-                args={game.pictograms[4]!}
+          <View className=" flex w-1/2 items-center justify-center pb-6 lg:pb-24">
+            <View
+              style={shadowStyle.light}
+              className="h-full w-5/6 border border-transparent lg:w-full"
+            >
+              <Image
+                style={{
+                  backgroundColor: "white",
+                  resizeMode: "contain",
+                }}
+                className="h-full w-full"
+                source={game.picture}
               />
             </View>
-            <View className=" flex w-1/2 items-center justify-center pb-6 lg:pb-24">
-              <View
-                style={shadowStyle.light}
-                className="h-full w-5/6 border border-transparent lg:w-full"
-              >
-                <Image
-                  style={{
-                    backgroundColor: "white",
-                    resizeMode: "contain",
-                  }}
-                  className="h-full w-full"
-                  source={game.picture}
-                />
-              </View>
-            </View>
-            <View className="h-full w-1/4">
-              <PictogramCard
-                pictogram={game.pictograms[5]!}
-                fontSize={fontSize}
-                bgcolor="#C6D7F9"
-                onPress={playerGuess}
-                args={game.pictograms[5]!}
-              />
-            </View>
+          </View>
+          <View className="h-full w-1/4">
+            <PictogramCard
+              pictogram={game.pictograms[5]!}
+              fontSize={fontSize}
+              bgcolor="#C6D7F9"
+              onPress={playerGuess}
+              args={game.pictograms[5]!}
+            />
           </View>
         </View>
       </View>

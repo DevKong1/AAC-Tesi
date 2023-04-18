@@ -2,21 +2,17 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
 
-import dictionary from "../../assets/dictionaries/Dizionario_it.json";
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
-import MenuCard from "../components/MenuCard";
 import PictogramCard from "../components/PictogramCard";
+import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore } from "../store/store";
 import categories from "../utils/categories";
 import { isDeviceLarge } from "../utils/commonFunctions";
-import { Pictogram } from "../utils/types/commonTypes";
 
 export default function GamesPage() {
   const router = useRouter();
-  const dictionaryArray = dictionary as Pictogram[];
   const [selectedCategory, setCategory] = useState("Tutto");
 
   const companionStore = useCompanionStore();
@@ -43,7 +39,7 @@ export default function GamesPage() {
         <View className="mx-auto flex h-4/5 flex-row items-center justify-center">
           <View className="flex h-4/5 w-1/4">
             <PictogramCard
-              pictogram={dictionaryArray.find((el) => (el._id = 2680))}
+              pictogram={getPictogram(2680)}
               fontSize={fontSize}
               bgcolor="#C6D7F9"
               text="Che cos’è??"

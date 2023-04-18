@@ -12,7 +12,11 @@ interface CompanionState {
   volumeOn: boolean;
   bubbleOn: boolean;
   reset: () => void;
-  speak: (text: string, bubblePosition?: string) => Promise<void>;
+  speak: (
+    text: string,
+    bubblePosition?: string,
+    onBoundary?: (e: any) => void,
+  ) => Promise<void>;
   changeVolume: () => Promise<void>;
   changeBubble: () => void;
   setPosition: (newPosition: string) => void;
@@ -30,7 +34,7 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   reset: () => {
     set({ currentText: "", bubblePosition: "left" });
   },
-  speak: async (text, bubblePosition?) => {
+  speak: async (text, bubblePosition?, onBoundary?) => {
     if (!get().isVisible) return;
 
     if (bubblePosition && ["top", "left"].includes(bubblePosition)) {
@@ -52,6 +56,7 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
           if (!(await Speech.isSpeakingAsync())) get().reset();
           return;
         }) as () => void,
+        onBoundary: onBoundary,
       });
     }
   },

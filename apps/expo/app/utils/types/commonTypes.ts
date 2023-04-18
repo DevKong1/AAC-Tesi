@@ -59,4 +59,5 @@ export type BookSettings = {
 export type DiaryPage = {
   date: Date;
   pictograms: Pictogram[];
+  isLast?: boolean;
 };

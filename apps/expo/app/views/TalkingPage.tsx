@@ -57,6 +57,10 @@ export default function TalkingPage() {
     if (selectedPictograms.length > 0) {
       companionStore.speak(
         selectedPictograms.flatMap((el) => el.keywords[0]?.keyword).join(" "),
+        undefined,
+        (e) => {
+          console.log(e);
+        },
       );
     }
   };

@@ -55,7 +55,7 @@ export default function ReadingPage() {
     if (currentBook) {
       const start = currentPage * rows * columns;
       const end = start + rows * columns;
-      return currentBook!.pictograms
+      return currentBook.pictograms
         .slice(start, end)
         .flatMap((el) => (el.keywords[0] ? el.keywords[0].keyword : ""))
         .join(" ");
@@ -64,9 +64,7 @@ export default function ReadingPage() {
 
   const isNextPageEmpty = () => {
     if (currentBook)
-      return (
-        currentBook!.pictograms.length < (currentPage + 1) * rows * columns
-      );
+      return currentBook.pictograms.length < (currentPage + 1) * rows * columns;
     else return true;
   };
 
@@ -114,7 +112,7 @@ export default function ReadingPage() {
                     {currentBook.pictograms[getPictogramIndex(row, col)] ? (
                       <PictogramCard
                         pictogram={
-                          currentBook.pictograms[getPictogramIndex(row, col)]!
+                          currentBook.pictograms[getPictogramIndex(row, col)]
                         }
                         fontSize={fontSize}
                         bgcolor={"#B9D2C3"}

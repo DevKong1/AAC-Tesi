@@ -1,5 +1,5 @@
-import dictionary from "../../assets/dictionaries/Dizionario_it.json";
 import type { Pictogram } from "../utils/types/commonTypes";
+import { getPictogram } from "./pictogramsHandler";
 
 // TODO Predicting it will be async
 export const getPictograms = async (
@@ -9,13 +9,13 @@ export const getPictograms = async (
 ) => {
   //TODO Implement
   return [
-    (dictionary as Pictogram[]).find((el) => el._id == 2617)!,
-    (dictionary as Pictogram[]).find((el) => el._id == 6625)!,
-    (dictionary as Pictogram[]).find((el) => el._id == 7271)!,
-    (dictionary as Pictogram[]).find((el) => el._id == 5441)!,
-    (dictionary as Pictogram[]).find((el) => el._id == 36719)!,
-    (dictionary as Pictogram[]).find((el) => el._id == 7764)!,
-    (dictionary as Pictogram[]).find((el) => el._id == 31859)!,
-    (dictionary as Pictogram[]).find((el) => el._id == 36480)!,
+    getPictogram(2617)!,
+    getPictogram(6625)!,
+    getPictogram(7271)!,
+    getPictogram(5441)!,
+    getPictogram(36719)!,
+    getPictogram(7764)!,
+    getPictogram(31859)!,
+    getPictogram(36480)!,
   ];
 };

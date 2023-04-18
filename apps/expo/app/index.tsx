@@ -3,16 +3,14 @@ import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
-import dictionary from "../assets/dictionaries/Dizionario_it.json";
 import BottomIcons from "./components/BottomIcons";
 import PictogramCard from "./components/PictogramCard";
+import { getPictogram } from "./hooks/pictogramsHandler";
 import { useCompanionStore } from "./store/store";
 import { isDeviceLarge } from "./utils/commonFunctions";
-import { type Pictogram } from "./utils/types/commonTypes";
 
 const Index = () => {
   const companionStore = useCompanionStore();
-  const dictionaryArray = dictionary as Pictogram[];
   const router = useRouter();
 
   const fontSize = isDeviceLarge() ? 42 : 22;
@@ -38,7 +36,7 @@ const Index = () => {
         <View className="mx-auto flex flex-grow flex-row items-center justify-center">
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={dictionaryArray.find((el) => (el._id = 23392))}
+              pictogram={getPictogram(23392)}
               fontSize={fontSize}
               bgcolor="#C6D7F9"
               text="Giochiamo"
@@ -47,7 +45,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={dictionaryArray.find((el) => (el._id = 28643))}
+              pictogram={getPictogram(28643)}
               fontSize={fontSize}
               bgcolor="#B9D2C3"
               text="Leggiamo"
@@ -56,7 +54,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={dictionaryArray.find((el) => (el._id = 28663))}
+              pictogram={getPictogram(28663)}
               fontSize={fontSize}
               bgcolor="#EBDBD8"
               text="Parliamo"
@@ -65,7 +63,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={dictionaryArray.find((el) => (el._id = 2359))}
+              pictogram={getPictogram(2359)}
               fontSize={fontSize}
               bgcolor="#D9D9FD"
               text="Diario"
