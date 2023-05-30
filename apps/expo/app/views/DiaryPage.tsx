@@ -26,7 +26,6 @@ export default function ReadingPage() {
   const loadPages = async () => {
     let loadedPage: DiaryPage | undefined = getPage(new Date());
     if (!loadedPage) loadedPage = { date: today, pictograms: [] } as DiaryPage;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     companionStore.speak("Guardiamo il tuo diario!");
     setPage(loadedPage);
   };

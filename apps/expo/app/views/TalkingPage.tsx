@@ -29,7 +29,6 @@ export default function TalkingPage() {
   const fontSize = isDeviceLarge() ? 26 : 16;
 
   const addPictogram = (pressed: Pictogram) => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     if (pressed.keywords[0]) companionStore.speak(pressed.keywords[0].keyword);
     selectPictograms((old) => [...old, pressed]);
 
@@ -58,7 +57,6 @@ export default function TalkingPage() {
 
   const readAll = () => {
     if (selectedPictograms.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       companionStore.speak(
         selectedPictograms.flatMap((el) => el.keywords[0]?.keyword).join(" "),
         undefined,
@@ -88,7 +86,6 @@ export default function TalkingPage() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     companionStore.speak("Scrivi qualcosa e lo leggerò per te!");
   }, []);
 

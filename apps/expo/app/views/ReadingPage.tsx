@@ -37,7 +37,6 @@ export default function ReadingPage() {
   const loadBooks = async () => {
     const books = await getBooks();
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     companionStore.speak("Leggiamo insieme un bel libro!");
     // set state with the result
     setBooks(books);
@@ -70,7 +69,6 @@ export default function ReadingPage() {
   };
 
   const readAll = () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     companionStore.speak(getCurrentPictogramsText());
   };
 
@@ -125,7 +123,6 @@ export default function ReadingPage() {
                             currentBook.pictograms[
                               getPictogramIndex(row, col)
                             ]!;
-                          // eslint-disable-next-line @typescript-eslint/no-floating-promises
                           companionStore.speak(
                             current.keywords[0]
                               ? current.keywords[0].keyword

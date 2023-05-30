@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { useEffect, useState } from "react";
 import { BackHandler, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -120,6 +121,7 @@ export default function WhatsItPage() {
               }}
               className="h-full w-full"
               source={game.picture}
+              alt="Immagine usata nel quiz"
             />
           </View>
           <View className="flex h-full w-1/4 flex-col items-center justify-center">
@@ -179,7 +181,7 @@ export default function WhatsItPage() {
     <SafeAreaView className="flex h-full w-full flex-col justify-center">
       <View className="h-[7%] w-full flex-row justify-center">
         <Text className="text-default text-lg font-semibold lg:text-4xl">
-          Inovina cosa c'è nell'immagine!
+          Indovina cosa c&apos;è nell&apos;immagine!
         </Text>
       </View>
       <View className="flex h-[93%] w-full flex-col justify-center">
@@ -218,6 +220,7 @@ export default function WhatsItPage() {
                 }}
                 className="h-full w-full"
                 source={game.picture}
+                alt="Immagine del quiz"
               />
             </View>
           </View>

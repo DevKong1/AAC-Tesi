@@ -1,9 +1,4 @@
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-} from "react-native";
+import { Image, Text, TouchableOpacity } from "react-native";
 
 import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
@@ -34,6 +29,7 @@ const PictogramCard: React.FC<{
         className={`${noCaption ? "h-full" : "h-[75%]"} w-full`}
         //TODO ONLY FOR DEBUG
         source={pictograms[2239]}
+        alt={`Pictogram associated to "${pictogram.keywords[0]?.keyword}"`}
       />
 
       {!noCaption && (
@@ -47,7 +43,7 @@ const PictogramCard: React.FC<{
           {text
             ? text
             : pictogram.keywords.length > 0
-            ? pictogram.keywords[0]!.keyword
+            ? pictogram.keywords[0]?.keyword
             : "Undefined"}
         </Text>
       )}

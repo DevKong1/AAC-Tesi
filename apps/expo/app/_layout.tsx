@@ -22,6 +22,7 @@ const RootLayout = () => {
     async function prepare() {
       try {
         // Pre-load fonts, make any API calls you need to do here
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         await useFonts();
       } catch (e) {
         console.warn(e);

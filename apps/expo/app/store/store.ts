@@ -1,4 +1,3 @@
-import * as FileSystem from "expo-file-system";
 import * as Speech from "expo-speech";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";

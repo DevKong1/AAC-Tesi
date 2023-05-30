@@ -4,6 +4,7 @@ import type { WhatsItGameProperties } from "../utils/types/commonTypes";
 import { getPictogram } from "./pictogramsHandler";
 
 // TODO Predicting it will be async
+// eslint-disable-next-line @typescript-eslint/require-await
 export const generateWhatsItGame = async () => {
   //TODO Implement
   return {
