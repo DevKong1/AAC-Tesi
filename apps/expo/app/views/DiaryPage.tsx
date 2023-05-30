@@ -1,35 +1,32 @@
-import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Dimensions, Text, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import Carousel, {
-  type ICarouselInstance,
-} from "react-native-reanimated-carousel";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Text, View } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import BottomIcons from "../components/BottomIcons";
-import IconButton from "../components/IconButton";
 import PictogramCard from "../components/PictogramCard";
-import { getPage } from "../hooks/diaryHandler";
+import { getPage, isLast } from "../hooks/diaryHandler";
+import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
-import { Pictogram, type DiaryPage } from "../utils/types/commonTypes";
+import { type DiaryPage } from "../utils/types/commonTypes";
 
 export default function ReadingPage() {
   const companionStore = useCompanionStore();
   const today = new Date();
-  const lastDate: Date | undefined = undefined;
 
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
-  const fontSize = isDeviceLarge() ? 32 : 16;
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   const loadPages = async () => {
-    let loadedPage: DiaryPage | undefined = await getPage(new Date());
+    let loadedPage: DiaryPage | undefined = getPage(new Date());
     if (!loadedPage) loadedPage = { date: today, pictograms: [] } as DiaryPage;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     companionStore.speak("Guardiamo il tuo diario!");
     setPage(loadedPage);
   };
@@ -46,6 +43,10 @@ export default function ReadingPage() {
         <Text className="text-default py-4 text-xs">Caricamento...</Text>
       </SafeAreaView>
     );
+
+  function addParagraph(): void {
+    console.log("Function not implemented.");
+  }
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
@@ -77,7 +78,7 @@ export default function ReadingPage() {
           </TouchableOpacity>
         </View>
         <View className="flex h-full w-[8%] items-end justify-center">
-          {!currentPage.isLast && (
+          {!isLast(currentPage.date) && (
             <TouchableOpacity className="h-full w-full justify-center">
               <MaterialIcons
                 name="arrow-forward-ios"
@@ -88,6 +89,20 @@ export default function ReadingPage() {
           )}
         </View>
       </View>
+      <ScrollView className="flex h-[85%] w-full">
+        <View
+          className={`flex ${
+            isDeviceLarge() ? "h-64 w-64" : "h-32 w-32"
+          } items-center justify-center`}
+        >
+          <PictogramCard
+            pictogram={getPictogram(38218)}
+            text="Nuova riga"
+            bgcolor="#89BF93"
+            onPress={addParagraph}
+          />
+        </View>
+      </ScrollView>
       <BottomIcons />
     </SafeAreaView>
   );

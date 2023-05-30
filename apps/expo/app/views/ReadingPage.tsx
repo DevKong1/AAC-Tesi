@@ -9,7 +9,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import BookCard from "../components/BookCard";
 import BottomIcons from "../components/BottomIcons";
-import IconButton from "../components/IconButton";
 import PictogramCard from "../components/PictogramCard";
 import { getBooks } from "../hooks/booksHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
@@ -38,6 +37,7 @@ export default function ReadingPage() {
   const loadBooks = async () => {
     const books = await getBooks();
 
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     companionStore.speak("Leggiamo insieme un bel libro!");
     // set state with the result
     setBooks(books);
@@ -48,7 +48,7 @@ export default function ReadingPage() {
   }, []);
 
   const getPictogramIndex = (row: number, col: number) => {
-    // We show pictograms based on user viewing preferences
+    // We sum the index of the first pictogram in the page to the number of pictograms in each row before
     return currentPage * rows * columns + columns * row + col;
   };
 
@@ -70,6 +70,7 @@ export default function ReadingPage() {
   };
 
   const readAll = () => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     companionStore.speak(getCurrentPictogramsText());
   };
 
@@ -113,15 +114,18 @@ export default function ReadingPage() {
                     {currentBook.pictograms[getPictogramIndex(row, col)] ? (
                       <PictogramCard
                         pictogram={
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           currentBook.pictograms[getPictogramIndex(row, col)]!
                         }
                         fontSize={fontSize}
                         bgcolor={"#B9D2C3"}
                         onPress={() => {
                           const current =
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                             currentBook.pictograms[
                               getPictogramIndex(row, col)
                             ]!;
+                          // eslint-disable-next-line @typescript-eslint/no-floating-promises
                           companionStore.speak(
                             current.keywords[0]
                               ? current.keywords[0].keyword

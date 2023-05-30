@@ -3,6 +3,7 @@ import * as Crypto from "expo-crypto";
 import { type Book } from "../utils/types/commonTypes";
 import { getPictogram } from "./pictogramsHandler";
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export const getBooks = async () => {
   //TODO Implement
   return [

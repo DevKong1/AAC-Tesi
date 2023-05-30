@@ -18,6 +18,7 @@ const BookCard: React.FC<{
         style={{ resizeMode: "cover" }}
         className="h-full w-full rounded-3xl"
         source={book.cover}
+        alt={`Cover for "${book.title}"`}
       />
     </TouchableOpacity>
   );
