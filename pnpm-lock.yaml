@@ -8,7 +8,7 @@ importers:
       '@manypkg/cli': ^0.20.0
       '@types/prettier': ^2.7.2
       eslint: ^8.34.0
-      eslint-config-acme: workspace:0.0.0
+      eslint-config-acme: 0.0.0
       prettier: ^2.8.4
       prettier-plugin-tailwindcss: ^0.2.3
       turbo: ^1.8.8
