@@ -6,33 +6,35 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
-import { getPage, isLast } from "../hooks/diaryHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
-import { useCompanionStore } from "../store/store";
+import { useCompanionStore, useStorageStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type DiaryPage } from "../utils/types/commonTypes";
 
-export default function ReadingPage() {
+export default function DiaryPage() {
   const companionStore = useCompanionStore();
-  const today = new Date();
+  const storageStore = useStorageStore();
 
+  const today = new Date();
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  const loadPages = async () => {
-    let loadedPage: DiaryPage | undefined = getPage(new Date());
-    if (!loadedPage) loadedPage = { date: today, pictograms: [] } as DiaryPage;
+  const loadPage = async (date: Date) => {
+    let loadedPage = storageStore.getDiaryPage(date);
+    if (!loadedPage) {
+      loadedPage = { date: today, pictograms: [] } as DiaryPage;
+      await storageStore.addDiaryPage(loadedPage);
+    }
     companionStore.speak("Guardiamo il tuo diario!");
     setPage(loadedPage);
   };
 
   useEffect(() => {
     // In case of reload
-    loadPages().catch((err) => console.log(err));
+    loadPage(today).catch((err) => console.log(err));
   }, []);
 
   if (!currentPage)
@@ -54,7 +56,7 @@ export default function ReadingPage() {
         className="bg-purpleCard flex h-[15%] w-full flex-row items-center justify-center rounded-xl"
       >
         <View className="flex h-full w-[8%] items-start justify-center">
-          {currentPage.date.toDateString() !== today.toDateString() && (
+          {storageStore.getPreviousPage(currentPage.date) && (
             <TouchableOpacity className="ml-[10px] h-full w-full justify-center">
               <MaterialIcons
                 name="arrow-back-ios"
@@ -77,7 +79,7 @@ export default function ReadingPage() {
           </TouchableOpacity>
         </View>
         <View className="flex h-full w-[8%] items-end justify-center">
-          {!isLast(currentPage.date) && (
+          {storageStore.getNextPage(currentPage.date) && (
             <TouchableOpacity className="h-full w-full justify-center">
               <MaterialIcons
                 name="arrow-forward-ios"

@@ -12,27 +12,28 @@ import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import { getBooks } from "../hooks/booksHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
-import { useCompanionStore } from "../store/store";
-import { isDeviceLarge } from "../utils/commonFunctions";
+import { useCompanionStore, useStorageStore } from "../store/store";
+import { getPage, isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
-import { type Book } from "../utils/types/commonTypes";
+import { type Book, type Page } from "../utils/types/commonTypes";
 
 export default function ReadingPage() {
   const companionStore = useCompanionStore();
+  const storageStore = useStorageStore();
   const r = useRef<ICarouselInstance>(null);
   const { width, height } = Dimensions.get("window");
 
   const [books, setBooks] = useState([] as Book[]);
   const [currentBook, setCurrentBook] = useState(undefined as Book | undefined);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(undefined as Page | undefined);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const fontSize = isDeviceLarge() ? 32 : 16;
 
   const iconColor = "#5C5C5C";
   // TODO Import reading settings
-  const rows = 3;
-  const columns = 4;
+  const rows = storageStore.readingSettings.rows;
+  const columns = storageStore.readingSettings.columns;
 
   const loadBooks = async () => {
     const books = await getBooks();
@@ -41,47 +42,42 @@ export default function ReadingPage() {
     // set state with the result
     setBooks(books);
   };
+
   useEffect(() => {
     // In case of reload
     loadBooks().catch((err) => console.log(err));
   }, []);
 
-  const getPictogramIndex = (row: number, col: number) => {
-    // We sum the index of the first pictogram in the page to the number of pictograms in each row before
-    return currentPage * rows * columns + columns * row + col;
+  const previousPage = () => {
+    if (currentBook && currentPage && currentPage.pageN > 1)
+      setCurrentPage(
+        getPage(currentBook.pictograms, currentPage.pageN - 1, rows, columns),
+      );
   };
 
-  const getCurrentPictogramsText = () => {
-    if (currentBook) {
-      const start = currentPage * rows * columns;
-      const end = start + rows * columns;
-      return currentBook.pictograms
-        .slice(start, end)
-        .flatMap((el) => (el.keywords[0] ? el.keywords[0].keyword : ""))
-        .join(" ");
-    } else return "";
+  const nextPage = () => {
+    if (currentBook && currentPage && !isNextPageEmpty)
+      setCurrentPage(
+        getPage(currentBook.pictograms, currentPage.pageN + 1, rows, columns),
+      );
   };
 
   const isNextPageEmpty = () => {
-    if (currentBook)
-      return currentBook.pictograms.length < (currentPage + 1) * rows * columns;
-    else return true;
+    return true;
   };
 
   const readAll = () => {
-    companionStore.speak(getCurrentPictogramsText());
+    if (currentPage) companionStore.speak(currentPage.text);
   };
 
-  if (currentBook) {
+  if (currentBook && currentPage) {
     return (
       <SafeAreaView className="flex h-full w-full flex-row">
         <View className="flex h-full w-[8%] flex-row">
           <View className="flex grow bg-[#e1ada3]">
             <TouchableOpacity
               className="ml-2 h-full w-full items-center justify-center"
-              onPress={() =>
-                currentPage > 0 ? setCurrentPage((el) => el - 1) : null
-              }
+              onPress={previousPage}
             >
               <MaterialIcons
                 name="arrow-back-ios"
@@ -95,42 +91,35 @@ export default function ReadingPage() {
         </View>
         <View className="flex h-full w-[84%] flex-col">
           <View className="h-[75%] w-full">
-            {[...Array(rows).keys()].map((row) => (
+            {/* FOR EACH ROW */}
+            {currentPage?.pictograms.map((row, i) => (
               <View
-                key={row}
+                key={`row${i}`}
                 style={{
                   height: `${(100 / rows).toFixed(0)}%`,
                 }}
                 className="w-full flex-row items-center justify-start"
               >
-                {[...Array(columns).keys()].map((col) => (
+                {/* FOR EACH COLUMN */}
+                {row.map((col, j) => (
                   <View
-                    key={`${row}_${col}`}
+                    key={`row${i}_col${j}`}
                     style={{ width: `${(100 / columns).toFixed(0)}%` }}
                     className="flex h-full"
                   >
-                    {currentBook.pictograms[getPictogramIndex(row, col)] ? (
-                      <PictogramCard
-                        pictogram={
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          currentBook.pictograms[getPictogramIndex(row, col)]!
-                        }
-                        fontSize={fontSize}
-                        bgcolor={"#B9D2C3"}
-                        onPress={() => {
-                          const current =
-                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                            currentBook.pictograms[
-                              getPictogramIndex(row, col)
-                            ]!;
-                          companionStore.speak(
-                            current.keywords[0]
-                              ? current.keywords[0].keyword
-                              : "",
-                          );
-                        }}
-                      />
-                    ) : null}
+                    <PictogramCard
+                      pictogram={col}
+                      fontSize={fontSize}
+                      bgcolor={"#B9D2C3"}
+                      onPress={() => {
+                        const current = col;
+                        companionStore.speak(
+                          current.keywords[0]
+                            ? current.keywords[0].keyword
+                            : "",
+                        );
+                      }}
+                    />
                   </View>
                 ))}
               </View>
@@ -161,9 +150,7 @@ export default function ReadingPage() {
           <View className="flex grow bg-[#bed4c6]">
             <TouchableOpacity
               className="h-full w-full items-center justify-center"
-              onPress={() => {
-                isNextPageEmpty() ? null : setCurrentPage((el) => el + 1);
-              }}
+              onPress={nextPage}
             >
               <MaterialIcons
                 name="arrow-forward-ios"
@@ -207,6 +194,7 @@ export default function ReadingPage() {
                 book={el.item}
                 onPress={() => {
                   setCurrentBook(el.item);
+                  setCurrentPage(getPage(el.item.pictograms, 1, rows, columns));
                 }}
               />
             )}

@@ -24,6 +24,8 @@ export type Pictogram = {
   created?: string;
   lastUpdated?: string;
   keywords: keyword[];
+  isNewLine?: boolean;
+  followingPunctation?: string;
 };
 
 export type Board = {
@@ -51,12 +53,18 @@ export type Book = {
   pictograms: Pictogram[];
 };
 
-export type BookSettings = {
-  columns: number;
-  rows: number;
+export type Page = {
+  pageN: number;
+  text: string;
+  pictograms: Pictogram[][];
 };
 
 export type DiaryPage = {
   date: Date;
-  pictograms: Pictogram[][];
+  pictograms: Pictogram[];
+};
+
+export type ReadingSettings = {
+  rows: number;
+  columns: number;
 };

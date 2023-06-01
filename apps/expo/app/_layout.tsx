@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import Companion from "./components/Companion";
 import useFonts from "./hooks/useFonts";
+import { useStorageStore } from "./store/store";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -17,6 +18,7 @@ const queryClient = new QueryClient();
 // It wraps your pages with the providers they need
 const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
+  const storgeStore = useStorageStore();
 
   useEffect(() => {
     async function prepare() {
@@ -24,6 +26,7 @@ const RootLayout = () => {
         // Pre-load fonts, make any API calls you need to do here
         // eslint-disable-next-line react-hooks/rules-of-hooks
         await useFonts();
+        await storgeStore.load();
       } catch (e) {
         console.warn(e);
       } finally {

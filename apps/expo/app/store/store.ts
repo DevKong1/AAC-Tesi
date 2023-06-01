@@ -1,6 +1,12 @@
 import * as Speech from "expo-speech";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
+
+import {
+  type DiaryPage,
+  type ReadingSettings,
+} from "../utils/types/commonTypes";
 
 interface CompanionState {
   isVisible: boolean;
@@ -71,6 +77,64 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   },
   setVisible: (value) => set({ isVisible: value }),
 }));
+
+interface StorageState {
+  diary: DiaryPage[];
+  readingSettings: ReadingSettings;
+  load: () => Promise<void>;
+  getDiaryPage: (date: Date) => DiaryPage | undefined;
+  getPreviousPage: (date: Date) => DiaryPage | undefined;
+  getNextPage: (date: Date) => DiaryPage | undefined;
+  addDiaryPage: (page: DiaryPage) => Promise<void>;
+  removeDiaryPage: (date: Date) => Promise<void>;
+  updateDiaryPage: (date: Date, newPage: DiaryPage) => Promise<void>;
+}
+
+export const useStorageStore = create<StorageState>((set, get) => ({
+  //TODO TEST BACKUP!
+  diary: [],
+  readingSettings: { rows: 3, columns: 4 } as ReadingSettings,
+  load: async () => {
+    try {
+      const diaryValue = await AsyncStorage.getItem("@diary");
+      const readingValue = await AsyncStorage.getItem("@readingSettings");
+
+      if (diaryValue !== null) {
+        set({ diary: JSON.parse(diaryValue) });
+        console.log("AsyncStorage: Loaded diary");
+      } else {
+        console.log("AsyncStorage: Null diary value");
+        await AsyncStorage.setItem("@diary", JSON.stringify([]));
+      }
+
+      if (readingValue !== null) {
+        set({ readingSettings: JSON.parse(readingValue) });
+        console.log("AsyncStorage: Loaded reading settings");
+      } else {
+        console.log("AsyncStorage: Null reading settings value");
+        await AsyncStorage.setItem(
+          "@readingSettings",
+          JSON.stringify(get().readingSettings),
+        );
+      }
+    } catch (e) {
+      console.log("AsyncStorage: ERROR");
+    }
+  },
+  getDiaryPage: (date) => {
+    return get().diary.find((el) => el.date == date);
+  },
+  getPreviousPage: (date) => {
+    return get().diary.find((el) => el.date < date);
+  },
+  getNextPage: (date) => {
+    return get().diary.find((el) => el.date > date);
+  },
+  addDiaryPage: async () => {},
+  removeDiaryPage: async () => {},
+  updateDiaryPage: async () => {},
+}));
+
 /* interface BoardsState {
   boards: Board[];
   loaded: boolean;

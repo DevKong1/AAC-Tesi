@@ -20,12 +20,16 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "your.bundle.identifier",
+    infoPlist: {
+      RCTAsyncStorageExcludeFromBackup: false,
+    },
   },
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/icon.png",
       backgroundColor: "#1F104A",
     },
+    allowBackup: true,
   },
   extra: {
     eas: {
