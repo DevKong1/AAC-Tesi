@@ -1,4 +1,4 @@
-import { Image, Text, TouchableOpacity } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
@@ -33,19 +33,21 @@ const PictogramCard: React.FC<{
       />
 
       {!noCaption && (
-        <Text
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          textBreakStrategy="simple"
-          className={`text-default font-text h-[25%] w-[90%] text-center`}
-        >
-          {/* TODO PASS WORD */}
-          {text
-            ? text
-            : pictogram.keywords.length > 0
-            ? pictogram.keywords[0]?.keyword
-            : "Undefined"}
-        </Text>
+        <View className="flex h-[25%] w-[90%]">
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            textBreakStrategy="simple"
+            className={`text-default font-text  text-center`}
+          >
+            {/* TODO PASS WORD */}
+            {text
+              ? text
+              : pictogram.keywords.length > 0
+              ? pictogram.keywords[0]?.keyword
+              : "Undefined"}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   );

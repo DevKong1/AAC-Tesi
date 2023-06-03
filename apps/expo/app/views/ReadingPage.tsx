@@ -13,9 +13,9 @@ import PictogramCard from "../components/PictogramCard";
 import { getBooks } from "../hooks/booksHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore, useStorageStore } from "../store/store";
-import { getPage, isDeviceLarge } from "../utils/commonFunctions";
+import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
-import { type Book, type Page } from "../utils/types/commonTypes";
+import { type Book } from "../utils/types/commonTypes";
 
 export default function ReadingPage() {
   const companionStore = useCompanionStore();
@@ -25,7 +25,7 @@ export default function ReadingPage() {
 
   const [books, setBooks] = useState([] as Book[]);
   const [currentBook, setCurrentBook] = useState(undefined as Book | undefined);
-  const [currentPage, setCurrentPage] = useState(undefined as Page | undefined);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const fontSize = isDeviceLarge() ? 32 : 16;
@@ -49,28 +49,44 @@ export default function ReadingPage() {
   }, []);
 
   const previousPage = () => {
-    if (currentBook && currentPage && currentPage.pageN > 1)
-      setCurrentPage(
-        getPage(currentBook.pictograms, currentPage.pageN - 1, rows, columns),
-      );
+    if (currentBook && currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
   const nextPage = () => {
-    if (currentBook && currentPage && !isNextPageEmpty)
-      setCurrentPage(
-        getPage(currentBook.pictograms, currentPage.pageN + 1, rows, columns),
-      );
+    if (currentBook && countPages() > currentPage)
+      setCurrentPage(currentPage + 1);
   };
 
-  const isNextPageEmpty = () => {
-    return true;
+  const countPages = () => {
+    if (currentBook) {
+      return Math.ceil(currentBook.pictograms.length / rows);
+    } else return 0;
   };
 
   const readAll = () => {
-    if (currentPage) companionStore.speak(currentPage.text);
+    if (currentBook) {
+      let text = "";
+      getCurrentPage().forEach((row) => {
+        row.forEach((col) => {
+          text += `${col.keywords[0]?.keyword}${
+            col.followingPunctation ? col.followingPunctation : ""
+          } `;
+        });
+      });
+      companionStore.speak(text);
+    }
   };
 
-  if (currentBook && currentPage) {
+  const getCurrentPage = () => {
+    if (currentBook && currentBook.pictograms.length > 0)
+      return currentBook.pictograms.slice(
+        rows * (currentPage - 1),
+        rows * currentPage,
+      );
+    else return [];
+  };
+
+  if (currentBook) {
     return (
       <SafeAreaView className="flex h-full w-full flex-row">
         <View className="flex h-full w-[8%] flex-row">
@@ -92,7 +108,7 @@ export default function ReadingPage() {
         <View className="flex h-full w-[84%] flex-col">
           <View className="h-[75%] w-full">
             {/* FOR EACH ROW */}
-            {currentPage?.pictograms.map((row, i) => (
+            {getCurrentPage().map((row, i) => (
               <View
                 key={`row${i}`}
                 style={{
@@ -193,8 +209,7 @@ export default function ReadingPage() {
               <BookCard
                 book={el.item}
                 onPress={() => {
-                  setCurrentBook(el.item);
-                  setCurrentPage(getPage(el.item.pictograms, 1, rows, columns));
+                  setCurrentBook(el.item); // TODO Check for correct book format (rows, columns) and fix if incorrect
                 }}
               />
             )}

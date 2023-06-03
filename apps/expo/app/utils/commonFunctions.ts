@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Dimensions } from "react-native";
 
-import { type Page, type Pictogram } from "./types/commonTypes";
+import { type Pictogram } from "./types/commonTypes";
 
 export const isDeviceLarge = () => {
   return Dimensions.get("window").width >= 1024;
@@ -18,10 +17,43 @@ export const defaultPictogram: Pictogram = {
   ],
 };
 
+/* TODO implement user preferences for N columns and rows
 const getPunctuatedText = (pictogram: Pictogram) => {
   return `${pictogram.keywords[0]?.keyword}${
     pictogram.followingPunctation ? pictogram.followingPunctation : ""
   } `;
+};
+
+const getCountAndFirstOfPage = (
+  pictograms: Pictogram[],
+  page: number,
+  rows: number,
+  columns: number,
+) => {
+  let allPictogramsN = 0; // Total number of pictograms counting ALSO spaces after newLine
+  let count = 0; // Used to count the empty spaces in line
+
+  let foundFirst = false;
+  let first = 0; // Index of the first pictogram to consider
+
+  pictograms.forEach((el, i) => {
+    // Check if the index equals the first one of the considered page
+    if (!foundFirst && allPictogramsN >= rows * columns * (page - 1)) {
+      first = i;
+      foundFirst = true;
+    }
+    // If its a newLine we sum the empty spaces
+    if (el.isNewLine) {
+      if (count != columns - 1) allPictogramsN += columns - (count % columns);
+      else allPictogramsN++;
+      count = 0;
+    } else {
+      allPictogramsN++;
+      count++;
+    }
+  });
+
+  return [allPictogramsN, first];
 };
 
 export const getPage = (
@@ -33,31 +65,17 @@ export const getPage = (
   const fittedPictograms: Pictogram[][] = [];
   const pictogramsPerPage = rows * columns;
 
-  let allPictogramsN = 0; // Total number of pictograms counting ALSO spaces after newLine
-  let count = 0; // Used to count the empty spaces in line
-
-  let first = 0; // Index of the first pictogram to consider
-  let foundFirst = false;
-
-  pictograms.forEach((el, i) => {
-    // Check if the index equals the first one of the considered page
-    if (!foundFirst && allPictogramsN >= pictogramsPerPage * (page - 1)) {
-      first = i;
-      foundFirst = true;
-    }
-    // If its a newLine we sum the empty spaces
-    if (el.isNewLine) {
-      allPictogramsN += columns - (count % columns);
-      count = 0;
-    } else {
-      allPictogramsN++;
-      count++;
-    }
-  });
-  console.log(allPictogramsN, pictogramsPerPage * page, first);
+  let [allPictogramsN, first] = getCountAndFirstOfPage(
+    pictograms,
+    page,
+    rows,
+    columns,
+  );
+  if (!allPictogramsN) allPictogramsN = 0;
+  if (!first) first = 0;
 
   // Check if the page is in range, also pages should start from 1
-  if (pictogramsPerPage * page > allPictogramsN || page == 0)
+  if (pictogramsPerPage * (page - 1) > allPictogramsN || page == 0)
     return { pageN: 0, text: "", pictograms: [] } as Page;
 
   let text = "";
@@ -67,7 +85,6 @@ export const getPage = (
 
   // Prepare the formatted rows and cols
   for (let i = first; i < last; ) {
-    console.log(text, i, last, columns - newRow.length);
     if (pictograms[i]) {
       if (pictograms[i]!.isNewLine) {
         fittedPictograms.push(newRow);
@@ -95,3 +112,21 @@ export const getPage = (
     fittedPictograms.push(newRow);
   return { text: text, pageN: page, pictograms: fittedPictograms } as Page;
 };
+
+export const isPageEmpty = (
+  pictograms: Pictogram[],
+  page: number,
+  rows: number,
+  columns: number,
+) => {
+  const [allPictogramsN, _] = getCountAndFirstOfPage(
+    pictograms,
+    page,
+    rows,
+    columns,
+  );
+  console.log(rows * columns * (page - 1), allPictogramsN);
+  if (!allPictogramsN) return true;
+  if (rows * columns * (page - 1) > allPictogramsN || page == 0) return true;
+  return false;
+}; */

@@ -24,7 +24,6 @@ export type Pictogram = {
   created?: string;
   lastUpdated?: string;
   keywords: keyword[];
-  isNewLine?: boolean;
   followingPunctation?: string;
 };
 
@@ -50,12 +49,6 @@ export type Book = {
   id: string;
   title: string;
   cover: any;
-  pictograms: Pictogram[];
-};
-
-export type Page = {
-  pageN: number;
-  text: string;
   pictograms: Pictogram[][];
 };
 
