@@ -15,7 +15,7 @@ const Companion: React.FC = () => {
   return (
     <View
       className={`absolute bottom-0 ${
-        position == "gamesPage" ? "right-[22%]" : "right-2 lg:right-4"
+        position == "center" ? "right-[22%]" : "right-2 lg:right-4"
       }`}
     >
       {/* Bubble */}

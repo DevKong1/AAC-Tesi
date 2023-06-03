@@ -53,8 +53,8 @@ export type Book = {
 };
 
 export type DiaryPage = {
-  date: Date;
-  pictograms: Pictogram[];
+  date: string;
+  pictograms: Pictogram[][];
 };
 
 export type ReadingSettings = {

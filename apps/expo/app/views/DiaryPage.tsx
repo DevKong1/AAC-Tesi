@@ -2,19 +2,26 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import { getPictogram } from "../hooks/pictogramsHandler";
-import { useCompanionStore, useStorageStore } from "../store/store";
+import {
+  useCompanionStore,
+  useDiaryStore,
+  useInputStore,
+} from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type DiaryPage } from "../utils/types/commonTypes";
 
 export default function DiaryPage() {
+  const router = useRouter();
   const companionStore = useCompanionStore();
-  const storageStore = useStorageStore();
+  const diaryStore = useDiaryStore();
+  const inputStore = useInputStore();
 
   const today = new Date();
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
@@ -22,20 +29,28 @@ export default function DiaryPage() {
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
 
-  const loadPage = async (date: Date) => {
-    let loadedPage = storageStore.getDiaryPage(date);
+  const loadPage = async (date: string) => {
+    let loadedPage = diaryStore.getDiaryPage(date);
     if (!loadedPage) {
-      loadedPage = { date: today, pictograms: [] } as DiaryPage;
-      await storageStore.addDiaryPage(loadedPage);
+      loadedPage = {
+        date: today.toLocaleDateString(),
+        pictograms: [],
+      } as DiaryPage;
+      // await storageStore.addDiaryPage(loadedPage);
     }
     companionStore.speak("Guardiamo il tuo diario!");
     setPage(loadedPage);
   };
 
+  const checkForInput = () => {
+    console.log(inputStore.id);
+  };
+
   useEffect(() => {
     // In case of reload
-    loadPage(today).catch((err) => console.log(err));
-  }, []);
+    loadPage(today.toLocaleDateString()).catch((err) => console.log(err));
+    checkForInput();
+  }, [inputStore.inputPictograms]);
 
   if (!currentPage)
     return (
@@ -46,7 +61,14 @@ export default function DiaryPage() {
     );
 
   function addParagraph(): void {
-    console.log("Function not implemented.");
+    if (currentPage) {
+      router.push({
+        pathname: "/views/TalkingPage",
+        params: {
+          inputID: `${currentPage.date};${currentPage.pictograms.length}`,
+        },
+      });
+    }
   }
 
   return (
@@ -56,7 +78,7 @@ export default function DiaryPage() {
         className="bg-purpleCard flex h-[15%] w-full flex-row items-center justify-center rounded-xl"
       >
         <View className="flex h-full w-[8%] items-start justify-center">
-          {storageStore.getPreviousPage(currentPage.date) && (
+          {diaryStore.getPreviousPage(currentPage.date) && (
             <TouchableOpacity className="ml-[10px] h-full w-full justify-center">
               <MaterialIcons
                 name="arrow-back-ios"
@@ -69,7 +91,7 @@ export default function DiaryPage() {
         <View className="flex h-full w-[84%] flex-row items-center justify-center">
           <TouchableOpacity className="flex h-full w-full flex-row items-center justify-center">
             <Text className="text-default pr-2 text-base font-semibold">
-              {currentPage.date.toLocaleDateString()}
+              {currentPage.date}
             </Text>
             <MaterialIcons
               name="calendar-today"
@@ -79,7 +101,7 @@ export default function DiaryPage() {
           </TouchableOpacity>
         </View>
         <View className="flex h-full w-[8%] items-end justify-center">
-          {storageStore.getNextPage(currentPage.date) && (
+          {diaryStore.getNextPage(currentPage.date) && (
             <TouchableOpacity className="h-full w-full justify-center">
               <MaterialIcons
                 name="arrow-forward-ios"

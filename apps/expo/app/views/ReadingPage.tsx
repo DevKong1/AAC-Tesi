@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Dimensions, Text, View } from "react-native";
+import { BackHandler, Dimensions, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import BookCard from "../components/BookCard";
@@ -12,14 +13,15 @@ import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import { getBooks } from "../hooks/booksHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
-import { useCompanionStore, useStorageStore } from "../store/store";
+import { useCompanionStore, useDiaryStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
 
 export default function ReadingPage() {
+  const router = useRouter();
   const companionStore = useCompanionStore();
-  const storageStore = useStorageStore();
+  const diaryStore = useDiaryStore();
   const r = useRef<ICarouselInstance>(null);
   const { width, height } = Dimensions.get("window");
 
@@ -31,9 +33,8 @@ export default function ReadingPage() {
   const fontSize = isDeviceLarge() ? 32 : 16;
 
   const iconColor = "#5C5C5C";
-  // TODO Import reading settings
-  const rows = storageStore.readingSettings.rows;
-  const columns = storageStore.readingSettings.columns;
+  const rows = diaryStore.readingSettings.rows;
+  const columns = diaryStore.readingSettings.columns;
 
   const loadBooks = async () => {
     const books = await getBooks();
@@ -46,6 +47,19 @@ export default function ReadingPage() {
   useEffect(() => {
     // In case of reload
     loadBooks().catch((err) => console.log(err));
+  }, []);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        companionStore.setPosition("default");
+        router.back();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   const previousPage = () => {
@@ -143,11 +157,7 @@ export default function ReadingPage() {
           </View>
 
           <View className="flex h-[25%] w-full flex-row items-center justify-center">
-            <View className="h-full w-1/3 items-center justify-center">
-              <Text className="text-default text-base font-semibold lg:text-2xl">
-                Pagina:
-              </Text>
-            </View>
+            <View className="h-full w-1/3 items-center justify-center"></View>
             <View className="h-full w-1/3 items-center justify-center">
               <View className="h-2/3 w-1/2">
                 <PictogramCard
@@ -210,6 +220,7 @@ export default function ReadingPage() {
                 book={el.item}
                 onPress={() => {
                   setCurrentBook(el.item); // TODO Check for correct book format (rows, columns) and fix if incorrect
+                  companionStore.setPosition("center");
                 }}
               />
             )}

@@ -5,6 +5,7 @@ import { create } from "zustand";
 
 import {
   type DiaryPage,
+  type Pictogram,
   type ReadingSettings,
 } from "../utils/types/commonTypes";
 
@@ -71,30 +72,30 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   },
   changeBubble: () => set({ bubbleOn: !get().bubbleOn }),
   setPosition: (newPosition) => {
-    ["default", "gamesPage"].includes(newPosition)
+    ["default", "center"].includes(newPosition)
       ? set({ position: newPosition })
       : null;
   },
   setVisible: (value) => set({ isVisible: value }),
 }));
 
-interface StorageState {
+interface DiaryState {
   diary: DiaryPage[];
   readingSettings: ReadingSettings;
   load: () => Promise<void>;
-  getDiaryPage: (date: Date) => DiaryPage | undefined;
-  getPreviousPage: (date: Date) => DiaryPage | undefined;
-  getNextPage: (date: Date) => DiaryPage | undefined;
+  getDiaryPage: (date: string) => DiaryPage | undefined;
+  getPreviousPage: (date: string) => DiaryPage | undefined;
+  getNextPage: (date: string) => DiaryPage | undefined;
+  addPictogramsToPage: (date: string, pictograms: Pictogram[]) => boolean;
+  addDiaryPage: (page: DiaryPage) => void;
   /*
-  addDiaryPage: (page: DiaryPage) => Promise<void>;
-  removeDiaryPage: (date: Date) => Promise<void>;
-  updateDiaryPage: (date: Date, newPage: DiaryPage) => Promise<void>; */
+  removeDiaryPage: (date: Date) => Promise<void>; */
 }
 
-export const useStorageStore = create<StorageState>((set, get) => ({
+export const useDiaryStore = create<DiaryState>((set, get) => ({
   //TODO TEST BACKUP!
   diary: [],
-  readingSettings: { rows: 4, columns: 4 } as ReadingSettings, // TODO Customizable
+  readingSettings: { rows: 3, columns: 4 } as ReadingSettings, // TODO Customizable
   load: async () => {
     try {
       const diaryValue = await AsyncStorage.getItem("@diary");
@@ -111,17 +112,48 @@ export const useStorageStore = create<StorageState>((set, get) => ({
     }
   },
   getDiaryPage: (date) => {
-    return get().diary.find((el) => el.date == date);
+    return get().diary.find((el) => new Date(el.date) == new Date(date));
   },
   getPreviousPage: (date) => {
-    return get().diary.find((el) => el.date < date);
+    return get().diary.find((el) => new Date(el.date) < new Date(date));
   },
   getNextPage: (date) => {
-    return get().diary.find((el) => el.date > date);
-  } /*
-  addDiaryPage: async () => {},
+    return get().diary.find((el) => new Date(el.date) > new Date(date));
+  },
+  addDiaryPage: (page) => {
+    const newDiary = get().diary;
+    newDiary.push(page);
+    set({ diary: newDiary });
+  },
+  addPictogramsToPage: (date, pictograms) => {
+    const pageIndex = get().diary.findIndex(
+      (el) => new Date(el.date) == new Date(date),
+    );
+    if (pageIndex != -1) {
+      const newDiary = get().diary;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      newDiary[pageIndex]!.pictograms.push(pictograms);
+      set({ diary: newDiary });
+      return true;
+    } else return false;
+  },
+  /*
   removeDiaryPage: async () => {},
-  updateDiaryPage: async () => {}, */,
+  updateDiaryPage: async () => {}, */
+}));
+
+interface inputState {
+  id: string;
+  inputPictograms: Pictogram[];
+  setInput: (id: string, inputPictograms: Pictogram[]) => void;
+}
+
+export const useInputStore = create<inputState>((set) => ({
+  id: "",
+  inputPictograms: [],
+  setInput: (id: string, inputPictograms: Pictogram[]) => {
+    set({ id: id, inputPictograms: inputPictograms });
+  },
 }));
 
 /* interface BoardsState {

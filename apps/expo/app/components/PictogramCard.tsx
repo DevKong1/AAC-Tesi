@@ -21,7 +21,9 @@ const PictogramCard: React.FC<{
           backgroundColor: bgcolor,
         },
       ]}
-      className="mx-auto flex h-5/6 w-5/6 flex-col items-center justify-center rounded-[30px]"
+      className={`mx-auto flex ${
+        noCaption ? "h-full w-full" : "h-5/6 w-5/6"
+      } flex-col items-center justify-center rounded-[30px]`}
       onPress={() => onPress(args)}
     >
       <Image

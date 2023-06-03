@@ -4,14 +4,14 @@ import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
-import IconButton from "../components/IconButton";
 import PictogramCard from "../components/PictogramCard";
+import { getPictogram } from "../hooks/pictogramsHandler";
 import { getPictograms } from "../hooks/talkingHandler";
-import { useCompanionStore } from "../store/store";
+import { useCompanionStore, useInputStore } from "../store/store";
 import categories from "../utils/categories";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { type Pictogram } from "../utils/types/commonTypes";
@@ -19,13 +19,18 @@ import { type Pictogram } from "../utils/types/commonTypes";
 export default function TalkingPage() {
   const r = useRef<ICarouselInstance>(null);
   const { width, height } = Dimensions.get("window");
+  const router = useRouter();
   const companionStore = useCompanionStore();
+  const inputStore = useInputStore();
+
+  // This page might be used to write input for the diary
+  const { inputID } = useLocalSearchParams();
+
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const [selectedCategory, selectCategory] = useState(categories[0]!.text);
   const [pictograms, setPictograms] = useState([] as Pictogram[]);
   const [selectedPictograms, selectPictograms] = useState([] as Pictogram[]);
 
-  const iconSize = isDeviceLarge() ? 64 : 32;
   const fontSize = isDeviceLarge() ? 26 : 16;
 
   const addPictogram = (pressed: Pictogram) => {
@@ -78,6 +83,13 @@ export default function TalkingPage() {
       selectedCategory,
     );
     setPictograms(loadedPictograms);
+  };
+
+  const submitInput = () => {
+    if (selectedPictograms.length > 0 && inputID) {
+      inputStore.setInput(inputID, selectedPictograms);
+      router.back();
+    }
   };
 
   useEffect(() => {
@@ -137,12 +149,11 @@ export default function TalkingPage() {
       <View className="flex h-[50%] w-full flex-row">
         <View className="flex h-full w-[10%] items-center justify-center">
           <View className="flex h-3/4 w-2/3 lg:mb-20 lg:h-1/2">
-            <IconButton
+            <PictogramCard
+              pictogram={getPictogram(5596)}
+              noCaption={true}
+              bgcolor="#A3B0B4"
               onPress={listView}
-              color={"#A3B0B4"}
-              icon={
-                <MaterialIcons name="list" size={iconSize} color={"white"} />
-              }
             />
           </View>
         </View>
@@ -184,40 +195,44 @@ export default function TalkingPage() {
         </View>
         <View className="flex h-full w-[10%] items-center justify-center">
           <View className="mb-20 flex h-1/2 w-2/3">
-            <IconButton
+            <PictogramCard
+              pictogram={getPictogram(8053)}
+              noCaption={true}
+              bgcolor="#E49691"
               onPress={listView}
-              color={"#E49691"}
-              icon={
-                <MaterialIcons name="refresh" size={iconSize} color={"white"} />
-              }
             />
           </View>
         </View>
       </View>
       <View className=" flex h-[10%] w-full flex-row items-center justify-center">
-        <View className=" flex h-full w-1/6 items-center justify-center">
-          <IconButton
+        {inputID && (
+          <View className="flex h-full w-1/6 items-center justify-center">
+            <PictogramCard
+              pictogram={getPictogram(38221)}
+              noCaption={true}
+              bgcolor="#89BF93"
+              onPress={submitInput}
+            />
+          </View>
+        )}
+        {inputID && <View className="w-8" />}
+        <View className="flex h-full w-1/6 items-center justify-center">
+          <PictogramCard
+            pictogram={getPictogram(36257)}
+            noCaption={true}
+            bgcolor="#f2b30a"
             onPress={readAll}
-            color={"#89BF93"}
-            icon={
-              <MaterialIcons
-                name="play-arrow"
-                size={iconSize}
-                color={"white"}
-              />
-            }
           />
         </View>
-        <View className="w-8"></View>
+        <View className="w-8" />
         <View className="flex h-full w-1/6 items-center justify-center">
-          <IconButton
+          <PictogramCard
+            pictogram={getPictogram(38201)}
+            noCaption={true}
+            bgcolor="#f05252"
             onPress={() => {
               selectPictograms([]);
             }}
-            color={"#f05252"}
-            icon={
-              <MaterialIcons name="clear" size={iconSize} color={"white"} />
-            }
           />
         </View>
       </View>

@@ -45,7 +45,7 @@ export default function WhatsItPage() {
   const generateGame = async () => {
     const game = await generateWhatsItGame();
 
-    companionStore.setPosition("gamesPage");
+    companionStore.setPosition("center");
     companionStore.speak(game.text, "top");
     // set state with the result
     setGame(game);
