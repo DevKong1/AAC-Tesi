@@ -14,7 +14,10 @@ import PictogramCard from "../components/PictogramCard";
 import { getBooks } from "../hooks/booksHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore, useDiaryStore } from "../store/store";
-import { isDeviceLarge } from "../utils/commonFunctions";
+import {
+  getTextFromPictogramsMatrix,
+  isDeviceLarge,
+} from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
 
@@ -79,14 +82,7 @@ export default function ReadingPage() {
 
   const readAll = () => {
     if (currentBook) {
-      let text = "";
-      getCurrentPage().forEach((row) => {
-        row.forEach((col) => {
-          text += `${col.keywords[0]?.keyword}${
-            col.followingPunctation ? col.followingPunctation : ""
-          } `;
-        });
-      });
+      const text = getTextFromPictogramsMatrix(getCurrentPage());
       companionStore.speak(text);
     }
   };

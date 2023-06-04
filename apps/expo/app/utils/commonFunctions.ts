@@ -17,6 +17,37 @@ export const defaultPictogram: Pictogram = {
   ],
 };
 
+export const formatToMatchColumns = (
+  pictograms: Pictogram[],
+  columns: number,
+) => {
+  if (pictograms.length <= columns) return [pictograms];
+  const result = [] as Pictogram[][];
+  const nRows = Math.ceil(pictograms.length / columns);
+  for (let i = 0; i < nRows; i++) {
+    result.push(pictograms.slice(i * columns, (i + 1) * columns));
+  }
+  return result;
+};
+
+export const getTextFromPictogramsMatrix = (pictograms: Pictogram[][]) => {
+  let text = "";
+  pictograms.forEach((row) => {
+    text += getTextFromPictogramsArray(row);
+  });
+  return text;
+};
+
+export const getTextFromPictogramsArray = (pictograms: Pictogram[]) => {
+  let text = "";
+  pictograms.forEach((el) => {
+    text += `${el.keywords[0]?.keyword}${
+      el.followingPunctation ? el.followingPunctation : ""
+    } `;
+  });
+  return text;
+};
+
 /* TODO implement user preferences for N columns and rows
 const getPunctuatedText = (pictogram: Pictogram) => {
   return `${pictogram.keywords[0]?.keyword}${

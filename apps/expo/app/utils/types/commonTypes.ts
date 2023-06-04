@@ -61,3 +61,9 @@ export type ReadingSettings = {
   rows: number;
   columns: number;
 };
+
+export type diaryReqArgs = {
+  date: string;
+  entry?: Pictogram[];
+  index?: number;
+};

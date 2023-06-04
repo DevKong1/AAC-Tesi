@@ -86,8 +86,16 @@ interface DiaryState {
   getDiaryPage: (date: string) => DiaryPage | undefined;
   getPreviousPage: (date: string) => DiaryPage | undefined;
   getNextPage: (date: string) => DiaryPage | undefined;
-  addPictogramsToPage: (date: string, pictograms: Pictogram[]) => boolean;
-  addDiaryPage: (page: DiaryPage) => void;
+  addPictogramsToPage: (
+    date: string,
+    pictograms: Pictogram[],
+  ) => DiaryPage | undefined;
+  addDiaryPage: (page: DiaryPage) => boolean;
+  updatePictogramsInPage: (
+    date: string,
+    entryIndex: number,
+    pictograms: Pictogram[],
+  ) => DiaryPage | undefined;
   /*
   removeDiaryPage: (date: Date) => Promise<void>; */
 }
@@ -112,7 +120,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
     }
   },
   getDiaryPage: (date) => {
-    return get().diary.find((el) => new Date(el.date) == new Date(date));
+    return get().diary.find((el) => el.date == date);
   },
   getPreviousPage: (date) => {
     return get().diary.find((el) => new Date(el.date) < new Date(date));
@@ -121,21 +129,34 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
     return get().diary.find((el) => new Date(el.date) > new Date(date));
   },
   addDiaryPage: (page) => {
-    const newDiary = get().diary;
-    newDiary.push(page);
-    set({ diary: newDiary });
+    console.log(get().diary.length);
+    if (!get().getDiaryPage(page.date)) {
+      const newDiary = get().diary;
+      newDiary.push(page);
+      set({ diary: newDiary });
+      console.log(get().diary.length);
+      return true;
+    } else return false;
   },
   addPictogramsToPage: (date, pictograms) => {
-    const pageIndex = get().diary.findIndex(
-      (el) => new Date(el.date) == new Date(date),
-    );
+    const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
       const newDiary = get().diary;
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       newDiary[pageIndex]!.pictograms.push(pictograms);
       set({ diary: newDiary });
-      return true;
-    } else return false;
+      return get().getDiaryPage(date);
+    } else return undefined;
+  },
+  updatePictogramsInPage: (date, entryIndex, pictograms) => {
+    const pageIndex = get().diary.findIndex((el) => el.date == date);
+    if (pageIndex != -1) {
+      const newDiary = get().diary;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      newDiary[pageIndex]!.pictograms[entryIndex] = pictograms;
+      set({ diary: newDiary });
+      return get().getDiaryPage(date);
+    } else return undefined;
   },
   /*
   removeDiaryPage: async () => {},
@@ -143,16 +164,37 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
 }));
 
 interface inputState {
-  id: string;
-  inputPictograms: Pictogram[];
-  setInput: (id: string, inputPictograms: Pictogram[]) => void;
+  id: string | undefined;
+  command: string | undefined;
+  inputPictograms: Pictogram[] | undefined;
+  requestCompleted: boolean;
+  args: any | undefined;
+  inputRequest: (id: string, command: string, args?: any) => void;
+  setInput: (reqID: string, inputPictograms: Pictogram[]) => void;
+  clear: () => void;
 }
 
-export const useInputStore = create<inputState>((set) => ({
-  id: "",
-  inputPictograms: [],
-  setInput: (id: string, inputPictograms: Pictogram[]) => {
-    set({ id: id, inputPictograms: inputPictograms });
+export const useInputStore = create<inputState>((set, get) => ({
+  id: undefined,
+  command: undefined,
+  inputPictograms: undefined,
+  requestCompleted: false,
+  args: undefined,
+  inputRequest: (id: string, command: string, args?: any) => {
+    set({ id: id, command: command, requestCompleted: false, args: args });
+  },
+  setInput: (reqID: string, inputPictograms: Pictogram[]) => {
+    if (reqID == get().id)
+      set({ inputPictograms: inputPictograms, requestCompleted: true });
+  },
+  clear: () => {
+    set({
+      id: undefined,
+      command: undefined,
+      inputPictograms: undefined,
+      requestCompleted: false,
+      args: undefined,
+    });
   },
 }));
 

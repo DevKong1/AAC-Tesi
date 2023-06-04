@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Dimensions, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  BackHandler,
+  Dimensions,
+  Text,
+  View,
+} from "react-native";
 import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
@@ -13,8 +19,11 @@ import { getPictogram } from "../hooks/pictogramsHandler";
 import { getPictograms } from "../hooks/talkingHandler";
 import { useCompanionStore, useInputStore } from "../store/store";
 import categories from "../utils/categories";
-import { isDeviceLarge } from "../utils/commonFunctions";
-import { type Pictogram } from "../utils/types/commonTypes";
+import {
+  getTextFromPictogramsArray,
+  isDeviceLarge,
+} from "../utils/commonFunctions";
+import { type Pictogram, type diaryReqArgs } from "../utils/types/commonTypes";
 
 export default function TalkingPage() {
   const r = useRef<ICarouselInstance>(null);
@@ -62,13 +71,7 @@ export default function TalkingPage() {
 
   const readAll = () => {
     if (selectedPictograms.length > 0) {
-      companionStore.speak(
-        selectedPictograms.flatMap((el) => el.keywords[0]?.keyword).join(" "),
-        undefined,
-        (e) => {
-          console.log(e);
-        },
-      );
+      companionStore.speak(getTextFromPictogramsArray(selectedPictograms));
     }
   };
 
@@ -87,6 +90,7 @@ export default function TalkingPage() {
 
   const submitInput = () => {
     if (selectedPictograms.length > 0 && inputID) {
+      console.log("done ", inputID);
       inputStore.setInput(inputID, selectedPictograms);
       router.back();
     }
@@ -95,10 +99,26 @@ export default function TalkingPage() {
   useEffect(() => {
     // In case of reload
     loadPictograms().catch((err) => console.log(err));
+    if (!inputID) {
+      companionStore.speak("Scrivi qualcosa e lo leggerò per te!");
+    } else if (inputStore.command == "modifyEntry" && inputStore.args) {
+      selectPictograms((inputStore.args as diaryReqArgs).entry!);
+    }
   }, []);
 
   useEffect(() => {
-    companionStore.speak("Scrivi qualcosa e lo leggerò per te!");
+    if (inputID) {
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          inputStore.clear();
+          router.back();
+          return true;
+        },
+      );
+
+      return () => backHandler.remove();
+    }
   }, []);
 
   return (
