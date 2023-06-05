@@ -7,7 +7,6 @@ export const getPictograms = async (
   previous?: Pictogram[],
   current?: Pictogram[],
   category?: string,
-  // eslint-disable-next-line @typescript-eslint/require-await
 ) => {
   //TODO Implement
   return [

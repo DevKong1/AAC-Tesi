@@ -15,6 +15,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
 import PictogramCard from "../components/PictogramCard";
+import PictogramSelectionModal from "../components/PictogramSelectionModal";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import { getPictograms } from "../hooks/talkingHandler";
 import { useCompanionStore, useInputStore } from "../store/store";
@@ -35,10 +36,10 @@ export default function TalkingPage() {
   // This page might be used to write input for the diary
   const { inputID } = useLocalSearchParams();
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const [selectedCategory, selectCategory] = useState(categories[0]!.text);
   const [pictograms, setPictograms] = useState([] as Pictogram[]);
   const [selectedPictograms, selectPictograms] = useState([] as Pictogram[]);
+  const [showModal, setShowModal] = useState(false);
 
   const fontSize = isDeviceLarge() ? 26 : 16;
 
@@ -54,7 +55,6 @@ export default function TalkingPage() {
   };
 
   const removePictogram = (index: number) => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const current = r.current!.getCurrentIndex();
     selectPictograms((old) => [
       ...old.slice(0, index),
@@ -76,16 +76,18 @@ export default function TalkingPage() {
   };
 
   const listView = () => {
-    return;
+    setShowModal(true);
   };
 
   const loadPictograms = async () => {
-    const loadedPictograms = await getPictograms(
-      undefined,
-      undefined,
-      selectedCategory,
-    );
-    setPictograms(loadedPictograms);
+    if (pictograms.length > 0)
+      setPictograms(
+        await getPictograms(undefined, undefined, selectedCategory),
+      );
+    else
+      setPictograms(
+        await getPictograms(pictograms, selectedPictograms, selectedCategory),
+      );
   };
 
   const submitInput = () => {
@@ -93,6 +95,16 @@ export default function TalkingPage() {
       inputStore.setInput(inputID, selectedPictograms);
       router.back();
     }
+  };
+
+  const onModalClose = () => {
+    setShowModal(false);
+  };
+
+  const onModalSelect = (modalPictogram: Pictogram) => {
+    const newPictograms = selectedPictograms;
+    newPictograms.push(modalPictogram);
+    selectPictograms(newPictograms);
   };
 
   useEffect(() => {
@@ -122,6 +134,11 @@ export default function TalkingPage() {
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
+      <PictogramSelectionModal
+        isVisible={showModal}
+        onSelect={onModalSelect}
+        onClose={onModalClose}
+      />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">
         {selectedPictograms.length > 0 ? (
           <View className="flex h-full w-full flex-row items-center justify-center">
@@ -218,7 +235,7 @@ export default function TalkingPage() {
               pictogram={getPictogram(8053)}
               noCaption={true}
               bgcolor="#E49691"
-              onPress={listView}
+              onPress={loadPictograms}
             />
           </View>
         </View>

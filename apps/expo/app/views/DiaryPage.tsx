@@ -179,7 +179,7 @@ export default function DiaryPage() {
     );
 
   return (
-    <SafeAreaView className="h-full w-full flex-col ">
+    <SafeAreaView className="h-full w-full flex-col">
       <View
         style={shadowStyle.heavy}
         className="bg-purpleCard mb-3 flex h-[15%] w-full flex-row items-center justify-center rounded-xl"
@@ -196,16 +196,11 @@ export default function DiaryPage() {
           )}
         </View>
         <View className="flex h-full w-[84%] flex-row items-center justify-center">
-          <TouchableOpacity className="flex h-full w-full flex-row items-center justify-center">
+          <View className="flex h-full w-full flex-row items-center justify-center">
             <Text className="text-default pr-2 text-base font-semibold">
               {currentPage.date}
             </Text>
-            <MaterialIcons
-              name="calendar-today"
-              size={iconSize / 2}
-              color={iconColor}
-            />
-          </TouchableOpacity>
+          </View>
         </View>
         <View className="flex h-full w-[8%] items-end justify-center">
           {diaryStore.getNextPage(currentPage.date) && (
@@ -219,6 +214,13 @@ export default function DiaryPage() {
           )}
         </View>
       </View>
+      {currentPage.pictograms.length <= 0 && (
+        <View className="flex h-[50%] w-full items-center justify-center">
+          <Text className="text-default text-base font-semibold lg:text-3xl">
+            Aggiungi qualcosa col pulsante sotto...
+          </Text>
+        </View>
+      )}
       <ScrollView className="flex h-[85%] w-full">
         {currentPage.pictograms.map((diaryEntry, i) => (
           <View
@@ -270,19 +272,20 @@ export default function DiaryPage() {
             </View>
           </View>
         ))}
-        <View
-          className={`m-auto flex flex-row py-4 ${
-            isDeviceLarge() ? "h-64 w-64" : "h-32 w-44"
-          } items-center justify-center`}
-        >
-          <PictogramCard
-            pictogram={getPictogram(38218)}
-            noCaption={true}
-            bgcolor="#89BF93"
-            onPress={addParagraph}
-          />
-        </View>
+        <View className={`pt-20`} />
       </ScrollView>
+      <View
+        className={`absolute bottom-4 left-[45%] ${
+          isDeviceLarge() ? "h-32 w-32" : "h-16 w-28"
+        }`}
+      >
+        <PictogramCard
+          pictogram={getPictogram(38218)}
+          noCaption={true}
+          bgcolor="#89BF93"
+          onPress={addParagraph}
+        />
+      </View>
       <BottomIcons />
     </SafeAreaView>
   );
