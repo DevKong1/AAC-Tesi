@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as Speech from "expo-speech";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
@@ -89,15 +90,14 @@ interface DiaryState {
   addPictogramsToPage: (
     date: string,
     pictograms: Pictogram[],
-  ) => DiaryPage | undefined;
-  addDiaryPage: (page: DiaryPage) => boolean;
+  ) => Promise<DiaryPage | undefined>;
+  addDiaryPage: (page: DiaryPage) => Promise<boolean>;
   updatePictogramsInPage: (
     date: string,
     entryIndex: number,
     pictograms: Pictogram[],
-  ) => DiaryPage | undefined;
-  /*
-  removeDiaryPage: (date: Date) => Promise<void>; */
+  ) => Promise<boolean>;
+  removeDiaryPage: (date: string) => Promise<boolean>;
 }
 
 export const useDiaryStore = create<DiaryState>((set, get) => ({
@@ -128,39 +128,46 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
   getNextPage: (date) => {
     return get().diary.find((el) => new Date(el.date) > new Date(date));
   },
-  addDiaryPage: (page) => {
-    console.log(get().diary.length);
+  addDiaryPage: async (page) => {
     if (!get().getDiaryPage(page.date)) {
       const newDiary = get().diary;
       newDiary.push(page);
       set({ diary: newDiary });
-      console.log(get().diary.length);
       return true;
     } else return false;
   },
-  addPictogramsToPage: (date, pictograms) => {
+  addPictogramsToPage: async (date, pictograms) => {
     const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
       const newDiary = get().diary;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       newDiary[pageIndex]!.pictograms.push(pictograms);
       set({ diary: newDiary });
       return get().getDiaryPage(date);
     } else return undefined;
   },
-  updatePictogramsInPage: (date, entryIndex, pictograms) => {
+  updatePictogramsInPage: async (date, entryIndex, pictograms) => {
     const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
       const newDiary = get().diary;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      newDiary[pageIndex]!.pictograms[entryIndex] = pictograms;
+      if (pictograms.length > 0)
+        newDiary[pageIndex]!.pictograms[entryIndex] = pictograms;
+      else newDiary[pageIndex]!.pictograms.splice(entryIndex, 1);
       set({ diary: newDiary });
-      return get().getDiaryPage(date);
-    } else return undefined;
+      // If the page is empty of pictograms we remove it
+      if (newDiary[pageIndex]!.pictograms.length <= 0)
+        return get().removeDiaryPage(date);
+      return true;
+    } else return false;
   },
-  /*
-  removeDiaryPage: async () => {},
-  updateDiaryPage: async () => {}, */
+  removeDiaryPage: async (date) => {
+    const pageIndex = get().diary.findIndex((el) => el.date == date);
+    if (pageIndex != -1) {
+      const newDiary = get().diary;
+      newDiary.splice(pageIndex, 1);
+      set({ diary: newDiary });
+      return true;
+    } else return false;
+  },
 }));
 
 interface inputState {

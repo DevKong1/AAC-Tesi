@@ -48,54 +48,8 @@ export default function DiaryPage() {
         date: today.toLocaleDateString(),
         pictograms: [],
       } as DiaryPage;
-      // TODO ADD only when not empty and remove otherwise
-      const addingOK = await diaryStore.addDiaryPage(loadedPage);
-      if (!addingOK) {
-        console.log("Error adding page");
-      }
     }
     setPage(loadedPage);
-  };
-
-  // Checks if there is a response from an input request
-  const checkForInput = () => {
-    if (currentPage && requestID && inputStore.id == requestID) {
-      // Response to an addParagraph
-      if (
-        inputStore.command == "addParagraph" &&
-        inputStore.requestCompleted &&
-        inputStore.args
-      ) {
-        const responsePictograms = inputStore.inputPictograms;
-        const responseDate = (inputStore.args as diaryReqArgs).date;
-        if (responsePictograms && responseDate) {
-          diaryStore.addPictogramsToPage(responseDate, responsePictograms);
-          inputStore.clear();
-          setReqId(undefined);
-          return responseDate;
-        }
-      }
-      // Response to a modifyEntry
-      else if (
-        inputStore.command == "modifyEntry" &&
-        inputStore.requestCompleted &&
-        inputStore.args
-      ) {
-        const responsePictograms = inputStore.inputPictograms;
-        const responseDate = (inputStore.args as diaryReqArgs).date;
-        const responseIndex = (inputStore.args as diaryReqArgs).index;
-        if (responsePictograms && responseDate && responseIndex != undefined) {
-          diaryStore.updatePictogramsInPage(
-            responseDate,
-            responseIndex,
-            responsePictograms,
-          );
-          inputStore.clear();
-          setReqId(undefined);
-          return responseDate;
-        }
-      }
-    }
   };
 
   const readEntry = (entry: Pictogram[]) => {
@@ -138,13 +92,82 @@ export default function DiaryPage() {
     }
   }
 
+  // Handling responses from
   useEffect(() => {
-    const date = checkForInput();
-    if (date) loadPage(date).catch((err) => console.log(err));
-    else {
-      loadPage(today.toLocaleDateString()).catch((err) => console.log(err));
-      companionStore.speak("Guardiamo il tuo diario!");
-    }
+    // Checks if there is a response from an input request
+    const checkForInput = async () => {
+      if (currentPage && requestID && inputStore.id == requestID) {
+        // Response to an addParagraph
+        if (
+          inputStore.command == "addParagraph" &&
+          inputStore.requestCompleted &&
+          inputStore.args
+        ) {
+          const responsePictograms = inputStore.inputPictograms;
+          const responseDate = (inputStore.args as diaryReqArgs).date;
+          if (
+            responsePictograms &&
+            responsePictograms.length > 0 &&
+            responseDate
+          ) {
+            // If page doesnt exist add it
+            if (
+              !diaryStore.getDiaryPage(responseDate) &&
+              currentPage.date == responseDate
+            ) {
+              if (!(await diaryStore.addDiaryPage(currentPage))) {
+                console.log("Error adding page");
+                return undefined;
+              }
+            }
+            await diaryStore.addPictogramsToPage(
+              responseDate,
+              responsePictograms,
+            );
+            inputStore.clear();
+            setReqId(undefined);
+            return responseDate;
+          }
+        }
+        // Response to a modifyEntry
+        else if (
+          inputStore.command == "modifyEntry" &&
+          inputStore.requestCompleted &&
+          inputStore.args
+        ) {
+          const responsePictograms = inputStore.inputPictograms;
+          const responseDate = (inputStore.args as diaryReqArgs).date;
+          const responseIndex = (inputStore.args as diaryReqArgs).index;
+          if (
+            responsePictograms &&
+            responseDate &&
+            responseIndex != undefined
+          ) {
+            const done = await diaryStore.updatePictogramsInPage(
+              responseDate,
+              responseIndex,
+              responsePictograms,
+            );
+            inputStore.clear();
+            setReqId(undefined);
+            if (done) return responseDate;
+          }
+        }
+        return undefined;
+      }
+    };
+
+    checkForInput()
+      .then((res) => {
+        if (res) loadPage(res).catch((err) => console.log(err));
+        else {
+          loadPage(today.toLocaleDateString()).catch((err) => console.log(err));
+          companionStore.speak("Guardiamo il tuo diario!");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, [inputStore.requestCompleted]);
 
   if (!currentPage)

@@ -89,8 +89,7 @@ export default function TalkingPage() {
   };
 
   const submitInput = () => {
-    if (selectedPictograms.length > 0 && inputID) {
-      console.log("done ", inputID);
+    if (inputID) {
       inputStore.setInput(inputID, selectedPictograms);
       router.back();
     }
