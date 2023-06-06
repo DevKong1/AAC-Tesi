@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack } from "expo-router";
@@ -19,6 +20,7 @@ const queryClient = new QueryClient();
 const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
   const diaryStore = useDiaryStore();
+  const windowHeight = useWindowDimensions().height;
 
   useEffect(() => {
     async function prepare() {
@@ -55,7 +57,10 @@ const RootLayout = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider onLayout={onLayoutRootView}>
+      <SafeAreaProvider
+        onLayout={onLayoutRootView}
+        style={[{ minHeight: Math.round(windowHeight) }]}
+      >
         {/*
           The Stack component displays the current page.
           It also allows you to configure your screens 

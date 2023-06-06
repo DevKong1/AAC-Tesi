@@ -141,33 +141,31 @@ export default function TalkingPage() {
       />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">
         {selectedPictograms.length > 0 ? (
-          <View className="flex h-full w-full flex-row items-center justify-center">
-            <View className="flex h-full w-full items-center justify-center">
-              <Carousel
-                ref={r}
-                loop={false}
-                pagingEnabled={true}
-                style={{
-                  width: width,
-                  height: height * 0.23,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-                width={208}
-                height={height * 0.23}
-                data={selectedPictograms}
-                scrollAnimationDuration={1000}
-                renderItem={(el) => (
-                  <PictogramCard
-                    pictogram={el.item}
-                    fontSize={fontSize}
-                    bgcolor="#C6D7F9"
-                    onPress={removePictogram}
-                    args={el.index}
-                  />
-                )}
-              />
-            </View>
+          <View className="flex h-full w-full items-center justify-center">
+            <Carousel
+              ref={r}
+              loop={false}
+              pagingEnabled={true}
+              style={{
+                width: width,
+                height: height * 0.23,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              width={208}
+              height={height * 0.23}
+              data={selectedPictograms}
+              scrollAnimationDuration={1000}
+              renderItem={(el) => (
+                <PictogramCard
+                  pictogram={el.item}
+                  fontSize={fontSize}
+                  bgcolor="#C6D7F9"
+                  onPress={removePictogram}
+                  args={el.index}
+                />
+              )}
+            />
           </View>
         ) : (
           <Text className="text-default text-base font-semibold lg:text-3xl">

@@ -9,8 +9,16 @@ export const getPictogram = (id: number) => {
   return pictogram ? pictogram : defaultPictogram;
 };
 
-export const findPictograms = (text: string) => {
-  return dictionaryArray.filter((el) =>
-    el.keywords?.find((key) => key.keyword.includes(text)),
+export const findPictograms = (text: string, whole: boolean) => {
+  const result = dictionaryArray.filter(
+    (el) => el.keywords?.findIndex((key) => key.keyword.includes(text)) != -1,
   );
+  if (whole)
+    return result.filter(
+      (el) =>
+        el.keywords?.findIndex(
+          (key) => key.keyword.match(new RegExp("\\b" + text + "\\b")) != null,
+        ) != -1,
+    );
+  return result;
 };
