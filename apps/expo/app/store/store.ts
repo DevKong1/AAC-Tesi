@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as Speech from "expo-speech";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
@@ -130,9 +129,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
   },
   addDiaryPage: async (page) => {
     if (!get().getDiaryPage(page.date)) {
-      const newDiary = get().diary;
-      newDiary.push(page);
-      set({ diary: newDiary });
+      set((state) => ({ diary: [...state.diary, page] }));
       return true;
     } else return false;
   },
@@ -162,9 +159,12 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
   removeDiaryPage: async (date) => {
     const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
-      const newDiary = get().diary;
-      newDiary.splice(pageIndex, 1);
-      set({ diary: newDiary });
+      set((state) => ({
+        diary: [
+          ...state.diary.slice(0, pageIndex),
+          ...state.diary.slice(pageIndex + 1),
+        ],
+      }));
       return true;
     } else return false;
   },

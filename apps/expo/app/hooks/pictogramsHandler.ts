@@ -9,7 +9,7 @@ export const getPictogram = (id: number) => {
   return pictogram ? pictogram : defaultPictogram;
 };
 
-export const findPictograms = (text: string, whole: boolean) => {
+export const findPictograms = (text: string, whole = false) => {
   const result = dictionaryArray.filter(
     (el) => el.keywords?.findIndex((key) => key.keyword.includes(text)) != -1,
   );

@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
@@ -29,6 +30,7 @@ import { type Pictogram, type diaryReqArgs } from "../utils/types/commonTypes";
 export default function TalkingPage() {
   const r = useRef<ICarouselInstance>(null);
   const { width, height } = Dimensions.get("window");
+
   const router = useRouter();
   const companionStore = useCompanionStore();
   const inputStore = useInputStore();
@@ -101,12 +103,6 @@ export default function TalkingPage() {
     setShowModal(false);
   };
 
-  const onModalSelect = (modalPictogram: Pictogram) => {
-    const newPictograms = selectedPictograms;
-    newPictograms.push(modalPictogram);
-    selectPictograms(newPictograms);
-  };
-
   useEffect(() => {
     // In case of reload
     loadPictograms().catch((err) => console.log(err));
@@ -127,7 +123,6 @@ export default function TalkingPage() {
           return true;
         },
       );
-
       return () => backHandler.remove();
     }
   }, []);
@@ -136,7 +131,7 @@ export default function TalkingPage() {
     <SafeAreaView className="h-full w-full flex-col">
       <PictogramSelectionModal
         isVisible={showModal}
-        onSelect={onModalSelect}
+        onSelect={addPictogram}
         onClose={onModalClose}
       />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { FlatList, Modal, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
+import Modal from "react-native-modal";
 import { SearchBar } from "@rneui/themed";
 
 import { findPictograms } from "../hooks/pictogramsHandler";
@@ -30,16 +31,16 @@ const PictogramSelectionModal: React.FC<{
 
   const searchPictograms = () => {
     if (searchPhrase != "")
-      setSearchedPictograms(findPictograms(searchPhrase, false));
+      setSearchedPictograms(findPictograms(searchPhrase.toLowerCase(), false));
     else clearSearch();
   };
 
   return (
-    <Modal animationType="slide" transparent={true} visible={isVisible}>
-      <Pressable
-        onPress={onClose}
-        className="absolute top-0 left-0 h-full w-full bg-transparent"
-      />
+    <Modal
+      isVisible={isVisible}
+      onBackdropPress={onClose}
+      style={{ margin: 0 }}
+    >
       <View className="absolute bottom-0 h-[75%] w-full flex-col items-center justify-center rounded-t-lg bg-[#2f3235ea]">
         <View className="h-[25%] w-full">
           <SearchBar
