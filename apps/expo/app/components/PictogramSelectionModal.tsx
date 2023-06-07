@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import Modal from "react-native-modal";
 import { SearchBar } from "@rneui/themed";
 
 import { findPictograms } from "../hooks/pictogramsHandler";
+import { usePictogramStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { type Pictogram } from "../utils/types/commonTypes";
 import PictogramCard from "./PictogramCard";
@@ -12,7 +13,10 @@ const PictogramSelectionModal: React.FC<{
   isVisible: boolean;
   onSelect: (el: Pictogram) => void;
   onClose: () => void;
-}> = ({ isVisible, onSelect, onClose }) => {
+  defaultText: string;
+  showFavourites?: boolean;
+}> = ({ isVisible, onSelect, onClose, defaultText, showFavourites = true }) => {
+  const pictogramStore = usePictogramStore();
   const [searchPhrase, setSearchPhrase] = useState("");
   const [searchedPictograms, setSearchedPictograms] = useState(
     [] as Pictogram[],
@@ -40,6 +44,7 @@ const PictogramSelectionModal: React.FC<{
       isVisible={isVisible}
       onBackdropPress={onClose}
       style={{ margin: 0 }}
+      onBackButtonPress={onClose}
     >
       <View className="absolute bottom-0 h-[75%] w-full flex-col items-center justify-center rounded-t-lg bg-[#2f3235ea]">
         <View className="h-[25%] w-full">
@@ -59,12 +64,17 @@ const PictogramSelectionModal: React.FC<{
           />
         </View>
         <View className="flex h-[75%] w-full">
-          {searchPhrase != "" ? (
+          {searchPhrase != "" ||
+          (showFavourites && pictogramStore.favourites.length > 0) ? (
             <View className="h-full w-full content-center justify-center">
               {searchedPictograms.length > 0 ? (
                 <FlatList
                   horizontal
-                  data={searchedPictograms}
+                  data={
+                    searchPhrase != ""
+                      ? searchedPictograms
+                      : pictogramStore.getFavouritePictograms()
+                  }
                   renderItem={(pictogram) => (
                     <View className="h-full w-44">
                       <PictogramCard
@@ -85,8 +95,7 @@ const PictogramSelectionModal: React.FC<{
             </View>
           ) : (
             <Text className="font-text m-auto text-base text-white">
-              Seleziona i tuoi pittogrammi preferiti dalle impostazioni o
-              cerca..
+              {defaultText}
             </Text>
           )}
         </View>

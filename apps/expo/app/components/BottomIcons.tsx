@@ -14,7 +14,7 @@ const BottomIcons: React.FC = () => {
 
   return (
     <View className="absolute left-4 bottom-4 flex-row">
-      <TouchableOpacity onPress={() => router.push("/settings")}>
+      <TouchableOpacity onPress={() => router.push("/views/SettingsPage")}>
         <MaterialIcons
           style={shadowStyle.icon}
           name="settings"

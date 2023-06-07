@@ -191,7 +191,7 @@ export default function ReadingPage() {
   return (
     <SafeAreaView className="h-full w-full flex-col">
       <View className="flex h-1/5 w-full flex-row items-center justify-center">
-        <Text className="text-default text-3xl font-semibold">
+        <Text className="text-default text-xl font-semibold">
           Scegli un libro da leggere:
         </Text>
       </View>
@@ -227,6 +227,7 @@ export default function ReadingPage() {
           </Text>
         )}
       </View>
+      {/* TODO BOOK SEARCH */}
       <View className="flex h-1/5 w-full"></View>
       <BottomIcons />
     </SafeAreaView>

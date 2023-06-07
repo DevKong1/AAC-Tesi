@@ -9,6 +9,15 @@ export const getPictogram = (id: number) => {
   return pictogram ? pictogram : defaultPictogram;
 };
 
+export const getPictograms = (ids: number[]) => {
+  const result = [] as Pictogram[];
+  ids.forEach((id) => {
+    const found = getPictogram(id);
+    found._id != -1 ? result.push(found) : null;
+  });
+  return result;
+};
+
 export const findPictograms = (text: string, whole = false) => {
   const result = dictionaryArray.filter(
     (el) => el.keywords?.findIndex((key) => key.keyword.includes(text)) != -1,

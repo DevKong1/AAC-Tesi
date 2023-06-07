@@ -25,6 +25,16 @@ export type Pictogram = {
   lastUpdated?: string;
   keywords: keyword[];
   followingPunctation?: string;
+  customKeyword?: string;
+  customImage?: boolean;
+  favourite?: boolean;
+};
+
+export type CustomPictogram = {
+  _id: string;
+  oldId?: number;
+  customImage?: boolean;
+  customText?: string;
 };
 
 export type Board = {

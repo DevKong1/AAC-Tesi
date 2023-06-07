@@ -3,7 +3,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
+import { getPictograms } from "../hooks/pictogramsHandler";
 import {
+  type CustomPictogram,
   type DiaryPage,
   type Pictogram,
   type ReadingSettings,
@@ -202,6 +204,64 @@ export const useInputStore = create<inputState>((set, get) => ({
       requestCompleted: false,
       args: undefined,
     });
+  },
+}));
+
+interface PictogramState {
+  favourites: number[];
+  customPictograms: CustomPictogram[];
+  getFavouritePictograms: () => Pictogram[];
+  addFavourite: (id: number) => Promise<void>;
+  removeFavourite: (id: number) => Promise<void>;
+  addCustomPictogram: (
+    id: string,
+    oldId?: number,
+    text?: string,
+  ) => Promise<void>;
+  removeCustomPictogram: (id: string) => Promise<void>;
+}
+
+export const usePictogramStore = create<PictogramState>((set, get) => ({
+  favourites: [],
+  customPictograms: [],
+  getFavouritePictograms: () => {
+    return getPictograms(get().favourites);
+  },
+  addFavourite: async (id) => {
+    if (!get().favourites.find((el) => el == id))
+      set((state) => ({ favourites: [...state.favourites, id] }));
+  },
+  removeFavourite: async (id) => {
+    const index = get().favourites.findIndex((el) => el == id);
+    if (index != -1)
+      set((state) => ({
+        favourites: [
+          ...state.favourites.slice(0, index),
+          ...state.favourites.slice(index + 1),
+        ],
+      }));
+  },
+  addCustomPictogram: async (id, oldId?, text?) => {
+    if (!get().customPictograms.find((el) => el._id == id)) {
+      const newPictogram = {
+        _id: id,
+        oldId: oldId,
+        text: text,
+      } as CustomPictogram;
+      set((state) => ({
+        customPictograms: [...state.customPictograms, newPictogram],
+      }));
+    }
+  },
+  removeCustomPictogram: async (id) => {
+    const index = get().customPictograms.findIndex((el) => el._id == id);
+    if (index != -1)
+      set((state) => ({
+        customPictograms: [
+          ...state.customPictograms.slice(0, index),
+          ...state.customPictograms.slice(index + 1),
+        ],
+      }));
   },
 }));
 

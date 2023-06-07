@@ -6,7 +6,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
 import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
@@ -133,6 +132,7 @@ export default function TalkingPage() {
         isVisible={showModal}
         onSelect={addPictogram}
         onClose={onModalClose}
+        defaultText="Qui potrai visualizzare i tuoi pittogrammi personali o preferiti, selezionati dalle impostazioni.."
       />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">
         {selectedPictograms.length > 0 ? (

@@ -7,7 +7,7 @@ export const isDeviceLarge = () => {
 };
 
 export const defaultPictogram: Pictogram = {
-  _id: 3418,
+  _id: -1,
   keywords: [
     {
       keyword: "?",
