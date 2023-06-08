@@ -35,7 +35,7 @@ const PictogramCard: React.FC<{
       />
 
       {!noCaption && (
-        <View className="flex h-[25%] w-[90%]">
+        <View className="flex h-[25%] w-[90%] items-center justify-center">
           <Text
             numberOfLines={1}
             adjustsFontSizeToFit

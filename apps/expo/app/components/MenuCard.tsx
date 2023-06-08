@@ -27,7 +27,7 @@ const MenuCard: React.FC<{
       <View className="flex h-[30%] w-full items-center justify-center">
         <Text
           style={{ fontSize: fontSize }}
-          className={`text-default font-text text-center`}
+          className={`text-default   font-text text-center`}
         >
           {text}
         </Text>

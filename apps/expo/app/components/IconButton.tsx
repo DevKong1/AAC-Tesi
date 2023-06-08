@@ -11,7 +11,7 @@ const IconButton: React.FC<{
   return (
     <TouchableOpacity
       style={[shadowStyle.light, { backgroundColor: color }]}
-      className="mx-auto flex h-full w-full flex-col items-center justify-center rounded-[30px]"
+      className="flex h-5/6 w-5/6 flex-col items-center justify-center rounded-[30px]"
       onPress={onPress}
     >
       {icon}
