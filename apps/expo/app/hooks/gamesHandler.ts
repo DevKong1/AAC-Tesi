@@ -11,14 +11,14 @@ export const generateWhatsItGame = async () => {
     id: Crypto.randomUUID(),
     text: "Indovina cos'ha in mano il bambino!",
     pictograms: [
-      getPictogram(2462),
-      getPictogram(4918),
-      getPictogram(2561),
-      getPictogram(2483),
-      getPictogram(2530),
-      getPictogram(4933),
+      getPictogram("2462"),
+      getPictogram("4918"),
+      getPictogram("2561"),
+      getPictogram("2483"),
+      getPictogram("2530"),
+      getPictogram("4933"),
     ],
-    answer: 2462,
+    answer: "2462",
     picture: require("../../assets/images/whatsItExample.jpg"),
   } as WhatsItGameProperties;
 };

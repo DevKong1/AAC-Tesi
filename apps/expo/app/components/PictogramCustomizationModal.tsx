@@ -1,39 +1,87 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  BackHandler,
+  Alert,
   Image,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-  type ImageSourcePropType,
 } from "react-native";
 import Modal from "react-native-modal";
-import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { MaterialIcons } from "@expo/vector-icons";
 
-import { defaultPictogram } from "../utils/commonFunctions";
+import { usePictogramStore } from "../store/store";
 import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Pictogram } from "../utils/types/commonTypes";
+import IconButton from "./IconButton";
 import SearchFlatlist from "./SearchFlatlist";
 import SettingsButton from "./SettingsButton";
 
-const PictogramSettingsModal: React.FC<{
+const PictogramCustomizationModal: React.FC<{
   isVisible: boolean;
   onClose: () => void;
 }> = ({ isVisible, onClose }) => {
-  const router = useRouter();
+  const pictogramStore = usePictogramStore();
+
   const [selectedView, setView] = useState("");
   const [selectedPictogram, setSelectedPictogram] = useState(
     undefined as Pictogram | undefined,
   );
   const [selectedImage, setSelectedImage] = useState(
-    undefined as ImageSourcePropType | undefined,
+    undefined as string | undefined,
   );
-  const [selectedText, setSelectedText] = useState("Testo Pittogramma");
+  const [selectedText, setSelectedText] = useState("");
+  const [textError, setTextError] = useState(false);
 
   const onSelectedPictogram = (pictogram: Pictogram) => {
+    const text = pictogram.keywords[0]?.keyword;
     setSelectedPictogram(pictogram);
+    if (text) setSelectedText(text);
     setView("");
+  };
+
+  // Add pictogram
+  const onConfirm = () => {
+    if (!selectedImage && !selectedPictogram) {
+      Alert.alert("Seleziona un pittogramma o un'immagine!");
+      return;
+    }
+    if (selectedText == "") {
+      setTextError(true);
+      return;
+    }
+    pictogramStore.addCustomPictogram(
+      selectedPictogram?._id,
+      selectedText.toLowerCase(),
+      selectedImage,
+    );
+    close();
+  };
+
+  // Close modal and reset State
+  const close = () => {
+    setView("");
+    setSelectedPictogram(undefined);
+    setSelectedImage(undefined);
+    setSelectedText("");
+    setTextError(false);
+    onClose();
+  };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0]?.base64) {
+      setSelectedImage(result.assets[0]?.base64);
+    }
   };
 
   const currentView = () => {
@@ -45,8 +93,8 @@ const PictogramSettingsModal: React.FC<{
               <SearchFlatlist
                 defaultText="Cerca un pittogramma da modificare.."
                 onSelect={onSelectedPictogram}
-                textColor="#5C5C5C"
                 backgroundColor="white"
+                inputColor="#5C5C5C"
               />
             </View>
             <View className="h-[15%] w-64 items-center justify-center p-2">
@@ -60,43 +108,122 @@ const PictogramSettingsModal: React.FC<{
         );
       default:
         return (
-          <View className="h-full w-full">
+          <View className="flex h-full w-full flex-row">
             <View className="flex h-full w-1/2 items-center justify-center">
-              <TouchableOpacity
-                style={[shadowStyle.light]}
-                className="mx-auto flex h-5/6 w-2/3 flex-col items-center justify-center rounded-[30px] bg-[#C6D7F9]"
-                onPress={() => {
-                  setView("Search");
-                }}
-              >
-                <Image
-                  style={{ resizeMode: "contain" }}
-                  className="h-[75%] w-full"
-                  source={
-                    selectedImage
-                      ? selectedImage
-                      : selectedPictogram
-                      ? pictograms[2239]
-                      : pictograms[3418]
-                  }
-                  alt="Image of the considered pictogram"
-                />
-                <View className="flex h-[25%] w-[90%] items-center justify-center">
-                  <Text
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    textBreakStrategy="simple"
-                    className={`text-default font-text text-center`}
-                  >
-                    {/* TODO PASS WORD */}
-                    {selectedPictogram
-                      ? selectedPictogram.keywords[0]?.keyword
-                      : selectedText}
+              {!selectedImage && !selectedPictogram && (
+                <View className="flex h-[10%] w-full items-center justify-center pt-2 ">
+                  <Text className="text-default font-text text-center">
+                    Premi per selezionare un pittogramma:
                   </Text>
                 </View>
-              </TouchableOpacity>
+              )}
+              <View
+                className={`flex ${
+                  !selectedImage && !selectedPictogram ? "h-[90%]" : "h-full"
+                } w-full items-center justify-center`}
+              >
+                <TouchableOpacity
+                  style={[shadowStyle.light]}
+                  className="flex h-5/6 w-2/3 flex-col items-center justify-center rounded-[30px] bg-[#C6D7F9]"
+                  onPress={() => {
+                    if (selectedImage) setSelectedImage(undefined);
+                    setView("Search");
+                  }}
+                >
+                  <Image
+                    style={{ resizeMode: "contain" }}
+                    className={`h-[75%] ${
+                      selectedImage ? "w-[75%]" : "w-full"
+                    }`}
+                    source={
+                      selectedImage
+                        ? { uri: "data:image/jpeg;base64," + selectedImage }
+                        : selectedPictogram
+                        ? // TODO JUST FOR DEBUG pictogram[selectedPictogram._id]
+                          pictograms[2239]
+                        : // Default Pictogram Image
+                          pictograms[3418]
+                    }
+                    alt="Image of the considered pictogram"
+                  />
+                  <View className="flex h-[25%] w-[90%] items-center justify-center">
+                    <Text
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      textBreakStrategy="simple"
+                      className="text-default font-text text-center"
+                    >
+                      {/* TODO PASS WORD */}
+                      {selectedText}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View className="flex h-full w-1/2 flex-col"></View>
+            <View className="flex h-full w-1/2 flex-col items-center justify-start gap-4 pt-10">
+              <View className="h-14 w-full flex-col items-center justify-center">
+                <TextInput
+                  className={`w-3/4 rounded-xl  ${
+                    textError
+                      ? "border-2 border-red-500"
+                      : "border border-[#5c5c5c85]"
+                  } bg-white p-2`}
+                  onChangeText={setSelectedText}
+                  onFocus={() => {
+                    textError ? setTextError(false) : null;
+                  }}
+                  value={selectedText}
+                  placeholder="Testo pittogramma..."
+                />
+              </View>
+              {selectedImage ? (
+                <View className="h-14 w-3/4 flex-col items-center justify-center">
+                  <SettingsButton
+                    icon={
+                      <MaterialIcons name="clear" size={22} color="#5c5c5c" />
+                    }
+                    text="Annulla selezione"
+                    color="#FFFFCA"
+                    onPress={() => {
+                      setSelectedImage(undefined);
+                    }}
+                  />
+                </View>
+              ) : (
+                <View className="h-14 w-3/4 flex-col items-center justify-center">
+                  <SettingsButton
+                    icon={
+                      <MaterialIcons name="image" size={22} color="#5c5c5c" />
+                    }
+                    text="Seleziona un'immagine per il pittogramma"
+                    color="#FFFFCA"
+                    onPress={pickImage}
+                  />
+                </View>
+              )}
+              <View className="flex grow items-end justify-end">
+                <View className="h-14 w-full flex-row items-center justify-center">
+                  <View className="w-1/2">
+                    <IconButton
+                      icon={
+                        <MaterialIcons name="check" size={32} color="white" />
+                      }
+                      color="#89BF93"
+                      onPress={onConfirm}
+                    />
+                  </View>
+                  <View className="w-1/2">
+                    <IconButton
+                      icon={
+                        <MaterialIcons name="clear" size={32} color="white" />
+                      }
+                      color="#F69898"
+                      onPress={close}
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
           </View>
         );
     }
@@ -105,8 +232,8 @@ const PictogramSettingsModal: React.FC<{
   return (
     <Modal
       isVisible={isVisible}
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
+      onBackdropPress={close}
+      onBackButtonPress={close}
       style={{
         margin: "auto",
         justifyContent: "center",
@@ -121,4 +248,4 @@ const PictogramSettingsModal: React.FC<{
   );
 };
 
-export default PictogramSettingsModal;
+export default PictogramCustomizationModal;

@@ -20,21 +20,19 @@ export type Pictogram = {
   categories?: string[];
   synsets?: string[];
   tags?: string[];
-  _id: number;
+  _id: string;
   created?: string;
   lastUpdated?: string;
   keywords: keyword[];
   followingPunctation?: string;
-  customKeyword?: string;
-  customImage?: boolean;
-  favourite?: boolean;
+  customPictogram?: CustomPictogram;
 };
 
 export type CustomPictogram = {
   _id: string;
-  oldId?: number;
-  customImage?: boolean;
-  customText?: string;
+  oldId?: string;
+  text?: string;
+  image?: string;
 };
 
 export type Board = {
@@ -51,7 +49,7 @@ export type WhatsItGameProperties = {
   id: string;
   text: string;
   pictograms: Pictogram[];
-  answer: number;
+  answer: string;
   picture: any;
 };
 

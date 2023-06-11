@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BackHandler, Text, TouchableOpacity, View } from "react-native";
+import { BackHandler, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -9,24 +9,34 @@ import IconButton from "../components/IconButton";
 import MenuCard from "../components/MenuCard";
 import PictogramCard from "../components/PictogramCard";
 import PictogramCustomizationModal from "../components/PictogramCustomizationModal";
+import PictogramSearchModal from "../components/PictogramSearchModal";
 import PictogramSelectionModal from "../components/PictogramSelectionModal";
 import SettingsButton from "../components/SettingsButton";
 import { useCompanionStore, usePictogramStore } from "../store/store";
-import { isDeviceLarge } from "../utils/commonFunctions";
 import { type Pictogram } from "../utils/types/commonTypes";
 
 export default function SettingsPage() {
+  const companionStore = useCompanionStore();
   const pictogramStore = usePictogramStore();
   const router = useRouter();
   const [selectedMenu, setMenu] = useState("Impostazioni");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
-
-  const fontSize = isDeviceLarge() ? 32 : 18;
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   const addPictogram = (pressed: Pictogram) => {
     pictogramStore.addFavourite(pressed._id);
   };
+
+  const onPressedRemove = (pictogram: Pictogram) => {
+    if (pictogram.customPictogram) {
+      pictogramStore.removeCustomPictogram(pictogram.customPictogram._id);
+    }
+  };
+
+  useEffect(() => {
+    companionStore.setVisible(false);
+  }, []);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -36,6 +46,7 @@ export default function SettingsPage() {
           setMenu("Impostazioni");
           return true;
         } else {
+          companionStore.setVisible(true);
           router.back();
           return true;
         }
@@ -50,7 +61,7 @@ export default function SettingsPage() {
       case "Preferiti":
         return (
           <View className="flex h-full w-full flex-col items-center justify-center">
-            <PictogramSelectionModal
+            <PictogramSearchModal
               isVisible={showAddModal}
               onSelect={addPictogram}
               onClose={() => {
@@ -59,7 +70,7 @@ export default function SettingsPage() {
               defaultText="Cerca un pittogramma da aggiungere tra i preferiti..."
               showFavourites={false}
             />
-            <View className="flex h-3/4 w-full">
+            <View className="flex h-4/5 w-full">
               {pictogramStore.favourites.length > 0 ? (
                 <View className="flex h-full w-full items-center justify-center">
                   <ScrollView
@@ -83,7 +94,7 @@ export default function SettingsPage() {
                         </View>
                       ))}
                   </ScrollView>
-                  <View className="flex h-1/4 w-full items-center justify-center">
+                  <View className="h-1/5a flex w-full items-center justify-center">
                     <Text className="text-default font-text text-center text-base lg:text-lg">
                       Premi su un pittogramma per rimuoverlo dai preferiti
                     </Text>
@@ -111,8 +122,6 @@ export default function SettingsPage() {
             </View>
           </View>
         );
-      case "AI":
-        return <View />;
       case "Personalizza Pittogrammi":
         return (
           <View className="flex h-full w-full flex-col items-center justify-start pt-4">
@@ -122,31 +131,26 @@ export default function SettingsPage() {
                 setShowCustomizeModal(false);
               }}
             />
+            <PictogramSelectionModal
+              isVisible={showRemoveModal}
+              onSelect={onPressedRemove}
+              onClose={() => {
+                setShowRemoveModal(false);
+              }}
+              data={pictogramStore.getCustomPictograms()}
+            />
             <View className="flex h-14 w-80 items-center justify-center p-1">
               <SettingsButton
                 text="Modifica/Crea pittogramma"
                 color="#C6D7F9"
-                onPress={() => {
-                  setShowCustomizeModal(true);
-                }}
-              />
-            </View>
-            <View className="flex h-14 w-80 items-center justify-center p-1">
-              <SettingsButton
-                text="Cambia pittogrammi modificati/creati"
-                color="#C6D7F9"
-                onPress={() => {
-                  return;
-                }}
+                onPress={() => setShowCustomizeModal(true)}
               />
             </View>
             <View className="flex h-14 w-80 items-center justify-center p-1">
               <SettingsButton
                 text="Elimina pittogrammi modificati/creati"
                 color="#C6D7F9"
-                onPress={() => {
-                  return;
-                }}
+                onPress={() => setShowRemoveModal(true)}
               />
             </View>
           </View>
@@ -157,7 +161,6 @@ export default function SettingsPage() {
             <View className="flex h-[65%] w-[25%]">
               <MenuCard
                 text="Preferiti"
-                fontSize={fontSize}
                 bgcolor="#FFFFCA"
                 icon={<MaterialIcons name="star" size={90} color="#5C5C5C" />}
                 onPress={() => setMenu("Preferiti")}
@@ -167,20 +170,9 @@ export default function SettingsPage() {
             <View className="flex h-[65%] w-[25%]">
               <MenuCard
                 text="Personalizza Pittogrammi"
-                fontSize={fontSize}
                 bgcolor="#B9D2C3"
                 icon={<MaterialIcons name="create" size={90} color="#5C5C5C" />}
                 onPress={() => setMenu("Personalizza Pittogrammi")}
-              />
-            </View>
-            <View className="w-6" />
-            <View className="flex h-[65%] w-[25%]">
-              <MenuCard
-                text="AI"
-                fontSize={fontSize}
-                bgcolor="#f2b7b3"
-                icon={<MaterialIcons name="apps" size={90} color="#5C5C5C" />}
-                onPress={() => setMenu("AI")}
               />
             </View>
           </View>

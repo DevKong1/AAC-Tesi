@@ -36,8 +36,7 @@ const Index = () => {
         <View className="mx-auto flex flex-grow flex-row items-center justify-center">
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram(23392)}
-              fontSize={fontSize}
+              pictogram={getPictogram("23392")}
               bgcolor="#C6D7F9"
               text="Giochiamo"
               onPress={() => router.push("/views/GamesPage")}
@@ -45,8 +44,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram(28643)}
-              fontSize={fontSize}
+              pictogram={getPictogram("28643")}
               bgcolor="#B9D2C3"
               text="Leggiamo"
               onPress={() => router.push("/views/ReadingPage")}
@@ -54,8 +52,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram(28663)}
-              fontSize={fontSize}
+              pictogram={getPictogram("28663")}
               bgcolor="#EBDBD8"
               text="Parliamo"
               onPress={() => router.push("/views/TalkingPage")}
@@ -63,8 +60,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram(2359)}
-              fontSize={fontSize}
+              pictogram={getPictogram("2359")}
               bgcolor="#D9D9FD"
               text="Diario"
               onPress={() => router.push("/views/DiaryPage")}

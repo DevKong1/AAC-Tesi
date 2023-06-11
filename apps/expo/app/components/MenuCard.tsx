@@ -5,11 +5,10 @@ import { shadowStyle } from "../utils/shadowStyle";
 
 const MenuCard: React.FC<{
   text: string;
-  fontSize: number;
   icon: ReactNode;
   bgcolor: string;
   onPress: () => void;
-}> = ({ text, icon, fontSize, bgcolor, onPress }) => {
+}> = ({ text, icon, bgcolor, onPress }) => {
   return (
     <TouchableOpacity
       style={[
@@ -18,7 +17,7 @@ const MenuCard: React.FC<{
           backgroundColor: bgcolor,
         },
       ]}
-      className="mx-auto flex h-full w-full flex-col items-center justify-center rounded-[30px]"
+      className="flex h-full w-full flex-col items-center justify-center rounded-[30px]"
       onPress={onPress}
     >
       <View className="flex h-[70%] w-full items-center justify-center">
@@ -26,8 +25,10 @@ const MenuCard: React.FC<{
       </View>
       <View className="flex h-[30%] w-full items-center justify-center">
         <Text
-          style={{ fontSize: fontSize }}
-          className={`text-default   font-text text-center`}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          textBreakStrategy="simple"
+          className={`text-default font-text text-center`}
         >
           {text}
         </Text>

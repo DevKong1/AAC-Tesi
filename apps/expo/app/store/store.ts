@@ -1,9 +1,10 @@
+import { randomUUID } from "expo-crypto";
 import * as Speech from "expo-speech";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
-import { getPictograms } from "../hooks/pictogramsHandler";
+import { getPictogram, getPictograms } from "../hooks/pictogramsHandler";
 import {
   type CustomPictogram,
   type DiaryPage,
@@ -208,15 +209,16 @@ export const useInputStore = create<inputState>((set, get) => ({
 }));
 
 interface PictogramState {
-  favourites: number[];
+  favourites: string[];
   customPictograms: CustomPictogram[];
   getFavouritePictograms: () => Pictogram[];
-  addFavourite: (id: number) => Promise<void>;
-  removeFavourite: (id: number) => Promise<void>;
+  getCustomPictograms: () => Pictogram[];
+  addFavourite: (id: string) => Promise<void>;
+  removeFavourite: (id: string) => Promise<void>;
   addCustomPictogram: (
-    id: string,
-    oldId?: number,
+    oldId?: string,
     text?: string,
+    image?: string,
   ) => Promise<void>;
   removeCustomPictogram: (id: string) => Promise<void>;
 }
@@ -225,7 +227,28 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
   favourites: [],
   customPictograms: [],
   getFavouritePictograms: () => {
-    return getPictograms(get().favourites);
+    return getPictograms(get().favourites, get().getCustomPictograms());
+  },
+  getCustomPictograms: () => {
+    const result = [] as Pictogram[];
+    get().customPictograms.forEach((pictogram) => {
+      if (pictogram.oldId) {
+        const oldValue = getPictogram(pictogram.oldId);
+        oldValue
+          ? result.push({
+              ...oldValue,
+              customPictogram: pictogram,
+            })
+          : null;
+      } else {
+        result.push({
+          _id: pictogram._id,
+          keywords: [],
+          customPictogram: pictogram,
+        });
+      }
+    });
+    return result;
   },
   addFavourite: async (id) => {
     if (!get().favourites.find((el) => el == id))
@@ -241,27 +264,29 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
         ],
       }));
   },
-  addCustomPictogram: async (id, oldId?, text?) => {
-    if (!get().customPictograms.find((el) => el._id == id)) {
-      const newPictogram = {
-        _id: id,
-        oldId: oldId,
-        text: text,
-      } as CustomPictogram;
-      set((state) => ({
-        customPictograms: [...state.customPictograms, newPictogram],
-      }));
-    }
+  addCustomPictogram: async (oldId?, text?, image?) => {
+    const id = randomUUID();
+    const newPictogram = {
+      _id: id,
+      oldId: oldId,
+      text: text,
+      image: image,
+    } as CustomPictogram;
+    set((state) => ({
+      customPictograms: [...state.customPictograms, newPictogram],
+    }));
   },
   removeCustomPictogram: async (id) => {
     const index = get().customPictograms.findIndex((el) => el._id == id);
-    if (index != -1)
+    if (index != -1) {
+      if (get().favourites.find((el) => el == id)) get().removeFavourite(id);
       set((state) => ({
         customPictograms: [
           ...state.customPictograms.slice(0, index),
           ...state.customPictograms.slice(index + 1),
         ],
       }));
+    }
   },
 }));
 

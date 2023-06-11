@@ -33,7 +33,6 @@ export default function ReadingPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
-  const fontSize = isDeviceLarge() ? 32 : 16;
 
   const iconColor = "#5C5C5C";
   const rows = diaryStore.readingSettings.rows;
@@ -135,7 +134,6 @@ export default function ReadingPage() {
                   >
                     <PictogramCard
                       pictogram={col}
-                      fontSize={fontSize}
                       bgcolor={"#B9D2C3"}
                       onPress={() => {
                         const current = col;
@@ -157,7 +155,7 @@ export default function ReadingPage() {
             <View className="h-full w-1/3 items-center justify-center">
               <View className="h-2/3 w-1/2">
                 <PictogramCard
-                  pictogram={getPictogram(36257)}
+                  pictogram={getPictogram("36257")}
                   noCaption={true}
                   bgcolor="#89BF93"
                   onPress={readAll}

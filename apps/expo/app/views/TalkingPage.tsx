@@ -15,15 +15,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
 import PictogramCard from "../components/PictogramCard";
-import PictogramSelectionModal from "../components/PictogramSelectionModal";
+import PictogramSearchModal from "../components/PictogramSearchModal";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import { getPictograms } from "../hooks/talkingHandler";
 import { useCompanionStore, useInputStore } from "../store/store";
 import categories from "../utils/categories";
-import {
-  getTextFromPictogramsArray,
-  isDeviceLarge,
-} from "../utils/commonFunctions";
+import { getTextFromPictogramsArray } from "../utils/commonFunctions";
 import { type Pictogram, type diaryReqArgs } from "../utils/types/commonTypes";
 
 export default function TalkingPage() {
@@ -41,8 +38,6 @@ export default function TalkingPage() {
   const [pictograms, setPictograms] = useState([] as Pictogram[]);
   const [selectedPictograms, selectPictograms] = useState([] as Pictogram[]);
   const [showModal, setShowModal] = useState(false);
-
-  const fontSize = isDeviceLarge() ? 26 : 16;
 
   const addPictogram = (pressed: Pictogram) => {
     if (pressed.keywords[0]) companionStore.speak(pressed.keywords[0].keyword);
@@ -128,7 +123,7 @@ export default function TalkingPage() {
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
-      <PictogramSelectionModal
+      <PictogramSearchModal
         isVisible={showModal}
         onSelect={addPictogram}
         onClose={onModalClose}
@@ -154,7 +149,6 @@ export default function TalkingPage() {
               renderItem={(el) => (
                 <PictogramCard
                   pictogram={el.item}
-                  fontSize={fontSize}
                   bgcolor="#C6D7F9"
                   onPress={removePictogram}
                   args={el.index}
@@ -179,7 +173,7 @@ export default function TalkingPage() {
         <View className="flex h-full w-[10%] items-center justify-center">
           <View className="flex h-3/4 w-2/3 lg:mb-20 lg:h-1/2">
             <PictogramCard
-              pictogram={getPictogram(5596)}
+              pictogram={getPictogram("5596")}
               noCaption={true}
               bgcolor="#A3B0B4"
               onPress={listView}
@@ -194,7 +188,6 @@ export default function TalkingPage() {
                   <View key={el._id} className="flex h-full w-1/4">
                     <PictogramCard
                       pictogram={el}
-                      fontSize={fontSize}
                       bgcolor="#C6D7F9"
                       onPress={addPictogram}
                       args={el}
@@ -207,7 +200,6 @@ export default function TalkingPage() {
                   <View key={el._id} className="flex h-full w-1/4">
                     <PictogramCard
                       pictogram={el}
-                      fontSize={fontSize}
                       bgcolor="#C6D7F9"
                       onPress={addPictogram}
                       args={el}
@@ -225,7 +217,7 @@ export default function TalkingPage() {
         <View className="flex h-full w-[10%] items-center justify-center">
           <View className="mb-20 flex h-1/2 w-2/3">
             <PictogramCard
-              pictogram={getPictogram(8053)}
+              pictogram={getPictogram("8053")}
               noCaption={true}
               bgcolor="#E49691"
               onPress={loadPictograms}
@@ -237,7 +229,7 @@ export default function TalkingPage() {
         {inputID && (
           <View className="flex h-full w-1/6 items-center justify-center">
             <PictogramCard
-              pictogram={getPictogram(38221)}
+              pictogram={getPictogram("38221")}
               noCaption={true}
               bgcolor="#89BF93"
               onPress={submitInput}
@@ -247,7 +239,7 @@ export default function TalkingPage() {
         {inputID && <View className="w-8" />}
         <View className="flex h-full w-1/6 items-center justify-center">
           <PictogramCard
-            pictogram={getPictogram(36257)}
+            pictogram={getPictogram("36257")}
             noCaption={true}
             bgcolor="#f2b30a"
             onPress={readAll}
@@ -256,7 +248,7 @@ export default function TalkingPage() {
         <View className="w-8" />
         <View className="flex h-full w-1/6 items-center justify-center">
           <PictogramCard
-            pictogram={getPictogram(38201)}
+            pictogram={getPictogram("38201")}
             noCaption={true}
             bgcolor="#f05252"
             onPress={() => {

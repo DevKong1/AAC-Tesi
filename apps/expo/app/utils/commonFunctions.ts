@@ -6,17 +6,6 @@ export const isDeviceLarge = () => {
   return Dimensions.get("window").width >= 1024;
 };
 
-export const defaultPictogram: Pictogram = {
-  _id: -1,
-  keywords: [
-    {
-      keyword: "?",
-      hasLocution: false,
-      type: 6,
-    },
-  ],
-};
-
 export const formatToMatchColumns = (
   pictograms: Pictogram[],
   columns: number,
@@ -41,9 +30,10 @@ export const getTextFromPictogramsMatrix = (pictograms: Pictogram[][]) => {
 export const getTextFromPictogramsArray = (pictograms: Pictogram[]) => {
   let text = "";
   pictograms.forEach((el) => {
-    text += `${el.keywords[0]?.keyword}${
-      el.followingPunctation ? el.followingPunctation : ""
-    } `;
+    if (el.customPictogram?.text) text += el.customPictogram.text;
+    else if (el.keywords[0]?.keyword) text += el.keywords[0]?.keyword;
+    if (el.followingPunctation) text += ` ${el.followingPunctation}`;
+    text += " ";
   });
   return text;
 };

@@ -17,8 +17,6 @@ export default function GamesPage() {
 
   const companionStore = useCompanionStore();
 
-  const fontSize = isDeviceLarge() ? 32 : 18;
-
   useEffect(() => {
     companionStore.speak(
       "Evvaiiiii giochiamo! \nScegli a cosa vuoi giocare",
@@ -39,8 +37,7 @@ export default function GamesPage() {
         <View className="mx-auto flex h-4/5 flex-row items-center justify-center">
           <View className="flex h-4/5 w-1/4">
             <PictogramCard
-              pictogram={getPictogram(2680)}
-              fontSize={fontSize}
+              pictogram={getPictogram("2680")}
               bgcolor="#C6D7F9"
               text="Che cos’è??"
               onPress={() => router.push("/views/WhatsItPage")}

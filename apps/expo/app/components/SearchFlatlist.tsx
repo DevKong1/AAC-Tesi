@@ -3,7 +3,7 @@ import { FlatList, Text, View } from "react-native";
 import { SearchBar } from "@rneui/themed";
 
 import { findPictograms } from "../hooks/pictogramsHandler";
-import { isDeviceLarge } from "../utils/commonFunctions";
+import { usePictogramStore } from "../store/store";
 import { type Pictogram } from "../utils/types/commonTypes";
 import PictogramCard from "./PictogramCard";
 
@@ -11,21 +11,20 @@ const SearchFlatlist: React.FC<{
   defaultText: string;
   defaultData?: Pictogram[];
   backgroundColor?: string;
-  textColor?: string;
+  inputColor?: string;
   onSelect: (el: Pictogram) => void;
 }> = ({
   defaultText,
   defaultData,
+  inputColor,
   backgroundColor = "#ffffff00",
-  textColor = "white",
   onSelect,
 }) => {
+  const pictogramStore = usePictogramStore();
   const [searchPhrase, setSearchPhrase] = useState("");
   const [searchedPictograms, setSearchedPictograms] = useState(
     [] as Pictogram[],
   );
-
-  const fontSize = isDeviceLarge() ? 26 : 16;
 
   const updateSearch = (search: string) => {
     setSearchPhrase(search);
@@ -38,7 +37,12 @@ const SearchFlatlist: React.FC<{
 
   const searchPictograms = () => {
     if (searchPhrase != "")
-      setSearchedPictograms(findPictograms(searchPhrase.toLowerCase(), false));
+      setSearchedPictograms(
+        findPictograms(
+          searchPhrase.toLowerCase(),
+          pictogramStore.getCustomPictograms(),
+        ),
+      );
     else clearSearch();
   };
 
@@ -55,7 +59,7 @@ const SearchFlatlist: React.FC<{
             borderTopWidth: 0,
             backgroundColor: "#ffffff00",
           }}
-          inputStyle={{ color: textColor ? textColor : "white" }}
+          inputStyle={{ color: inputColor ? inputColor : "white" }}
           placeholder="Inserire testo pittogramma..."
           onChangeText={updateSearch}
           onEndEditing={searchPictograms}
@@ -64,18 +68,17 @@ const SearchFlatlist: React.FC<{
         />
       </View>
       <View className="flex h-[75%] w-full">
-        {searchPhrase != "" || defaultData ? (
+        {searchPhrase != "" || (defaultData && defaultData.length > 0) ? (
           <View className="h-full w-full content-center justify-center">
-            {searchedPictograms.length > 0 ? (
+            {searchedPictograms.length > 0 || defaultData ? (
               <FlatList
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 data={searchPhrase != "" ? searchedPictograms : defaultData}
                 renderItem={(pictogram) => (
-                  <View className="h-full w-44">
+                  <View className="h-full w-44 items-center justify-center">
                     <PictogramCard
                       pictogram={pictogram.item}
-                      fontSize={fontSize}
                       bgcolor="#C6D7F9"
                       onPress={onSelect}
                       args={pictogram.item}
@@ -84,19 +87,13 @@ const SearchFlatlist: React.FC<{
                 )}
               />
             ) : (
-              <Text
-                style={{ color: textColor }}
-                className="font-text m-auto text-base"
-              >
+              <Text className="font-text text-default m-auto text-base">
                 Nessun pittogramma trovato.
               </Text>
             )}
           </View>
         ) : (
-          <Text
-            style={{ color: textColor }}
-            className="font-text m-auto text-base text-white"
-          >
+          <Text className="font-text text-default m-auto text-base">
             {defaultText}
           </Text>
         )}

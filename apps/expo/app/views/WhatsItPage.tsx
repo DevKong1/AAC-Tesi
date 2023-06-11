@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { useEffect, useState } from "react";
 import { BackHandler, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,7 +8,6 @@ import PictogramCard from "../components/PictogramCard";
 import { generateWhatsItGame } from "../hooks/gamesHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore } from "../store/store";
-import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import {
   type Pictogram,
@@ -37,10 +35,8 @@ export default function WhatsItPage() {
   const [game, setGame] = useState({
     pictograms: [] as Pictogram[],
   } as WhatsItGameProperties);
-  const [guess, setGuess] = useState(undefined as number | undefined);
+  const [guess, setGuess] = useState(undefined as string | undefined);
   const companionStore = useCompanionStore();
-
-  const fontSize = isDeviceLarge() ? 26 : 16;
 
   const generateGame = async () => {
     const game = await generateWhatsItGame();
@@ -129,8 +125,7 @@ export default function WhatsItPage() {
               Risposta:
             </Text>
             <PictogramCard
-              pictogram={game.pictograms.find((el) => el._id == game.answer)!}
-              fontSize={fontSize}
+              pictogram={game.pictograms.find((el) => el._id == game.answer)}
               bgcolor="#C6D7F9"
               onPress={() => null}
             />
@@ -147,9 +142,8 @@ export default function WhatsItPage() {
           <View className=" flex h-3/4 w-full flex-row items-center justify-center">
             <View className="flex h-full w-1/4 items-center justify-center">
               <PictogramCard
-                pictogram={getPictogram(37162)}
+                pictogram={getPictogram("37162")}
                 text="Gioca ancora"
-                fontSize={fontSize}
                 bgcolor="#FFFFCA"
                 onPress={async () => {
                   await generateGame();
@@ -159,9 +153,8 @@ export default function WhatsItPage() {
             </View>
             <View className="flex h-full w-1/4 items-center justify-center">
               <PictogramCard
-                pictogram={getPictogram(2806)}
+                pictogram={getPictogram("2806")}
                 text="Esci"
-                fontSize={fontSize}
                 bgcolor="#F69898"
                 onPress={() => {
                   companionStore.setPosition("default");
@@ -190,7 +183,6 @@ export default function WhatsItPage() {
             <View className="m-auto h-[90%] w-1/4" key={pic._id}>
               <PictogramCard
                 pictogram={pic}
-                fontSize={fontSize}
                 bgcolor="#C6D7F9"
                 onPress={playerGuess}
                 args={pic}
@@ -201,8 +193,7 @@ export default function WhatsItPage() {
         <View className="flex h-1/2 w-full flex-row justify-center">
           <View className="flex h-full w-1/4 items-start">
             <PictogramCard
-              pictogram={game.pictograms[4]!}
-              fontSize={fontSize}
+              pictogram={game.pictograms[4]}
               bgcolor="#C6D7F9"
               onPress={playerGuess}
               args={game.pictograms[4]!}
@@ -226,8 +217,7 @@ export default function WhatsItPage() {
           </View>
           <View className="h-full w-1/4">
             <PictogramCard
-              pictogram={game.pictograms[5]!}
-              fontSize={fontSize}
+              pictogram={game.pictograms[5]}
               bgcolor="#C6D7F9"
               onPress={playerGuess}
               args={game.pictograms[5]!}

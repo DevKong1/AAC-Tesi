@@ -36,7 +36,6 @@ export default function DiaryPage() {
   const [requestID, setReqId] = useState(undefined as string | undefined);
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
 
-  const fontSize = isDeviceLarge() ? 32 : 16;
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
   const columns = diaryStore.readingSettings.columns;
@@ -229,7 +228,7 @@ export default function DiaryPage() {
           >
             <View className="h-16 w-[5%] flex-col pb-2 pl-2">
               <PictogramCard
-                pictogram={getPictogram(36257)}
+                pictogram={getPictogram("36257")}
                 noCaption={true}
                 bgcolor="#f2b30a"
                 onPress={() => readEntry(diaryEntry)}
@@ -246,7 +245,6 @@ export default function DiaryPage() {
                     >
                       <PictogramCard
                         pictogram={col}
-                        fontSize={fontSize}
                         bgcolor={"#B9D2C3"}
                         onPress={() => {
                           const current = col;
@@ -264,7 +262,7 @@ export default function DiaryPage() {
             </View>
             <View className="h-16 w-[5%] flex-col pb-2 pr-2">
               <PictogramCard
-                pictogram={getPictogram(37360)}
+                pictogram={getPictogram("37360")}
                 noCaption={true}
                 bgcolor="#E49691"
                 onPress={() => modifyEntry(i)}
@@ -280,7 +278,7 @@ export default function DiaryPage() {
         }`}
       >
         <PictogramCard
-          pictogram={getPictogram(38218)}
+          pictogram={getPictogram("38218")}
           noCaption={true}
           bgcolor="#89BF93"
           onPress={addParagraph}
