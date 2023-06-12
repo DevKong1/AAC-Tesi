@@ -35,6 +35,8 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
     eas: {
       projectId: "your-project-id",
     },
+    PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.PUBLIC_CLERK_PUBLISHABLE_KEY,
+    PUBLIC_HUGGINGFACE_BEARER: process.env.PUBLIC_HUGGINGFACE_BEARER,
   },
   plugins: ["./expo-plugins/with-modify-gradle.js"],
 });

@@ -21,6 +21,7 @@ interface CompanionState {
   bubblePosition: string;
   volumeOn: boolean;
   bubbleOn: boolean;
+  start: () => void;
   reset: () => void;
   speak: (
     text: string,
@@ -34,13 +35,16 @@ interface CompanionState {
 }
 
 export const useCompanionStore = create<CompanionState>((set, get) => ({
-  isVisible: true,
+  isVisible: false,
   currentMood: "",
   currentText: "",
   position: "default",
   bubblePosition: "left",
-  volumeOn: true,
-  bubbleOn: true,
+  volumeOn: false,
+  bubbleOn: false,
+  start: () => {
+    set({ isVisible: true, volumeOn: true, bubbleOn: true });
+  },
   reset: () => {
     set({ currentText: "", bubblePosition: "left" });
   },

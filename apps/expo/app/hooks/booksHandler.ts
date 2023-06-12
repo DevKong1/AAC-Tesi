@@ -1,5 +1,3 @@
-import * as Crypto from "expo-crypto";
-
 import { formatToMatchColumns } from "../utils/commonFunctions";
 import { type Book } from "../utils/types/commonTypes";
 import { getPictogramsFromFile } from "./huggingFaceHandler";
@@ -15,7 +13,7 @@ export const parseDocument = async (uri: string, columns: number) => {
 export const getDummyBooks = () => {
   return [
     {
-      id: Crypto.randomUUID(),
+      id: "00e0d9f9-aabd-4872-bd54-f3975d75bfc8",
       title: "La bella e la bestia",
       cover: require("../../assets/images/bella.jpg"),
       pictograms: [
@@ -41,7 +39,7 @@ export const getDummyBooks = () => {
       ],
     },
     {
-      id: Crypto.randomUUID(),
+      id: "6a24550e-2f3c-4874-a7e2-76453bcc82c0",
       title: "Harry Potter e la Pietra Filosofale",
       cover: require("../../assets/images/harry.jpg"),
       pictograms: [

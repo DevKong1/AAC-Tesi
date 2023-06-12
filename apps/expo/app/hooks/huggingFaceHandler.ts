@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosRetry from "axios-retry";
 
-import pictograms from "../utils/pictograms";
+import getEnvVars from "../../enviroment";
 import { type Pictogram } from "../utils/types/commonTypes";
 
 export interface ParsedFileResponse {
@@ -29,7 +29,7 @@ export interface PredictedPictogramsResponse {
 const reqInstance = axios.create({
   baseURL: "https://api-inference.huggingface.co/models/",
   headers: {
-    Authorization: `Bearer ${process.env.HUGGINGFACE_BEARER}`,
+    Authorization: `Bearer ${getEnvVars().HUGGINGFACE_BEARER}`,
   },
 });
 
@@ -74,6 +74,11 @@ export const requestWhatsItGame = async (category?: string) => {
 };
 
 // Talking
+const getTextFromPictogram = (pictogram: Pictogram) => {
+  if (pictogram?.customPictogram?.text) return pictogram.customPictogram.text;
+  if (pictogram?.keywords[0]?.keyword) return pictogram.keywords[0].keyword;
+};
+
 const getPredictedPictograms = async (data: PictogramPredictionRequest) => {
   try {
     const response = await reqInstance.post(
@@ -85,11 +90,6 @@ const getPredictedPictograms = async (data: PictogramPredictionRequest) => {
     console.log(error);
     return undefined;
   }
-};
-
-const getTextFromPictogram = (pictogram: Pictogram) => {
-  if (pictogram?.customPictogram?.text) return pictogram.customPictogram.text;
-  if (pictogram?.keywords[0]?.keyword) return pictogram.keywords[0].keyword;
 };
 
 // Now pictograms are formatted as a string but it could change
