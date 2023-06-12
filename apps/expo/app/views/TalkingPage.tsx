@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  BackHandler,
-  Dimensions,
-  Text,
-  View,
-} from "react-native";
+import { BackHandler, Dimensions, Text, View } from "react-native";
 import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
@@ -16,8 +10,9 @@ import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
 import PictogramCard from "../components/PictogramCard";
 import PictogramSearchModal from "../components/PictogramSearchModal";
+import Spinner from "../components/Spinner";
 import { getPictogram } from "../hooks/pictogramsHandler";
-import { getPictograms } from "../hooks/talkingHandler";
+import { getPredictedPictograms } from "../hooks/talkingHandler";
 import { useCompanionStore, useInputStore } from "../store/store";
 import categories from "../utils/categories";
 import { getTextFromPictogramsArray } from "../utils/commonFunctions";
@@ -48,6 +43,7 @@ export default function TalkingPage() {
       index: selectedPictograms.length,
       animated: true,
     });
+    loadPictograms();
   };
 
   const removePictogram = (index: number) => {
@@ -63,6 +59,7 @@ export default function TalkingPage() {
         animated: true,
       });
     }
+    loadPictograms();
   };
 
   const readAll = () => {
@@ -78,11 +75,15 @@ export default function TalkingPage() {
   const loadPictograms = async () => {
     if (pictograms.length > 0)
       setPictograms(
-        await getPictograms(undefined, undefined, selectedCategory),
+        await getPredictedPictograms(undefined, undefined, selectedCategory),
       );
     else
       setPictograms(
-        await getPictograms(pictograms, selectedPictograms, selectedCategory),
+        await getPredictedPictograms(
+          pictograms,
+          selectedPictograms,
+          selectedCategory,
+        ),
       );
   };
 
@@ -209,9 +210,7 @@ export default function TalkingPage() {
               </View>
             </View>
           ) : (
-            <View className="flex h-full w-full items-center justify-center">
-              <ActivityIndicator size={64} color="#5C5C5C" className="pb-10" />
-            </View>
+            <Spinner />
           )}
         </View>
         <View className="flex h-full w-[10%] items-center justify-center">
@@ -253,6 +252,7 @@ export default function TalkingPage() {
             bgcolor="#f05252"
             onPress={() => {
               selectPictograms([]);
+              loadPictograms();
             }}
           />
         </View>

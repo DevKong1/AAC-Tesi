@@ -32,7 +32,6 @@ export const getTextFromPictogramsArray = (pictograms: Pictogram[]) => {
   pictograms.forEach((el) => {
     if (el.customPictogram?.text) text += el.customPictogram.text;
     else if (el.keywords[0]?.keyword) text += el.keywords[0]?.keyword;
-    if (el.followingPunctation) text += ` ${el.followingPunctation}`;
     text += " ";
   });
   return text;

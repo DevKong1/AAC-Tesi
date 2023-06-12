@@ -13,8 +13,6 @@ const Index = () => {
   const companionStore = useCompanionStore();
   const router = useRouter();
 
-  const fontSize = isDeviceLarge() ? 42 : 22;
-
   useEffect(() => {
     companionStore.speak("Benvenuto, Giacomo!", isDeviceLarge() ? "3xl" : "lg");
   }, []);

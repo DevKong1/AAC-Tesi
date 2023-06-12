@@ -17,7 +17,13 @@ const BookCard: React.FC<{
       <Image
         style={{ resizeMode: "cover" }}
         className="h-full w-full rounded-3xl"
-        source={book.cover}
+        source={
+          book.isCustom
+            ? {
+                uri: "data:image/jpeg;base64," + (book.cover as string),
+              }
+            : book.cover
+        }
         alt={`Cover for "${book.title}"`}
       />
     </TouchableOpacity>

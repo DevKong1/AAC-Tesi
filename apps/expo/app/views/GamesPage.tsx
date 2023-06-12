@@ -40,7 +40,14 @@ export default function GamesPage() {
               pictogram={getPictogram("2680")}
               bgcolor="#C6D7F9"
               text="Che cos’è??"
-              onPress={() => router.push("/views/WhatsItPage")}
+              onPress={() =>
+                router.push({
+                  pathname: "/views/WhatsItPage",
+                  params: {
+                    category: selectedCategory,
+                  },
+                })
+              }
             />
           </View>
         </View>
@@ -49,83 +56,3 @@ export default function GamesPage() {
     </SafeAreaView>
   );
 }
-/* 
-OLD LAYOUT 
-<View className="mx-auto flex h-2/5 flex-row items-center justify-center">
-  <View className="flex h-4/5 w-1/4">
-    <MenuCard
-      text="A parole tue!"
-      fontSize={fontSize}
-      bgcolor="#C6D7F9"
-      onPress={() => router.push("/views/GamesPage")}
-      icon={
-        <MaterialIcons
-          name="videocam"
-          size={iconSize}
-          color={iconColor}
-        />
-      }
-    />
-  </View>
-  <View className="w-8" />
-  <View className="flex h-4/5 w-1/4">
-    <MenuCard
-      text="Che cos’è??"
-      fontSize={fontSize}
-      bgcolor="#C6D7F9"
-      onPress={() => router.push("/views/WhatsItPage")}
-      icon={
-        <MaterialIcons
-          name="photo-camera"
-          size={iconSize}
-          color={iconColor}
-        />
-      }
-    />
-  </View>
-  <View className="w-8" />
-  <View className="flex h-4/5 w-1/4">
-    <MenuCard
-      text="Crea una storia"
-      fontSize={fontSize}
-      bgcolor="#C6D7F9"
-      onPress={() => router.push("/views/GamesPage")}
-      icon={
-        <MaterialIcons
-          name="library-books"
-          size={iconSize}
-          color={iconColor}
-        />
-      }
-    />
-  </View>
-  </View>
-  <View className="mx-auto flex h-2/5 flex-row items-center justify-center">
-  <View className="flex h-4/5 w-1/4">
-    <MenuCard
-      text="Quiz"
-      fontSize={fontSize}
-      bgcolor="#C6D7F9"
-      onPress={() => router.push("/views/GamesPage")}
-      icon={
-        <MaterialIcons name="chat" size={iconSize} color={iconColor} />
-      }
-    />
-  </View>
-  <View className="w-8" />
-  <View className="flex h-4/5 w-1/4">
-    <MenuCard
-      text="Cosa senti?"
-      fontSize={fontSize}
-      bgcolor="#C6D7F9"
-      onPress={() => router.push("/views/GamesPage")}
-      icon={
-        <MaterialIcons
-          name="audiotrack"
-          size={iconSize}
-          color={iconColor}
-        />
-      }
-    />
-  </View>
-  </View> */

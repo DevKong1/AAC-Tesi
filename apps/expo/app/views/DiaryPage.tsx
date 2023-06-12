@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { randomUUID } from "expo-crypto";
@@ -8,6 +8,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
+import Spinner from "../components/Spinner";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import {
   useCompanionStore,
@@ -172,8 +173,7 @@ export default function DiaryPage() {
   if (!currentPage)
     return (
       <SafeAreaView className="h-full w-full items-center justify-center">
-        <ActivityIndicator size="large" color="#f472b6" />
-        <Text className="text-default py-4 text-xs">Caricamento...</Text>
+        <Spinner />
       </SafeAreaView>
     );
 

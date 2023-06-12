@@ -11,9 +11,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import BookCard from "../components/BookCard";
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
-import { getBooks } from "../hooks/booksHandler";
+import { getDummyBooks } from "../hooks/booksHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
-import { useCompanionStore, useDiaryStore } from "../store/store";
+import { useBookStore, useCompanionStore } from "../store/store";
 import {
   getTextFromPictogramsMatrix,
   isDeviceLarge,
@@ -24,7 +24,7 @@ import { type Book } from "../utils/types/commonTypes";
 export default function ReadingPage() {
   const router = useRouter();
   const companionStore = useCompanionStore();
-  const diaryStore = useDiaryStore();
+  const bookStore = useBookStore();
   const r = useRef<ICarouselInstance>(null);
   const { width, height } = Dimensions.get("window");
 
@@ -35,28 +35,28 @@ export default function ReadingPage() {
   const iconSize = isDeviceLarge() ? 90 : 42;
 
   const iconColor = "#5C5C5C";
-  const rows = diaryStore.readingSettings.rows;
-  const columns = diaryStore.readingSettings.columns;
-
-  const loadBooks = async () => {
-    const books = await getBooks();
-
-    companionStore.speak("Leggiamo insieme un bel libro!");
-    // set state with the result
-    setBooks(books);
-  };
+  const rows = bookStore.readingSettings.rows;
+  const columns = bookStore.readingSettings.columns;
 
   useEffect(() => {
-    // In case of reload
-    loadBooks().catch((err) => console.log(err));
+    const baseBooks = getDummyBooks(); // Just for Development
+    const customBooks = bookStore.customBooks;
+    // set state with the result
+    setBooks(baseBooks.concat(customBooks));
+
+    companionStore.speak("Leggiamo insieme un bel libro!");
   }, []);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        companionStore.setPosition("default");
-        router.back();
+        if (currentBook) {
+          setCurrentBook(undefined);
+        } else {
+          companionStore.setPosition("default");
+          router.back();
+        }
         return true;
       },
     );
@@ -136,11 +136,8 @@ export default function ReadingPage() {
                       pictogram={col}
                       bgcolor={"#B9D2C3"}
                       onPress={() => {
-                        const current = col;
                         companionStore.speak(
-                          current.keywords[0]
-                            ? current.keywords[0].keyword
-                            : "",
+                          col.keywords[0] ? col.keywords[0].keyword : "",
                         );
                       }}
                     />
@@ -188,12 +185,12 @@ export default function ReadingPage() {
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
-      <View className="flex h-1/5 w-full flex-row items-center justify-center">
+      <View className="flex h-1/5 w-full flex-row items-start justify-center">
         <Text className="text-default text-xl font-semibold">
           Scegli un libro da leggere:
         </Text>
       </View>
-      <View className="flex h-3/5 w-full items-center justify-center">
+      <View className="flex h-4/5 w-full items-center justify-center">
         {books.length > 0 ? (
           <Carousel
             ref={r}
@@ -205,7 +202,7 @@ export default function ReadingPage() {
               justifyContent: "center",
               alignItems: "center",
             }}
-            width={600}
+            width={isDeviceLarge() ? 600 : 300}
             height={height * 0.6}
             data={books}
             scrollAnimationDuration={1000}
@@ -225,8 +222,6 @@ export default function ReadingPage() {
           </Text>
         )}
       </View>
-      {/* TODO BOOK SEARCH */}
-      <View className="flex h-1/5 w-full"></View>
       <BottomIcons />
     </SafeAreaView>
   );

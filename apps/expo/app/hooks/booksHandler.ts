@@ -1,11 +1,18 @@
 import * as Crypto from "expo-crypto";
 
+import { formatToMatchColumns } from "../utils/commonFunctions";
 import { type Book } from "../utils/types/commonTypes";
-import { getPictogram } from "./pictogramsHandler";
+import { getPictogramsFromFile } from "./huggingFaceHandler";
+import { getPictogram, getPictograms } from "./pictogramsHandler";
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export const getBooks = async () => {
-  //TODO Implement
+export const parseDocument = async (uri: string, columns: number) => {
+  const response = await getPictogramsFromFile(uri);
+  return response
+    ? formatToMatchColumns(getPictograms(response.pictograms), columns)
+    : undefined;
+};
+
+export const getDummyBooks = () => {
   return [
     {
       id: Crypto.randomUUID(),
@@ -19,29 +26,45 @@ export const getBooks = async () => {
           getPictogram("27357"),
         ],
         [
-          { ...getPictogram("2483"), followingPunctation: "." },
+          getPictogram("2483"),
           getPictogram("8277"),
           getPictogram("8474"),
           getPictogram("7114"),
         ],
         [
           getPictogram("27357"),
-          { ...getPictogram("2483"), followingPunctation: "." },
+          getPictogram("2483"),
           getPictogram("8277"),
           getPictogram("8474"),
         ],
-        [
-          getPictogram("7114"),
-          getPictogram("27357"),
-          { ...getPictogram("2483"), followingPunctation: "." },
-        ],
+        [getPictogram("7114"), getPictogram("27357"), getPictogram("2483")],
       ],
     },
     {
       id: Crypto.randomUUID(),
       title: "Harry Potter e la Pietra Filosofale",
       cover: require("../../assets/images/harry.jpg"),
-      pictograms: [],
+      pictograms: [
+        [
+          getPictogram("8277"),
+          getPictogram("8474"),
+          getPictogram("7114"),
+          getPictogram("27357"),
+        ],
+        [
+          getPictogram("2483"),
+          getPictogram("8277"),
+          getPictogram("8474"),
+          getPictogram("7114"),
+        ],
+        [
+          getPictogram("27357"),
+          getPictogram("2483"),
+          getPictogram("8277"),
+          getPictogram("8474"),
+        ],
+        [getPictogram("7114"), getPictogram("27357"), getPictogram("2483")],
+      ],
     },
   ] as Book[];
 };

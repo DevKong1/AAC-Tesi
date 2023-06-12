@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { BackHandler, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
+import Spinner from "../components/Spinner";
 import { generateWhatsItGame } from "../hooks/gamesHandler";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import { useCompanionStore } from "../store/store";
@@ -32,6 +33,7 @@ import {
 
 export default function WhatsItPage() {
   const router = useRouter();
+  const { category } = useLocalSearchParams();
   const [game, setGame] = useState({
     pictograms: [] as Pictogram[],
   } as WhatsItGameProperties);
@@ -39,10 +41,10 @@ export default function WhatsItPage() {
   const companionStore = useCompanionStore();
 
   const generateGame = async () => {
-    const game = await generateWhatsItGame();
+    const game = await generateWhatsItGame(category);
 
     companionStore.setPosition("center");
-    companionStore.speak(game.text, "top");
+    companionStore.speak(game?.text, "top");
     // set state with the result
     setGame(game);
   };
@@ -91,11 +93,7 @@ export default function WhatsItPage() {
   if (game.pictograms.length != 6) {
     return (
       <SafeAreaView>
-        <View className="flex h-full w-full justify-center">
-          <Text className="text-default m-auto text-4xl font-semibold">
-            Caricamento...
-          </Text>
-        </View>
+        <Spinner />
         <BottomIcons />
       </SafeAreaView>
     );
@@ -210,7 +208,15 @@ export default function WhatsItPage() {
                   resizeMode: "contain",
                 }}
                 className="h-full w-full"
-                source={game.picture}
+                // JUST FOR DEVELOPMENT
+                source={
+                  game.isGenerated
+                    ? {
+                        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+                        uri: "data:image/jpeg;base64," + game.picture,
+                      }
+                    : game.picture
+                }
                 alt="Immagine del quiz"
               />
             </View>

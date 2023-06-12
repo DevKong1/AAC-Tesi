@@ -24,7 +24,6 @@ export type Pictogram = {
   created?: string;
   lastUpdated?: string;
   keywords: keyword[];
-  followingPunctation?: string;
   customPictogram?: CustomPictogram;
 };
 
@@ -51,6 +50,7 @@ export type WhatsItGameProperties = {
   pictograms: Pictogram[];
   answer: string;
   picture: any;
+  isGenerated?: boolean; // Just for development
 };
 
 export type Book = {
@@ -58,6 +58,7 @@ export type Book = {
   title: string;
   cover: any;
   pictograms: Pictogram[][];
+  isCustom?: boolean;
 };
 
 export type DiaryPage = {

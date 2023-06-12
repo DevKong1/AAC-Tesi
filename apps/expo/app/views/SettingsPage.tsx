@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
+import AddBookModal from "../components/AddBookModal";
 import IconButton from "../components/IconButton";
 import MenuCard from "../components/MenuCard";
 import PictogramCard from "../components/PictogramCard";
@@ -20,7 +21,8 @@ export default function SettingsPage() {
   const pictogramStore = usePictogramStore();
   const router = useRouter();
   const [selectedMenu, setMenu] = useState("Impostazioni");
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddBookModal, setShowAddBookModal] = useState(false);
+  const [showAddPictogramModal, setShowAddPictogramModal] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
 
@@ -44,12 +46,11 @@ export default function SettingsPage() {
       () => {
         if (selectedMenu != "Impostazioni") {
           setMenu("Impostazioni");
-          return true;
         } else {
           companionStore.setVisible(true);
           router.back();
-          return true;
         }
+        return true;
       },
     );
 
@@ -58,14 +59,41 @@ export default function SettingsPage() {
 
   const selectedTab = () => {
     switch (selectedMenu) {
+      case "Libri":
+        return (
+          <View className="flex h-full w-full flex-col items-center justify-start pt-4">
+            <AddBookModal
+              isVisible={showAddBookModal}
+              onClose={() => {
+                setShowAddBookModal(false);
+              }}
+            />
+            <View className="flex h-14 w-80 items-center justify-center p-1">
+              <SettingsButton
+                text="Aggiungi libro"
+                color="#C6D7F9"
+                onPress={() => setShowAddBookModal(true)}
+              />
+            </View>
+            <View className="flex h-14 w-80 items-center justify-center p-1">
+              <SettingsButton
+                text="Elimina libro aggiunto"
+                color="#C6D7F9"
+                onPress={() => {
+                  return;
+                }}
+              />
+            </View>
+          </View>
+        );
       case "Preferiti":
         return (
           <View className="flex h-full w-full flex-col items-center justify-center">
             <PictogramSearchModal
-              isVisible={showAddModal}
+              isVisible={showAddPictogramModal}
               onSelect={addPictogram}
               onClose={() => {
-                setShowAddModal(false);
+                setShowAddPictogramModal(false);
               }}
               defaultText="Cerca un pittogramma da aggiungere tra i preferiti..."
               showFavourites={false}
@@ -115,7 +143,7 @@ export default function SettingsPage() {
                   icon={<MaterialIcons name="add" size={32} color="white" />}
                   color="#89BF93"
                   onPress={() => {
-                    setShowAddModal(true);
+                    setShowAddPictogramModal(true);
                   }}
                 />
               </View>
@@ -170,9 +198,20 @@ export default function SettingsPage() {
             <View className="flex h-[65%] w-[25%]">
               <MenuCard
                 text="Personalizza Pittogrammi"
-                bgcolor="#B9D2C3"
+                bgcolor="#C6D7F9"
                 icon={<MaterialIcons name="create" size={90} color="#5C5C5C" />}
                 onPress={() => setMenu("Personalizza Pittogrammi")}
+              />
+            </View>
+            <View className="w-6" />
+            <View className="flex h-[65%] w-[25%]">
+              <MenuCard
+                text="Libri"
+                bgcolor="#B9D2C3"
+                icon={
+                  <MaterialIcons name="menu-book" size={90} color="#5C5C5C" />
+                }
+                onPress={() => setMenu("Libri")}
               />
             </View>
           </View>
