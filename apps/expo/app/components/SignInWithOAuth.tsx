@@ -1,7 +1,9 @@
 import React from "react";
-import { Button, View } from "react-native";
+import { Text, View } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
 import { useOAuth } from "@clerk/clerk-expo";
+import { AntDesign } from "@expo/vector-icons";
 
 import { useWarmUpBrowser } from "../hooks/useWarmupBrowser";
 
@@ -14,14 +16,10 @@ const SignInWithOAuth = () => {
 
   const onPress = React.useCallback(async () => {
     try {
-      const { createdSessionId, signIn, signUp, setActive } =
-        await startOAuthFlow();
+      const { createdSessionId, setActive } = await startOAuthFlow();
 
       if (createdSessionId && setActive) {
-        console.log(signUp);
         setActive({ session: createdSessionId });
-      } else {
-        // Use signIn or signUp for next steps such as MFA
       }
     } catch (err) {
       console.error("OAuth error", err);
@@ -29,8 +27,23 @@ const SignInWithOAuth = () => {
   }, []);
 
   return (
-    <View className="m-auto h-44 w-44">
-      <Button title="Sign in with Google" onPress={onPress} />
+    <View className="m-auto flex h-[60%] w-[40%] flex-col items-center justify-center rounded-lg border border-red-50 bg-white">
+      <Text className="font-text text-default pb-2 text-base lg:text-2xl">
+        Effettua il login:
+      </Text>
+      <View className="h-16 w-64 items-center justify-center">
+        <TouchableOpacity
+          className="flex flex-row items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          onPress={onPress}
+        >
+          <View className="pr-2">
+            <AntDesign name="google" size={24} color="red" />
+          </View>
+          <View>
+            <Text>Continua con Google</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

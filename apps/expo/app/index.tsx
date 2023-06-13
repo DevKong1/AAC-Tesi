@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 
 import BottomIcons from "./components/BottomIcons";
 import PictogramCard from "./components/PictogramCard";
@@ -11,10 +12,15 @@ import { isDeviceLarge } from "./utils/commonFunctions";
 
 const Index = () => {
   const companionStore = useCompanionStore();
+  const { user } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    companionStore.speak("Benvenuto, Giacomo!", isDeviceLarge() ? "3xl" : "lg");
+    if (!companionStore.started) companionStore.start();
+    companionStore.speak(
+      user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
+      isDeviceLarge() ? "3xl" : "lg",
+    );
   }, []);
 
   //TODO RESPONSIVE

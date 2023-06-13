@@ -3,6 +3,7 @@ import { BackHandler, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import AddBookModal from "../components/AddBookModal";
@@ -25,6 +26,9 @@ export default function SettingsPage() {
   const [showAddPictogramModal, setShowAddPictogramModal] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
+
+  // LOGOUT
+  const { signOut } = useAuth();
 
   const addPictogram = (pressed: Pictogram) => {
     pictogramStore.addFavourite(pressed._id);
@@ -185,34 +189,50 @@ export default function SettingsPage() {
         );
       default:
         return (
-          <View className="flex h-full flex-row items-center justify-center pb-10">
-            <View className="flex h-[65%] w-[25%]">
-              <MenuCard
-                text="Preferiti"
-                bgcolor="#FFFFCA"
-                icon={<MaterialIcons name="star" size={90} color="#5C5C5C" />}
-                onPress={() => setMenu("Preferiti")}
-              />
+          <View className="justify-centerr h-full w-full flex-col items-center">
+            <View className="flex h-[70%] w-full flex-row items-start justify-center">
+              <View className="flex h-[90%] w-[25%]">
+                <MenuCard
+                  text="Preferiti"
+                  bgcolor="#FFFFCA"
+                  icon={<MaterialIcons name="star" size={90} color="#5C5C5C" />}
+                  onPress={() => setMenu("Preferiti")}
+                />
+              </View>
+              <View className="w-6" />
+              <View className="flex h-[90%] w-[25%]">
+                <MenuCard
+                  text="Personalizza Pittogrammi"
+                  bgcolor="#C6D7F9"
+                  icon={
+                    <MaterialIcons name="create" size={90} color="#5C5C5C" />
+                  }
+                  onPress={() => setMenu("Personalizza Pittogrammi")}
+                />
+              </View>
+              <View className="w-6" />
+              <View className="flex h-[90%] w-[25%]">
+                <MenuCard
+                  text="Libri"
+                  bgcolor="#B9D2C3"
+                  icon={
+                    <MaterialIcons name="menu-book" size={90} color="#5C5C5C" />
+                  }
+                  onPress={() => setMenu("Libri")}
+                />
+              </View>
             </View>
-            <View className="w-6" />
-            <View className="flex h-[65%] w-[25%]">
-              <MenuCard
-                text="Personalizza Pittogrammi"
-                bgcolor="#C6D7F9"
-                icon={<MaterialIcons name="create" size={90} color="#5C5C5C" />}
-                onPress={() => setMenu("Personalizza Pittogrammi")}
-              />
-            </View>
-            <View className="w-6" />
-            <View className="flex h-[65%] w-[25%]">
-              <MenuCard
-                text="Libri"
-                bgcolor="#B9D2C3"
-                icon={
-                  <MaterialIcons name="menu-book" size={90} color="#5C5C5C" />
-                }
-                onPress={() => setMenu("Libri")}
-              />
+            <View className="flex h-[20%] w-full flex-row items-start justify-center">
+              <View className="flex h-12 w-[25%] items-start justify-center">
+                <SettingsButton
+                  text="Logout"
+                  color="#F69898"
+                  onPress={() => {
+                    signOut();
+                    companionStore.stop();
+                  }}
+                />
+              </View>
             </View>
           </View>
         );

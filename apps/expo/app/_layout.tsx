@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/require-await */
 import React, { useCallback, useEffect, useState } from "react";
-import { Text, useWindowDimensions } from "react-native";
+import { useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
@@ -55,12 +57,34 @@ const RootLayout = () => {
     }
   }, [appIsReady]);
 
+  // Used to cache Clerk Token
+  const tokenCache = {
+    async getToken(key: string) {
+      try {
+        return SecureStore.getItemAsync(key);
+      } catch (err) {
+        return null;
+      }
+    },
+
+    async saveToken(key: string, value: string) {
+      try {
+        return SecureStore.setItemAsync(key, value);
+      } catch (err) {
+        return;
+      }
+    },
+  };
+
   if (!appIsReady) {
     return null;
   }
 
   return (
-    <ClerkProvider publishableKey={getEnvVars().CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider
+      tokenCache={tokenCache}
+      publishableKey={getEnvVars().CLERK_PUBLISHABLE_KEY}
+    >
       <SafeAreaProvider
         onLayout={onLayoutRootView}
         style={[{ minHeight: Math.round(windowHeight) }]}

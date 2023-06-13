@@ -5,10 +5,11 @@ import { shadowStyle } from "../utils/shadowStyle";
 
 const SettingsButton: React.FC<{
   icon?: ReactNode;
+  textColor?: string;
   text: string;
   color: string;
   onPress: () => void;
-}> = ({ icon, text, color, onPress }) => {
+}> = ({ icon, textColor, text, color, onPress }) => {
   return (
     <TouchableOpacity
       style={[shadowStyle.light, { backgroundColor: color }]}
@@ -16,7 +17,8 @@ const SettingsButton: React.FC<{
       onPress={onPress}
     >
       <Text
-        className={`text-default font-text ${
+        style={{ color: textColor ? textColor : "#5C5C5C" }}
+        className={`font-text ${
           icon ? "pr-2" : "px-2"
         } text-center text-base lg:text-lg`}
       >
