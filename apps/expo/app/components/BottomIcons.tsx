@@ -22,7 +22,9 @@ const BottomIcons: React.FC = () => {
           color={iconColor}
         />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => companionStore.changeVolume()}>
+      <TouchableOpacity
+        onPress={async () => await companionStore.changeVolume()}
+      >
         <MaterialIcons
           style={shadowStyle.icon}
           name={companionStore.volumeOn ? "volume-up" : "volume-off"}
@@ -30,7 +32,9 @@ const BottomIcons: React.FC = () => {
           color={iconColor}
         />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => companionStore.changeBubble()}>
+      <TouchableOpacity
+        onPress={async () => await companionStore.changeBubble()}
+      >
         <MaterialIcons
           style={shadowStyle.icon}
           name={companionStore.bubbleOn ? "chat" : "chat-bubble"}

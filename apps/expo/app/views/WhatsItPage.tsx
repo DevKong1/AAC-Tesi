@@ -35,7 +35,7 @@ export default function WhatsItPage() {
   const router = useRouter();
   const { category } = useLocalSearchParams();
   const [game, setGame] = useState({
-    pictograms: [] as Pictogram[],
+    pictograms: [] as string[],
   } as WhatsItGameProperties);
   const [guess, setGuess] = useState(undefined as string | undefined);
   const companionStore = useCompanionStore();
@@ -123,7 +123,7 @@ export default function WhatsItPage() {
               Risposta:
             </Text>
             <PictogramCard
-              pictogram={game.pictograms.find((el) => el._id == game.answer)}
+              pictogram={getPictogram(game.answer)}
               bgcolor="#C6D7F9"
               onPress={() => null}
             />
@@ -178,9 +178,9 @@ export default function WhatsItPage() {
       <View className="flex h-[93%] w-full flex-col justify-center">
         <View className="flex h-1/2 w-full flex-row">
           {game.pictograms.slice(0, 4).map((pic) => (
-            <View className="m-auto h-[90%] w-1/4" key={pic._id}>
+            <View className="m-auto h-[90%] w-1/4" key={pic}>
               <PictogramCard
-                pictogram={pic}
+                pictogram={getPictogram(pic)}
                 bgcolor="#C6D7F9"
                 onPress={playerGuess}
                 args={pic}
@@ -191,7 +191,7 @@ export default function WhatsItPage() {
         <View className="flex h-1/2 w-full flex-row justify-center">
           <View className="flex h-full w-1/4 items-start">
             <PictogramCard
-              pictogram={game.pictograms[4]}
+              pictogram={getPictogram(game.pictograms[4]!)}
               bgcolor="#C6D7F9"
               onPress={playerGuess}
               args={game.pictograms[4]!}
@@ -223,7 +223,7 @@ export default function WhatsItPage() {
           </View>
           <View className="h-full w-1/4">
             <PictogramCard
-              pictogram={game.pictograms[5]}
+              pictogram={getPictogram(game.pictograms[5]!)}
               bgcolor="#C6D7F9"
               onPress={playerGuess}
               args={game.pictograms[5]!}

@@ -13,7 +13,11 @@ import PictogramSearchModal from "../components/PictogramSearchModal";
 import Spinner from "../components/Spinner";
 import { getPictogram } from "../hooks/pictogramsHandler";
 import { getPredictedPictograms } from "../hooks/talkingHandler";
-import { useCompanionStore, useInputStore } from "../store/store";
+import {
+  useCompanionStore,
+  useInputStore,
+  usePictogramStore,
+} from "../store/store";
 import categories from "../utils/categories";
 import { getTextFromPictogramsArray } from "../utils/commonFunctions";
 import { type Pictogram, type diaryReqArgs } from "../utils/types/commonTypes";
@@ -25,6 +29,7 @@ export default function TalkingPage() {
   const router = useRouter();
   const companionStore = useCompanionStore();
   const inputStore = useInputStore();
+  const pictogramStore = usePictogramStore();
 
   // This page might be used to write input for the diary
   const { inputID } = useLocalSearchParams();
@@ -129,6 +134,7 @@ export default function TalkingPage() {
         onSelect={addPictogram}
         onClose={onModalClose}
         defaultText="Qui potrai visualizzare i tuoi pittogrammi personali o preferiti, selezionati dalle impostazioni.."
+        defaultData={pictogramStore.getFavouritePictograms()}
       />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">
         {selectedPictograms.length > 0 ? (

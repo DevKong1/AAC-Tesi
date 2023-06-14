@@ -3,6 +3,7 @@ import { type Pictogram } from "../utils/types/commonTypes";
 
 const dictionaryArray = dictionary as Pictogram[];
 
+// we require customPictograms as a parameter otherwise we would form a Require Cycle
 export const getPictogram = (id: string, customPictograms?: Pictogram[]) => {
   const custom = customPictograms?.find((el) => el._id == id);
   return custom ? custom : dictionaryArray.find((el) => el._id == id);

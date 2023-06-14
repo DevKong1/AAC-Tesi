@@ -41,7 +41,7 @@ export default function DiaryPage() {
   const iconColor = "#5C5C5C";
   const columns = diaryStore.readingSettings.columns;
 
-  const loadPage = async (date: string) => {
+  const loadPage = (date: string) => {
     let loadedPage = diaryStore.getDiaryPage(date);
     if (!loadedPage) {
       loadedPage = {
@@ -92,7 +92,7 @@ export default function DiaryPage() {
     }
   }
 
-  // Handling responses from
+  // Handling responses from TalkingPage
   useEffect(() => {
     // Checks if there is a response from an input request
     const checkForInput = async () => {
@@ -159,9 +159,9 @@ export default function DiaryPage() {
 
     checkForInput()
       .then((res) => {
-        if (res) loadPage(res).catch((err) => console.log(err));
+        if (res) loadPage(res);
         else {
-          loadPage(today.toLocaleDateString()).catch((err) => console.log(err));
+          loadPage(today.toLocaleDateString());
           companionStore.speak("Guardiamo il tuo diario!");
         }
       })
@@ -249,7 +249,9 @@ export default function DiaryPage() {
                         onPress={() => {
                           const current = col;
                           companionStore.speak(
-                            current.keywords[0]
+                            current.customPictogram?.text
+                              ? current.customPictogram.text
+                              : current.keywords[0]
                               ? current.keywords[0].keyword
                               : "",
                           );

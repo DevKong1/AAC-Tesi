@@ -96,7 +96,7 @@ export default function SettingsPage() {
                 setShowAddPictogramModal(false);
               }}
               defaultText="Cerca un pittogramma da aggiungere tra i preferiti..."
-              showFavourites={false}
+              defaultData={pictogramStore.getCustomPictograms()}
             />
             <View className="flex h-4/5 w-full">
               {pictogramStore.favourites.length > 0 ? (
