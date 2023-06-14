@@ -1,10 +1,15 @@
 import { randomUUID } from "expo-crypto";
+import * as FileSystem from "expo-file-system";
 import * as Speech from "expo-speech";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
 import { getPictogram, getPictograms } from "../hooks/pictogramsHandler";
+import {
+  getIDsFromPictogramsArray,
+  getIDsFromPictogramsMatrix,
+} from "../utils/commonFunctions";
+import pictograms from "../utils/pictograms";
 import {
   type Book,
   type CustomPictogram,
@@ -13,15 +18,40 @@ import {
   type ReadingSettings,
 } from "../utils/types/commonTypes";
 
+const companionUri = `${FileSystem.documentDirectory}companion.json`;
+const diaryUri = `${FileSystem.documentDirectory}diary.json`;
+const pictogramUri = `${FileSystem.documentDirectory}pictograms.json`;
+const booksUri = `${FileSystem.documentDirectory}books.json`;
+
+const saveToJSON = async (file: string, data: any) => {
+  return await FileSystem.writeAsStringAsync(file, JSON.stringify(data));
+};
+
+const getJSONOrCreate = async (file: string, data: any) => {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(file);
+    if (!fileInfo.exists) {
+      console.log(`${file}: File doesnt exist, creating...`);
+      await saveToJSON(diaryUri, data);
+    } else {
+      const result = await FileSystem.readAsStringAsync(diaryUri);
+      console.log(result);
+      return result;
+    }
+  } catch (e) {
+    console.log("Storage: ERROR");
+    return undefined;
+  }
+};
+
 interface CompanionState {
   isVisible: boolean;
-  currentMood: string;
   currentText: string;
   position: string;
   bubblePosition: string;
   volumeOn: boolean;
   bubbleOn: boolean;
-  start: () => void;
+  load: () => void;
   reset: () => void;
   speak: (
     text: string,
@@ -35,15 +65,14 @@ interface CompanionState {
 }
 
 export const useCompanionStore = create<CompanionState>((set, get) => ({
-  isVisible: false,
-  currentMood: "",
+  isVisible: true,
   currentText: "",
   position: "default",
   bubblePosition: "left",
-  volumeOn: false,
-  bubbleOn: false,
-  start: () => {
-    set({ isVisible: true, volumeOn: true, bubbleOn: true });
+  volumeOn: true,
+  bubbleOn: true,
+  load: () => {
+    set({ currentText: "", bubblePosition: "left" });
   },
   reset: () => {
     set({ currentText: "", bubblePosition: "left" });
@@ -107,24 +136,35 @@ interface DiaryState {
   removeDiaryPage: (date: string) => Promise<boolean>;
 }
 
+type SavedDiaryPage = {
+  date: string;
+  pictograms: string[][];
+};
+
+const getDiaryForJSON = (diary: DiaryPage[]) => {
+  return diary.map(
+    ({ date, pictograms }) =>
+      ({
+        date: date,
+        pictograms: getIDsFromPictogramsMatrix(pictograms),
+      } as SavedDiaryPage),
+  );
+};
+
+const parseSavedDiary = (saved: SavedDiaryPage[]) => {
+  return saved.map(({ date, pictograms }) => ({
+    date: date,
+    pictograms: pictograms.map((row) => getPictograms(row)),
+  })) as DiaryPage[];
+};
+
 export const useDiaryStore = create<DiaryState>((set, get) => ({
   //TODO TEST BACKUP!
   diary: [],
   readingSettings: { rows: 3, columns: 4 } as ReadingSettings, // TODO Customizable
   load: async () => {
-    try {
-      const diaryValue = await AsyncStorage.getItem("@diary");
-
-      if (diaryValue !== null) {
-        set({ diary: JSON.parse(diaryValue) });
-        console.log("AsyncStorage: Loaded diary");
-      } else {
-        console.log("AsyncStorage: Null diary value");
-        await AsyncStorage.setItem("@diary", JSON.stringify([]));
-      }
-    } catch (e) {
-      console.log("AsyncStorage: ERROR");
-    }
+    const result = await getJSONOrCreate(diaryUri, []);
+    if (result) set({ diary: parseSavedDiary(JSON.parse(result)) });
   },
   getDiaryPage: (date) => {
     return get().diary.find((el) => el.date == date);
@@ -138,6 +178,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
   addDiaryPage: async (page) => {
     if (!get().getDiaryPage(page.date)) {
       set((state) => ({ diary: [...state.diary, page] }));
+      await saveToJSON(diaryUri, getDiaryForJSON(get().diary));
       return true;
     } else return false;
   },
@@ -147,6 +188,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
       const newDiary = get().diary;
       newDiary[pageIndex]!.pictograms.push(pictograms);
       set({ diary: newDiary });
+      await saveToJSON(diaryUri, getDiaryForJSON(get().diary));
       return get().getDiaryPage(date);
     } else return undefined;
   },
@@ -161,6 +203,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
       // If the page is empty of pictograms we remove it
       if (newDiary[pageIndex]!.pictograms.length <= 0)
         return get().removeDiaryPage(date);
+      await saveToJSON(diaryUri, getDiaryForJSON(get().diary));
       return true;
     } else return false;
   },
@@ -173,6 +216,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
           ...state.diary.slice(pageIndex + 1),
         ],
       }));
+      await saveToJSON(diaryUri, getDiaryForJSON(get().diary));
       return true;
     } else return false;
   },

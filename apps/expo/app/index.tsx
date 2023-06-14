@@ -14,7 +14,7 @@ const Index = () => {
   const router = useRouter();
 
   useEffect(() => {
-    companionStore.speak("Benvenuto, Giacomo!", isDeviceLarge() ? "3xl" : "lg");
+    companionStore.speak("Benvenuto!", isDeviceLarge() ? "3xl" : "lg");
   }, []);
 
   //TODO RESPONSIVE

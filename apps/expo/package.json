@@ -15,7 +15,6 @@
   "dependencies": {
     "@acme/api": "*",
     "@acme/tailwind-config": "*",
-    "@clerk/clerk-expo": "^0.17.8",
     "@react-native-async-storage/async-storage": "^1.17.11",
     "@react-native-community/datetimepicker": "6.7.3",
     "@rneui/base": "4.0.0-rc.7",
