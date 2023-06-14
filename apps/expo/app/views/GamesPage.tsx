@@ -6,12 +6,12 @@ import { useRouter } from "expo-router";
 import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
 import PictogramCard from "../components/PictogramCard";
-import { getPictogram } from "../hooks/pictogramsHandler";
-import { useCompanionStore } from "../store/store";
+import { useCompanionStore, usePictogramStore } from "../store/store";
 import categories from "../utils/categories";
 import { isDeviceLarge } from "../utils/commonFunctions";
 
 export default function GamesPage() {
+  const pictogramStore = usePictogramStore();
   const router = useRouter();
   const [selectedCategory, setCategory] = useState("Tutto");
 
@@ -37,7 +37,7 @@ export default function GamesPage() {
         <View className="mx-auto flex h-4/5 flex-row items-center justify-center">
           <View className="flex h-4/5 w-1/4">
             <PictogramCard
-              pictogram={getPictogram("2680")}
+              pictogram={pictogramStore.getPictogram("2680")}
               bgcolor="#C6D7F9"
               text="Che cos’è??"
               onPress={() =>

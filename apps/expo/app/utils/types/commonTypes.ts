@@ -47,7 +47,7 @@ export type CategoryType = {
 export type WhatsItGameProperties = {
   id: string;
   text: string;
-  pictograms: Pictogram[];
+  pictograms: string[];
   answer: string;
   picture: any;
   isGenerated?: boolean; // Just for development
@@ -57,13 +57,13 @@ export type Book = {
   id: string;
   title: string;
   cover: any;
-  pictograms: Pictogram[][];
+  pictograms: string[][];
   isCustom?: boolean;
 };
 
 export type DiaryPage = {
   date: string;
-  pictograms: Pictogram[][];
+  pictograms: string[][];
 };
 
 export type ReadingSettings = {
@@ -73,6 +73,6 @@ export type ReadingSettings = {
 
 export type diaryReqArgs = {
   date: string;
-  entry?: Pictogram[];
+  entry?: string[];
   index?: number;
 };

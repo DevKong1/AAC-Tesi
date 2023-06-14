@@ -4,11 +4,8 @@ import * as Speech from "expo-speech";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
-import { getPictogram, getPictograms } from "../hooks/pictogramsHandler";
-import {
-  getIDsFromPictogramsArray,
-  getIDsFromPictogramsMatrix,
-} from "../utils/commonFunctions";
+import dictionary from "../../assets/dictionaries/Dizionario_it.json";
+import { getIDsFromPictogramsMatrix } from "../utils/commonFunctions";
 import pictograms from "../utils/pictograms";
 import {
   type Book,
@@ -163,54 +160,17 @@ interface DiaryState {
   getNextPage: (date: string) => DiaryPage | undefined;
   addPictogramsToPage: (
     date: string,
-    pictograms: Pictogram[],
+    pictograms: string[],
   ) => Promise<DiaryPage | undefined>;
   addDiaryPage: (page: DiaryPage) => Promise<boolean>;
   updatePictogramsInPage: (
     date: string,
     entryIndex: number,
-    pictograms: Pictogram[],
+    pictograms: string[],
   ) => Promise<boolean>;
   removeDiaryPage: (date: string) => Promise<boolean>;
   removePictogramFromPages: (pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
 }
-
-type SavedDiaryPage = {
-  date: string;
-  pictograms: string[][];
-};
-
-/**
- * Maps each pictogram in a DiaryPage array into a string containing the id
- *
- * @param diary - The diary to map
- */
-const getDiaryForJSON = (diary: DiaryPage[]) => {
-  return diary.map(
-    ({ date, pictograms }) =>
-      ({
-        date: date,
-        pictograms: getIDsFromPictogramsMatrix(pictograms),
-      } as SavedDiaryPage),
-  );
-};
-
-/**
- * Parses a saved diary, mapping all string ids into Pictogram Objects
- *
- * @param saved - The saved Diary
- * @param customPictograms - User defined pictograms
- * @returns - Diary in a DiaryPage[] format
- */
-const parseSavedDiary = (
-  saved: SavedDiaryPage[],
-  customPictograms: Pictogram[],
-) => {
-  return saved.map(({ date, pictograms }) => ({
-    date: date,
-    pictograms: pictograms.map((row) => getPictograms(row, customPictograms)),
-  })) as DiaryPage[];
-};
 
 export const useDiaryStore = create<DiaryState>((set, get) => ({
   diary: [],
@@ -219,14 +179,11 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
     const result = await getJSONOrCreate(diaryUri, []);
     if (result)
       set({
-        diary: parseSavedDiary(
-          result as SavedDiaryPage[],
-          usePictogramStore.getState().getCustomPictograms(),
-        ),
+        diary: result,
       });
   },
   save: async () => {
-    await saveToJSON(diaryUri, getDiaryForJSON(get().diary));
+    await saveToJSON(diaryUri, get().diary);
   },
   getDiaryPage: (date) => {
     return get().diary.find((el) => el.date == date);
@@ -288,7 +245,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
       page.pictograms.forEach((row) => {
         let i = row.length;
         while (i--) {
-          if (row[i]?._id == toRemove) {
+          if (row[i] == toRemove) {
             row.splice(i, 1);
           }
         }
@@ -309,11 +266,11 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
 interface inputState {
   id: string | undefined;
   command: string | undefined;
-  inputPictograms: Pictogram[] | undefined;
+  inputPictograms: string[] | undefined;
   requestCompleted: boolean;
   args: any | undefined;
   inputRequest: (id: string, command: string, args?: any) => void;
-  setInput: (reqID: string, inputPictograms: Pictogram[]) => void;
+  setInput: (reqID: string, inputPictograms: string[]) => void;
   clear: () => void;
 }
 
@@ -326,7 +283,7 @@ export const useInputStore = create<inputState>((set, get) => ({
   inputRequest: (id: string, command: string, args?: any) => {
     set({ id: id, command: command, requestCompleted: false, args: args });
   },
-  setInput: (reqID: string, inputPictograms: Pictogram[]) => {
+  setInput: (reqID: string, inputPictograms: string[]) => {
     if (reqID == get().id)
       set({ inputPictograms: inputPictograms, requestCompleted: true });
   },
@@ -342,11 +299,19 @@ export const useInputStore = create<inputState>((set, get) => ({
 }));
 
 interface PictogramState {
+  pictograms: Pictogram[];
   favourites: string[];
   customPictograms: CustomPictogram[];
   load: () => Promise<void>;
   save: () => Promise<void>;
+  getPictogram: (id: string) => Pictogram | undefined;
+  getPictograms: (ids: string[]) => Pictogram[];
+  getTextFromPictogram: (pictogram: Pictogram) => string;
+  getPictogramByText: (text: string) => Pictogram[];
   getFavouritePictograms: () => Pictogram[];
+  getPictogramFromCustom: (
+    customPictogram: CustomPictogram,
+  ) => Pictogram | undefined;
   getCustomPictograms: () => Pictogram[];
   addFavourite: (id: string) => Promise<boolean>;
   removeFavourite: (id: string) => Promise<boolean>;
@@ -364,6 +329,7 @@ type SavedPictograms = {
 };
 
 export const usePictogramStore = create<PictogramState>((set, get) => ({
+  pictograms: dictionary as Pictogram[],
   favourites: [],
   customPictograms: [],
   load: async () => {
@@ -383,29 +349,61 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       customPictograms: get().customPictograms,
     } as SavedPictograms);
   },
-  getFavouritePictograms: () => {
-    return getPictograms(get().favourites, get().getCustomPictograms());
+  getPictogram: (id) => {
+    const custom = get().customPictograms.find((el) => el._id == id);
+    return custom
+      ? get().getPictogramFromCustom(custom)
+      : get().pictograms.find((el) => el._id == id);
   },
-  getCustomPictograms: () => {
+  getPictograms: (ids) => {
     const result = [] as Pictogram[];
-    get().customPictograms.forEach((pictogram) => {
-      if (pictogram.oldId) {
-        const oldValue = getPictogram(pictogram.oldId);
-        oldValue
-          ? result.push({
-              ...oldValue,
-              customPictogram: pictogram,
-            })
-          : null;
-      } else {
-        result.push({
-          _id: pictogram._id,
-          keywords: [],
-          customPictogram: pictogram,
-        });
-      }
+    ids.forEach((id) => {
+      const found = get().getPictogram(id);
+      if (found) result.push(found);
     });
     return result;
+  },
+  getFavouritePictograms: () => {
+    return get().getPictograms(get().favourites);
+  },
+  getPictogramByText: (text) => {
+    const result = get().pictograms.filter((el) =>
+      el.keywords?.find((key) => key.keyword.toLowerCase().includes(text)),
+    );
+    return get()
+      .getCustomPictograms()
+      .filter((el) => el.customPictogram?.text?.toLowerCase().includes(text))
+      .concat(result);
+  },
+  getTextFromPictogram: (pictogram) => {
+    if (pictogram.customPictogram?.text) return pictogram.customPictogram.text;
+    if (pictogram.keywords[0]?.keyword) return pictogram.keywords[0].keyword;
+    return "";
+  },
+  getPictogramFromCustom: (customPictogram) => {
+    if (customPictogram.oldId) {
+      const oldValue = get().pictograms.find(
+        (el) => el._id == customPictogram.oldId,
+      );
+      return oldValue
+        ? ({
+            ...oldValue,
+            customPictogram: customPictogram,
+          } as Pictogram)
+        : undefined;
+    }
+    return {
+      _id: customPictogram._id,
+      keywords: [],
+      customPictogram: customPictogram,
+    } as Pictogram;
+  },
+  getCustomPictograms: () => {
+    return get()
+      .customPictograms.flatMap((custom) =>
+        get().getPictogramFromCustom(custom),
+      )
+      .filter((el) => el) as Pictogram[];
   },
   addFavourite: async (id) => {
     if (!get().favourites.find((el) => el == id)) {
@@ -471,47 +469,6 @@ interface BookState {
   removeBook: (id: string) => Promise<boolean>;
 }
 
-type SavedBook = {
-  id: string;
-  title: string;
-  cover: string;
-  pictograms: string[][];
-};
-
-/**
- * Maps each pictogram in a Book array into a string containing the id
- *
- * @param diary - The diary to map
- */
-const getBooksForJSON = (books: Book[]) => {
-  return books.map(
-    ({ id, title, cover, pictograms }) =>
-      ({
-        id: id,
-        title: title,
-        cover: cover,
-        pictograms: getIDsFromPictogramsMatrix(pictograms),
-      } as SavedBook),
-  );
-};
-
-/**
- * Parses a saved diary, mapping all string ids into Pictogram Objects
- *
- * @param saved - The saved Diary
- * @param customPictograms - User defined pictograms
- * @returns - Diary in a DiaryPage[] format
- */
-const parseSavedBooks = (saved: SavedBook[], customPictograms: Pictogram[]) => {
-  return saved.map(({ id, title, cover, pictograms }) => ({
-    id: id,
-    title: title,
-    cover: cover,
-    pictograms: pictograms.map((row) => getPictograms(row, customPictograms)),
-    isCustom: true,
-  })) as Book[];
-};
-
 export const useBookStore = create<BookState>((set, get) => ({
   customBooks: [],
   readingSettings: { rows: 3, columns: 4 } as ReadingSettings,
@@ -519,14 +476,11 @@ export const useBookStore = create<BookState>((set, get) => ({
     const result = await getJSONOrCreate(booksUri, []);
     if (result)
       set({
-        customBooks: parseSavedBooks(
-          result as SavedBook[],
-          usePictogramStore.getState().getCustomPictograms(),
-        ),
+        customBooks: result,
       });
   },
   save: async () => {
-    await saveToJSON(booksUri, getBooksForJSON(get().customBooks));
+    await saveToJSON(booksUri, get().customBooks);
   },
   getBook: (id) => {
     return get().customBooks.find((el) => el.id == id);

@@ -12,10 +12,13 @@ import BookCard from "../components/BookCard";
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import { getDummyBooks } from "../hooks/booksHandler";
-import { getPictogram } from "../hooks/pictogramsHandler";
-import { useBookStore, useCompanionStore } from "../store/store";
 import {
-  getTextFromPictogramsMatrix,
+  useBookStore,
+  useCompanionStore,
+  usePictogramStore,
+} from "../store/store";
+import {
+  getTextFromPictogramsArray,
   isDeviceLarge,
 } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
@@ -25,6 +28,8 @@ export default function ReadingPage() {
   const router = useRouter();
   const companionStore = useCompanionStore();
   const bookStore = useBookStore();
+  const pictogramStore = usePictogramStore();
+
   const r = useRef<ICarouselInstance>(null);
   const { width, height } = Dimensions.get("window");
 
@@ -81,7 +86,9 @@ export default function ReadingPage() {
 
   const readAll = () => {
     if (currentBook) {
-      const text = getTextFromPictogramsMatrix(getCurrentPage());
+      const text = getTextFromPictogramsArray(
+        pictogramStore.getPictograms(getCurrentPage().flatMap((el) => el)),
+      );
       companionStore.speak(text);
     }
   };
@@ -133,11 +140,14 @@ export default function ReadingPage() {
                     className="flex h-full"
                   >
                     <PictogramCard
-                      pictogram={col}
+                      pictogram={pictogramStore.getPictogram(col)}
                       bgcolor={"#B9D2C3"}
                       onPress={() => {
+                        const pictogram = pictogramStore.getPictogram(col);
                         companionStore.speak(
-                          col.keywords[0] ? col.keywords[0].keyword : "",
+                          pictogram?.keywords[0]
+                            ? pictogram.keywords[0].keyword
+                            : "",
                         );
                       }}
                     />
@@ -148,12 +158,12 @@ export default function ReadingPage() {
           </View>
 
           <View className="flex h-[25%] w-full flex-row items-center justify-center">
-            <View className="h-full w-1/3 items-center justify-center"></View>
+            <View className="h-full w-1/3 items-center justify-center" />
             <View className="h-full w-1/3 items-center justify-center">
               <View className="h-2/3 w-1/2">
                 <PictogramCard
-                  pictogram={getPictogram("36257")}
-                  noCaption={true}
+                  noCaption
+                  pictogram={pictogramStore.getPictogram("36257")}
                   bgcolor="#89BF93"
                   onPress={readAll}
                 />
@@ -185,12 +195,12 @@ export default function ReadingPage() {
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
-      <View className="flex h-1/5 w-full flex-row items-start justify-center">
+      <View className="flex h-[15%] w-full flex-row items-center justify-center">
         <Text className="text-default text-xl font-semibold">
           Scegli un libro da leggere:
         </Text>
       </View>
-      <View className="flex h-4/5 w-full items-center justify-center">
+      <View className="flex h-[85%] w-full items-start justify-center">
         {books.length > 0 ? (
           <Carousel
             ref={r}
@@ -200,7 +210,7 @@ export default function ReadingPage() {
               width: width,
               height: height * 0.6,
               justifyContent: "center",
-              alignItems: "center",
+              alignItems: "flex-start",
             }}
             width={isDeviceLarge() ? 600 : 300}
             height={height * 0.6}

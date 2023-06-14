@@ -2,7 +2,6 @@ import { useState } from "react";
 import { FlatList, Text, View } from "react-native";
 import { SearchBar } from "@rneui/themed";
 
-import { findPictograms } from "../hooks/pictogramsHandler";
 import { usePictogramStore } from "../store/store";
 import { type Pictogram } from "../utils/types/commonTypes";
 import PictogramCard from "./PictogramCard";
@@ -38,10 +37,7 @@ const SearchFlatlist: React.FC<{
   const searchPictograms = () => {
     if (searchPhrase != "")
       setSearchedPictograms(
-        findPictograms(
-          searchPhrase.toLowerCase(),
-          pictogramStore.getCustomPictograms(),
-        ),
+        pictogramStore.getPictogramByText(searchPhrase.toLowerCase()),
       );
     else clearSearch();
   };

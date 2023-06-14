@@ -2,7 +2,6 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 
 import getEnvVars from "../../enviroment";
-import { type Pictogram } from "../utils/types/commonTypes";
 
 export interface ParsedFileResponse {
   pictograms: string[];
@@ -74,11 +73,6 @@ export const requestWhatsItGame = async (category?: string) => {
 };
 
 // Talking
-const getTextFromPictogram = (pictogram: Pictogram) => {
-  if (pictogram?.customPictogram?.text) return pictogram.customPictogram.text;
-  if (pictogram?.keywords[0]?.keyword) return pictogram.keywords[0].keyword;
-};
-
 const getPredictedPictograms = async (data: PictogramPredictionRequest) => {
   try {
     const response = await reqInstance.post(
@@ -94,20 +88,13 @@ const getPredictedPictograms = async (data: PictogramPredictionRequest) => {
 
 // Now pictograms are formatted as a string but it could change
 export const predictPictograms = async (
-  previous?: Pictogram[],
-  current?: Pictogram[],
+  previous?: string[],
+  current?: string[],
   category?: string,
 ) => {
-  const textPrevious = previous
-    ? previous.flatMap((el) => getTextFromPictogram(el))
-    : undefined;
-  const textCurrent = current
-    ? current.flatMap((el) => getTextFromPictogram(el))
-    : undefined;
-
   const data = await getPredictedPictograms({
-    previous: textPrevious,
-    current: textCurrent,
+    previous: previous,
+    current: current,
     category: category,
   } as PictogramPredictionRequest);
   return data;

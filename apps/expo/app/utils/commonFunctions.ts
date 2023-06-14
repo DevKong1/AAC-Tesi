@@ -6,12 +6,9 @@ export const isDeviceLarge = () => {
   return Dimensions.get("window").width >= 1024;
 };
 
-export const formatToMatchColumns = (
-  pictograms: Pictogram[],
-  columns: number,
-) => {
+export const formatToMatchColumns = (pictograms: string[], columns: number) => {
   if (pictograms.length <= columns) return [pictograms];
-  const result = [] as Pictogram[][];
+  const result = [] as string[][];
   const nRows = Math.ceil(pictograms.length / columns);
   for (let i = 0; i < nRows; i++) {
     result.push(pictograms.slice(i * columns, (i + 1) * columns));

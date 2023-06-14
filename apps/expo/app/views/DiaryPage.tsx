@@ -9,11 +9,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import Spinner from "../components/Spinner";
-import { getPictogram } from "../hooks/pictogramsHandler";
 import {
   useCompanionStore,
   useDiaryStore,
   useInputStore,
+  usePictogramStore,
 } from "../store/store";
 import {
   formatToMatchColumns,
@@ -23,12 +23,12 @@ import {
 import { shadowStyle } from "../utils/shadowStyle";
 import {
   type DiaryPage,
-  type Pictogram,
   type diaryReqArgs,
 } from "../utils/types/commonTypes";
 
 export default function DiaryPage() {
   const router = useRouter();
+  const pictogramStore = usePictogramStore();
   const companionStore = useCompanionStore();
   const diaryStore = useDiaryStore();
   const inputStore = useInputStore();
@@ -52,9 +52,10 @@ export default function DiaryPage() {
     setPage(loadedPage);
   };
 
-  const readEntry = (entry: Pictogram[]) => {
+  const readEntry = (entry: string[]) => {
     if (entry.length > 0) {
-      companionStore.speak(getTextFromPictogramsArray(entry));
+      const pictograms = pictogramStore.getPictograms(entry);
+      companionStore.speak(getTextFromPictogramsArray(pictograms));
     }
   };
 
@@ -228,8 +229,8 @@ export default function DiaryPage() {
           >
             <View className="h-16 w-[5%] flex-col pb-2 pl-2">
               <PictogramCard
-                pictogram={getPictogram("36257")}
-                noCaption={true}
+                noCaption
+                pictogram={pictogramStore.getPictogram("36257")}
                 bgcolor="#f2b30a"
                 onPress={() => readEntry(diaryEntry)}
               />
@@ -244,14 +245,14 @@ export default function DiaryPage() {
                       className="h-full flex-col"
                     >
                       <PictogramCard
-                        pictogram={col}
+                        pictogram={pictogramStore.getPictogram(col)}
                         bgcolor={"#B9D2C3"}
                         onPress={() => {
-                          const current = col;
+                          const current = pictogramStore.getPictogram(col);
                           companionStore.speak(
-                            current.customPictogram?.text
+                            current?.customPictogram?.text
                               ? current.customPictogram.text
-                              : current.keywords[0]
+                              : current?.keywords[0]
                               ? current.keywords[0].keyword
                               : "",
                           );
@@ -264,7 +265,7 @@ export default function DiaryPage() {
             </View>
             <View className="h-16 w-[5%] flex-col pb-2 pr-2">
               <PictogramCard
-                pictogram={getPictogram("37360")}
+                pictogram={pictogramStore.getPictogram("37360")}
                 noCaption={true}
                 bgcolor="#E49691"
                 onPress={() => modifyEntry(i)}
@@ -280,7 +281,7 @@ export default function DiaryPage() {
         }`}
       >
         <PictogramCard
-          pictogram={getPictogram("38218")}
+          pictogram={pictogramStore.getPictogram("38218")}
           noCaption={true}
           bgcolor="#89BF93"
           onPress={addParagraph}

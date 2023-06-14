@@ -10,15 +10,24 @@ const PictogramSearchModal: React.FC<{
   onClose: () => void;
   defaultText: string;
   defaultData?: Pictogram[];
-}> = ({ isVisible, onSelect, onClose, defaultText, defaultData }) => {
+  backdrop?: boolean;
+}> = ({
+  isVisible,
+  onSelect,
+  onClose,
+  defaultText,
+  defaultData,
+  backdrop = true,
+}) => {
   return (
     <Modal
+      backdropOpacity={backdrop ? 1 : 0}
       isVisible={isVisible}
       onBackdropPress={onClose}
       style={{ margin: 0 }}
       onBackButtonPress={onClose}
     >
-      <View className="absolute bottom-0 h-[75%] w-full flex-col items-center justify-center rounded-t-lg bg-[#2f3235ea]">
+      <View className="absolute bottom-0 h-[75%] w-full flex-col items-center justify-center rounded-t-lg bg-[#2f3235fa]">
         <SearchFlatlist
           defaultText={defaultText}
           defaultData={defaultData}

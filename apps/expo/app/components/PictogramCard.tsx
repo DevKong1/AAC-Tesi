@@ -1,11 +1,9 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
+import { usePictogramStore } from "../store/store";
 import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
-import {
-  type CustomPictogram,
-  type Pictogram,
-} from "../utils/types/commonTypes";
+import { type Pictogram } from "../utils/types/commonTypes";
 
 const PictogramCard: React.FC<{
   pictogram: Pictogram | undefined;
@@ -15,11 +13,11 @@ const PictogramCard: React.FC<{
   onPress: (...args: any) => void;
   args?: any;
 }> = ({ pictogram, text, noCaption, bgcolor, onPress, args }) => {
+  const pictogramStore = usePictogramStore();
+
   const getText = () => {
     if (text) return text;
-    if (pictogram?.customPictogram?.text) return pictogram.customPictogram.text;
-    if (pictogram?.keywords[0]?.keyword) return pictogram.keywords[0].keyword;
-    return "Undefined";
+    return pictogram ? pictogramStore.getTextFromPictogram(pictogram) : "";
   };
 
   const sourcePictogram = () => {
