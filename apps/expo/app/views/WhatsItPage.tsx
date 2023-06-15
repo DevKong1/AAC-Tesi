@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { BackHandler, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { randomUUID } from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import Spinner from "../components/Spinner";
-import { generateWhatsItGame } from "../hooks/gamesHandler";
+import { requestWhatsItGame } from "../hooks/useHuggingFace";
 import { useCompanionStore, usePictogramStore } from "../store/store";
+import { dummyGame } from "../utils/dummyResponses";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type WhatsItGameProperties } from "../utils/types/commonTypes";
 
@@ -24,12 +26,23 @@ export default function WhatsItPage() {
   const [guess, setGuess] = useState(undefined as string | undefined);
 
   const generateGame = async () => {
-    const game = await generateWhatsItGame(category);
+    const generatedGame = await requestWhatsItGame(category);
+    const newGame = generatedGame
+      ? ({
+          id: randomUUID(),
+          text: generatedGame.text,
+          pictograms: generatedGame.pictograms,
+          answer: generatedGame.answer,
+          picture: generatedGame.picture,
+          isGenerated: true, // Just for development
+        } as WhatsItGameProperties)
+      : dummyGame;
+
+    // Set state with the result or Dummy Game
+    setGame(newGame);
 
     companionStore.setPosition("center");
-    companionStore.speak(game?.text, "top");
-    // set state with the result
-    setGame(game);
+    companionStore.speak(newGame.text, "top");
   };
 
   useEffect(() => {
@@ -59,18 +72,6 @@ export default function WhatsItPage() {
     );
     setGuess(guess);
   };
-
-  /*   
-    const userQueries = useQueries({
-    queries: game.pictograms.map((pic) => {
-      return {
-        queryKey: ["pictograms", pic._id],
-        queryFn: () => fetchPictogram(pic._id),
-        enabled: !!pic._id,
-        staleTime: Infinity,
-      };
-    }),
-  }); */
 
   // Error Screen
   if (game.pictograms.length != 6) {
@@ -152,13 +153,13 @@ export default function WhatsItPage() {
 
   // Main Game Screen
   return (
-    <SafeAreaView className="flex h-full w-full flex-col justify-center">
-      <View className="h-[7%] w-full flex-row justify-center">
+    <SafeAreaView className="flex h-full w-full flex-col content-center justify-center">
+      <View className="h-[12%] w-full flex-row content-center justify-center">
         <Text className="text-default text-lg font-semibold lg:text-4xl">
           Indovina cosa c&apos;è nell&apos;immagine!
         </Text>
       </View>
-      <View className="flex h-[93%] w-full flex-col justify-center">
+      <View className="flex h-[88%] w-full flex-col justify-center">
         <View className="flex h-1/2 w-full flex-row">
           {game.pictograms.slice(0, 4).map((pic) => (
             <View className="m-auto h-[90%] w-1/4" key={`row1_${pic}`}>

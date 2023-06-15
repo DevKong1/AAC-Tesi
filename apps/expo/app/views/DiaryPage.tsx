@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { randomUUID } from "expo-crypto";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import moment from "moment";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
@@ -21,10 +22,7 @@ import {
   isDeviceLarge,
 } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
-import {
-  type DiaryPage,
-  type diaryReqArgs,
-} from "../utils/types/commonTypes";
+import { type DiaryPage, type diaryReqArgs } from "../utils/types/commonTypes";
 
 export default function DiaryPage() {
   const router = useRouter();
@@ -33,7 +31,6 @@ export default function DiaryPage() {
   const diaryStore = useDiaryStore();
   const inputStore = useInputStore();
 
-  const today = new Date();
   const [requestID, setReqId] = useState(undefined as string | undefined);
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
 
@@ -41,11 +38,27 @@ export default function DiaryPage() {
   const iconColor = "#5C5C5C";
   const columns = diaryStore.readingSettings.columns;
 
+  // Returns todays date without counting hours
+  const getTodayDate = () => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  // Returns currents page date without counting hours
+  const getCurrentPageDate = () => {
+    const currentDate = currentPage
+      ? moment(currentPage.date).toDate()
+      : undefined;
+    if (currentDate) currentDate.setHours(0, 0, 0, 0);
+    return currentDate;
+  };
+
   const loadPage = (date: string) => {
     let loadedPage = diaryStore.getDiaryPage(date);
     if (!loadedPage) {
       loadedPage = {
-        date: today.toLocaleDateString(),
+        date: getTodayDate().toISOString(),
         pictograms: [],
       } as DiaryPage;
     }
@@ -75,6 +88,40 @@ export default function DiaryPage() {
         },
       });
     }
+  };
+
+  const goPreviousDay = () => {
+    if (!currentPage) return;
+    const previousDayString = moment(currentPage.date)
+      .subtract(1, "day")
+      .toDate()
+      .toISOString();
+    const previousDiaryEntry = diaryStore.getDiaryPage(previousDayString);
+    setPage(
+      previousDiaryEntry
+        ? previousDiaryEntry
+        : ({
+            date: previousDayString,
+            pictograms: [],
+          } as DiaryPage),
+    );
+  };
+
+  const goNextDay = () => {
+    if (!currentPage) return;
+    const nextDayString = moment(currentPage.date)
+      .add(1, "day")
+      .toDate()
+      .toISOString();
+    const nextDiaryEntry = diaryStore.getDiaryPage(nextDayString);
+    setPage(
+      nextDiaryEntry
+        ? nextDiaryEntry
+        : ({
+            date: nextDayString,
+            pictograms: [],
+          } as DiaryPage),
+    );
   };
 
   function addParagraph(): void {
@@ -162,7 +209,7 @@ export default function DiaryPage() {
       .then((res) => {
         if (res) loadPage(res);
         else {
-          loadPage(today.toLocaleDateString());
+          loadPage(getTodayDate().toISOString());
           companionStore.speak("Guardiamo il tuo diario!");
         }
       })
@@ -185,8 +232,11 @@ export default function DiaryPage() {
         className="bg-purpleCard mb-3 flex h-[15%] w-full flex-row items-center justify-center rounded-xl"
       >
         <View className="flex h-full w-[8%] items-start justify-center">
-          {diaryStore.getPreviousPage(currentPage.date) && (
-            <TouchableOpacity className="ml-[10px] h-full w-full justify-center">
+          {getCurrentPageDate() && getCurrentPageDate()! < getTodayDate() && (
+            <TouchableOpacity
+              className="ml-[10px] h-full w-full justify-center"
+              onPress={goNextDay}
+            >
               <MaterialIcons
                 name="arrow-back-ios"
                 size={iconSize}
@@ -198,20 +248,21 @@ export default function DiaryPage() {
         <View className="flex h-full w-[84%] flex-row items-center justify-center">
           <View className="flex h-full w-full flex-row items-center justify-center">
             <Text className="text-default pr-2 text-base font-semibold">
-              {currentPage.date}
+              {getCurrentPageDate()?.toLocaleDateString()}
             </Text>
           </View>
         </View>
         <View className="flex h-full w-[8%] items-end justify-center">
-          {diaryStore.getNextPage(currentPage.date) && (
-            <TouchableOpacity className="h-full w-full justify-center">
-              <MaterialIcons
-                name="arrow-forward-ios"
-                size={iconSize}
-                color={iconColor}
-              />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            className="h-full w-full justify-center"
+            onPress={goPreviousDay}
+          >
+            <MaterialIcons
+              name="arrow-forward-ios"
+              size={iconSize}
+              color={iconColor}
+            />
+          </TouchableOpacity>
         </View>
       </View>
       {currentPage.pictograms.length <= 0 && (

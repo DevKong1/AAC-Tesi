@@ -5,8 +5,8 @@ import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
 import dictionary from "../../assets/dictionaries/Dizionario_it.json";
-import { getIDsFromPictogramsMatrix } from "../utils/commonFunctions";
-import pictograms from "../utils/pictograms";
+import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
+import { sortBySimilarity } from "../utils/commonFunctions";
 import {
   type Book,
   type CustomPictogram,
@@ -19,40 +19,6 @@ const companionUri = `${FileSystem.documentDirectory}companion.json`;
 const diaryUri = `${FileSystem.documentDirectory}diary.json`;
 const pictogramUri = `${FileSystem.documentDirectory}pictograms.json`;
 const booksUri = `${FileSystem.documentDirectory}books.json`;
-
-/**
- * Saves given date to given path
- *
- * @param file - Path to the file
- * @param data - Data to save
- */
-const saveToJSON = async (file: string, data: any) => {
-  return await FileSystem.writeAsStringAsync(file, JSON.stringify(data));
-};
-
-/**
- * Checks if a JSON file exists, if not creates it with given data, otherwise reads it and returns Parsed data
- *
- * @param file - Path to the file
- * @param data - Data to save if the file doesnt exist
- * @returns - undefined if the file didnt exist, Parsed JSON data otherwise
- */
-const getJSONOrCreate = async (file: string, data: any) => {
-  try {
-    const fileInfo = await FileSystem.getInfoAsync(file);
-    if (!fileInfo.exists) {
-      console.log(`${file}: File doesnt exist, creating...`);
-      await saveToJSON(file, data);
-    } else {
-      const result = await FileSystem.readAsStringAsync(file);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return JSON.parse(result);
-    }
-  } catch (e) {
-    console.log("Storage: ERROR");
-    return undefined;
-  }
-};
 
 interface CompanionState {
   isVisible: boolean;
@@ -156,8 +122,6 @@ interface DiaryState {
   load: () => Promise<void>;
   save: () => Promise<void>;
   getDiaryPage: (date: string) => DiaryPage | undefined;
-  getPreviousPage: (date: string) => DiaryPage | undefined;
-  getNextPage: (date: string) => DiaryPage | undefined;
   addPictogramsToPage: (
     date: string,
     pictograms: string[],
@@ -188,12 +152,6 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
   getDiaryPage: (date) => {
     return get().diary.find((el) => el.date == date);
   },
-  getPreviousPage: (date) => {
-    return get().diary.find((el) => new Date(el.date) < new Date(date));
-  },
-  getNextPage: (date) => {
-    return get().diary.find((el) => new Date(el.date) > new Date(date));
-  },
   addDiaryPage: async (page) => {
     if (!get().getDiaryPage(page.date)) {
       set((state) => ({ diary: [...state.diary, page] }));
@@ -219,7 +177,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
         newDiary[pageIndex]!.pictograms[entryIndex] = pictograms;
       else newDiary[pageIndex]!.pictograms.splice(entryIndex, 1);
       set({ diary: newDiary });
-      // If the page is empty of pictograms we remove it
+      // If the page is empty we remove it
       if (newDiary[pageIndex]!.pictograms.length <= 0)
         return get().removeDiaryPage(date);
       await get().save();
@@ -337,11 +295,22 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       favourites: [],
       customPictograms: [],
     } as SavedPictograms)) as SavedPictograms;
-    if (result && result.favourites && result.customPictograms)
+    if (result && result.favourites && result.customPictograms) {
       set({
         favourites: result.favourites,
         customPictograms: result.customPictograms,
       });
+      result.customPictograms.forEach((customPictogram) => {
+        if (customPictogram.oldId)
+          set((state) => ({
+            pictograms: state.pictograms.map((pictogram) =>
+              pictogram._id == customPictogram.oldId
+                ? { ...pictogram, customPictogram: customPictogram }
+                : pictogram,
+            ),
+          }));
+      });
+    }
   },
   save: async () => {
     await saveToJSON(pictogramUri, {
@@ -367,9 +336,10 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     return get().getPictograms(get().favourites);
   },
   getPictogramByText: (text) => {
-    const result = get().pictograms.filter((el) =>
+    let result = get().pictograms.filter((el) =>
       el.keywords?.find((key) => key.keyword.toLowerCase().includes(text)),
     );
+    result = sortBySimilarity(result, text);
     return get()
       .getCustomPictograms()
       .filter((el) => el.customPictogram?.text?.toLowerCase().includes(text))
@@ -428,24 +398,48 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     return false;
   },
   addCustomPictogram: async (oldId?, text?, image?) => {
+    // Only one customization per existing pictogram allowed
+    if (oldId) {
+      const oldPictogram = get().pictograms.find((el) => el._id == oldId);
+      if (oldPictogram?.customPictogram) return false;
+    }
     const id = randomUUID();
-    const newPictogram = {
+    const newCustomPictogram = {
       _id: id,
       oldId: oldId,
       text: text,
       image: image,
     } as CustomPictogram;
     set((state) => ({
-      customPictograms: [...state.customPictograms, newPictogram],
+      customPictograms: [...state.customPictograms, newCustomPictogram],
     }));
+    if (oldId)
+      set((state) => ({
+        pictograms: state.pictograms.map((pictogram) =>
+          pictogram._id == oldId
+            ? { ...pictogram, customPictogram: newCustomPictogram }
+            : pictogram,
+        ),
+      }));
     await get().save();
     return true;
   },
   removeCustomPictogram: async (id) => {
     const index = get().customPictograms.findIndex((el) => el._id == id);
     if (index != -1) {
+      const customPictogram = get().customPictograms[index]!;
+      // If it was also a favorite remove
       if (get().favourites.find((el) => el == id)) get().removeFavourite(id);
-      useDiaryStore.getState().removePictogramFromPages(id);
+      // If it was a new pictogram also remove all references, otherwise swap it back to the normal one
+      if (customPictogram.oldId) {
+        set((state) => ({
+          pictograms: state.pictograms.map((pictogram) =>
+            pictogram._id == customPictogram.oldId
+              ? { ...pictogram, customPictogram: undefined }
+              : pictogram,
+          ),
+        }));
+      } else useDiaryStore.getState().removePictogramFromPages(id);
       set((state) => ({
         customPictograms: [
           ...state.customPictograms.slice(0, index),

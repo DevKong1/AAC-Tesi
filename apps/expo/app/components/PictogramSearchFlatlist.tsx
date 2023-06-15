@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FlatList, Text, View } from "react-native";
+import { color } from "react-native-reanimated";
 import { SearchBar } from "@rneui/themed";
 
 import { usePictogramStore } from "../store/store";
@@ -24,6 +25,7 @@ const SearchFlatlist: React.FC<{
   const [searchedPictograms, setSearchedPictograms] = useState(
     [] as Pictogram[],
   );
+  const [typing, setTyping] = useState(false);
 
   const updateSearch = (search: string) => {
     setSearchPhrase(search);
@@ -37,9 +39,30 @@ const SearchFlatlist: React.FC<{
   const searchPictograms = () => {
     if (searchPhrase != "")
       setSearchedPictograms(
-        pictogramStore.getPictogramByText(searchPhrase.toLowerCase()),
+        pictogramStore.getPictogramByText(searchPhrase.toLowerCase().trim()),
       );
     else clearSearch();
+    setTyping(false);
+  };
+
+  const getFlatList = (data: Pictogram[]) => {
+    return (
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={data}
+        renderItem={(pictogram) => (
+          <View className="h-full w-44 items-center justify-center">
+            <PictogramCard
+              pictogram={pictogram.item}
+              bgcolor="#C6D7F9"
+              onPress={onSelect}
+              args={pictogram.item}
+            />
+          </View>
+        )}
+      />
+    );
   };
 
   return (
@@ -60,38 +83,34 @@ const SearchFlatlist: React.FC<{
           onChangeText={updateSearch}
           onEndEditing={searchPictograms}
           onClear={clearSearch}
+          onFocus={() => setTyping(true)}
           value={searchPhrase}
         />
       </View>
       <View className="flex h-[75%] w-full">
-        {searchPhrase != "" || (defaultData && defaultData.length > 0) ? (
+        {searchPhrase != "" || searchedPictograms.length > 0 ? (
           <View className="h-full w-full content-center justify-center">
-            {searchedPictograms.length > 0 || defaultData ? (
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={searchPhrase != "" ? searchedPictograms : defaultData}
-                renderItem={(pictogram) => (
-                  <View className="h-full w-44 items-center justify-center">
-                    <PictogramCard
-                      pictogram={pictogram.item}
-                      bgcolor="#C6D7F9"
-                      onPress={onSelect}
-                      args={pictogram.item}
-                    />
-                  </View>
-                )}
-              />
+            {searchedPictograms.length > 0 || typing ? (
+              getFlatList(searchedPictograms)
             ) : (
-              <Text className="font-text text-default m-auto text-base">
+              <Text className="font-text m-auto text-base text-white">
                 Nessun pittogramma trovato.
               </Text>
             )}
           </View>
         ) : (
-          <Text className="font-text text-default m-auto text-base">
-            {defaultText}
-          </Text>
+          <View className="h-full w-full content-center justify-center">
+            {defaultData && defaultData.length > 0 ? (
+              getFlatList(defaultData)
+            ) : (
+              <Text
+                style={{ color: inputColor ? inputColor : "white" }}
+                className="font-text m-auto text-base"
+              >
+                {defaultText}
+              </Text>
+            )}
+          </View>
         )}
       </View>
     </View>

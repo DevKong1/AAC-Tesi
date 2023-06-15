@@ -11,7 +11,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import BookCard from "../components/BookCard";
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
-import { getDummyBooks } from "../hooks/booksHandler";
 import {
   useBookStore,
   useCompanionStore,
@@ -21,6 +20,7 @@ import {
   getTextFromPictogramsArray,
   isDeviceLarge,
 } from "../utils/commonFunctions";
+import { dummyBooks } from "../utils/dummyResponses";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
 
@@ -44,7 +44,7 @@ export default function ReadingPage() {
   const columns = bookStore.readingSettings.columns;
 
   useEffect(() => {
-    const baseBooks = getDummyBooks(); // Just for Development
+    const baseBooks = dummyBooks; // Just for testing purposes
     const customBooks = bookStore.customBooks;
     // set state with the result
     setBooks(baseBooks.concat(customBooks));

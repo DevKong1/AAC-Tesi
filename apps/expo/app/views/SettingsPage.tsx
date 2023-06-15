@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { BackHandler, Text, View } from "react-native";
+import { Alert, BackHandler, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import AddBookModal from "../components/AddBookModal";
+import BookSelectionModal from "../components/BookSelectionModal";
 import IconButton from "../components/IconButton";
 import MenuCard from "../components/MenuCard";
 import PictogramCard from "../components/PictogramCard";
@@ -13,27 +14,44 @@ import PictogramCustomizationModal from "../components/PictogramCustomizationMod
 import PictogramSearchModal from "../components/PictogramSearchModal";
 import PictogramSelectionModal from "../components/PictogramSelectionModal";
 import SettingsButton from "../components/SettingsButton";
-import { useCompanionStore, usePictogramStore } from "../store/store";
-import { type Pictogram } from "../utils/types/commonTypes";
+import {
+  useBookStore,
+  useCompanionStore,
+  usePictogramStore,
+} from "../store/store";
+import { type Book, type Pictogram } from "../utils/types/commonTypes";
 
 export default function SettingsPage() {
   const companionStore = useCompanionStore();
   const pictogramStore = usePictogramStore();
+  const bookStore = useBookStore();
   const router = useRouter();
+
   const [selectedMenu, setMenu] = useState("Impostazioni");
   const [showAddBookModal, setShowAddBookModal] = useState(false);
+  const [showRemoveBookModal, setShowRemoveBookModal] = useState(false);
   const [showAddPictogramModal, setShowAddPictogramModal] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
 
-  const addPictogram = (pressed: Pictogram) => {
-    pictogramStore.addFavourite(pressed._id);
+  const addPictogram = async (pressed: Pictogram) => {
+    if (!(await pictogramStore.addFavourite(pressed._id)))
+      Alert.alert("Errore, pittoramma non aggiunto!");
   };
 
-  const onPressedRemove = (pictogram: Pictogram) => {
-    if (pictogram.customPictogram) {
-      pictogramStore.removeCustomPictogram(pictogram.customPictogram._id);
-    }
+  const removePictogram = async (pictogram: Pictogram) => {
+    if (pictogram.customPictogram)
+      (await pictogramStore.removeCustomPictogram(
+        pictogram.customPictogram._id,
+      ))
+        ? null
+        : Alert.alert("Errore rimozione pittogramma!");
+  };
+
+  const removeBook = async (book: Book) => {
+    (await bookStore.removeBook(book.id))
+      ? null
+      : Alert.alert("Errore rimozione libro!");
   };
 
   useEffect(() => {
@@ -68,6 +86,11 @@ export default function SettingsPage() {
                 setShowAddBookModal(false);
               }}
             />
+            <BookSelectionModal
+              isVisible={showRemoveBookModal}
+              onSelect={removeBook}
+              onClose={() => setShowRemoveBookModal(false)}
+            />
             <View className="flex h-14 w-80 items-center justify-center p-1">
               <SettingsButton
                 text="Aggiungi libro"
@@ -79,9 +102,7 @@ export default function SettingsPage() {
               <SettingsButton
                 text="Elimina libro aggiunto"
                 color="#C6D7F9"
-                onPress={() => {
-                  return;
-                }}
+                onPress={() => setShowRemoveBookModal(true)}
               />
             </View>
           </View>
@@ -161,7 +182,7 @@ export default function SettingsPage() {
             />
             <PictogramSelectionModal
               isVisible={showRemoveModal}
-              onSelect={onPressedRemove}
+              onSelect={removePictogram}
               onClose={() => {
                 setShowRemoveModal(false);
               }}

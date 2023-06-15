@@ -11,7 +11,7 @@ import CategoryTabs from "../components/CategoryTab";
 import PictogramCard from "../components/PictogramCard";
 import PictogramSearchModal from "../components/PictogramSearchModal";
 import Spinner from "../components/Spinner";
-import { getPredictedPictograms } from "../hooks/talkingHandler";
+import { predictPictograms } from "../hooks/useHuggingFace";
 import {
   useCompanionStore,
   useInputStore,
@@ -19,6 +19,7 @@ import {
 } from "../store/store";
 import categories from "../utils/categories";
 import { getTextFromPictogramsArray } from "../utils/commonFunctions";
+import { dummyPredictedPictograms } from "../utils/dummyResponses";
 import { type Pictogram, type diaryReqArgs } from "../utils/types/commonTypes";
 
 export default function TalkingPage() {
@@ -81,18 +82,17 @@ export default function TalkingPage() {
   };
 
   const loadPictograms = async () => {
-    if (pictograms.length > 0)
-      setPictograms(
-        await getPredictedPictograms(undefined, undefined, selectedCategory),
-      );
-    else
-      setPictograms(
-        await getPredictedPictograms(
-          pictograms,
-          selectedPictograms,
-          selectedCategory,
-        ),
-      );
+    const predictedPictograms = await predictPictograms(
+      pictograms,
+      selectedPictograms,
+      selectedCategory,
+    );
+    // We set the response to the predicted pictograms or the default ones if there was an error
+    setPictograms(
+      predictedPictograms
+        ? predictedPictograms.pictograms
+        : dummyPredictedPictograms,
+    );
   };
 
   const submitInput = () => {
@@ -137,7 +137,7 @@ export default function TalkingPage() {
         onSelect={addPictogram}
         onClose={onModalClose}
         backdrop={false}
-        defaultText="Qui potrai visualizzare i tuoi pittogrammi personali o preferiti, selezionati dalle impostazioni.."
+        defaultText="Qui potrai visualizzare i tuoi pittogrammi preferiti, selezionali dalle impostazioni.."
         defaultData={pictogramStore.getFavouritePictograms()}
       />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">

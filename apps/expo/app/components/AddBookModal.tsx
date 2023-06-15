@@ -13,8 +13,9 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { parseDocument } from "../hooks/booksHandler";
+import { getPictogramsFromFile } from "../hooks/useHuggingFace";
 import { useBookStore } from "../store/store";
+import { formatToMatchColumns } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
 import IconButton from "./IconButton";
@@ -58,6 +59,14 @@ const AddBookModal: React.FC<{
     } catch (e) {
       console.log(e);
     }
+  };
+
+  // Contact HuggingFace to get book pictograms and format them to match given columns
+  const parseDocument = async (uri: string, columns: number) => {
+    const response = await getPictogramsFromFile(uri);
+    return response
+      ? formatToMatchColumns(response.pictograms, columns)
+      : undefined;
   };
 
   // Add pictogram
@@ -131,7 +140,7 @@ const AddBookModal: React.FC<{
                 textBreakStrategy="simple"
                 className="text-default font-text text-center"
               >
-                Seleziona un'immagine di copertina...
+                Seleziona un&apos;immagine di copertina...
               </Text>
             )}
           </TouchableOpacity>

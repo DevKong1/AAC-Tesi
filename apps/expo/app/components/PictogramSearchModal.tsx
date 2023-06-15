@@ -2,7 +2,7 @@ import { View } from "react-native";
 import Modal from "react-native-modal";
 
 import { type Pictogram } from "../utils/types/commonTypes";
-import SearchFlatlist from "./SearchFlatlist";
+import SearchFlatlist from "./PictogramSearchFlatlist";
 
 const PictogramSearchModal: React.FC<{
   isVisible: boolean;
@@ -21,7 +21,7 @@ const PictogramSearchModal: React.FC<{
 }) => {
   return (
     <Modal
-      backdropOpacity={backdrop ? 1 : 0}
+      backdropOpacity={backdrop ? 0.5 : 0} 
       isVisible={isVisible}
       onBackdropPress={onClose}
       style={{ margin: 0 }}

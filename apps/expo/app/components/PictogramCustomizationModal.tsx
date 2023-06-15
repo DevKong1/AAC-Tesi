@@ -16,7 +16,7 @@ import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Pictogram } from "../utils/types/commonTypes";
 import IconButton from "./IconButton";
-import SearchFlatlist from "./SearchFlatlist";
+import SearchFlatlist from "./PictogramSearchFlatlist";
 import SettingsButton from "./SettingsButton";
 
 const PictogramCustomizationModal: React.FC<{
@@ -54,7 +54,7 @@ const PictogramCustomizationModal: React.FC<{
     }
     pictogramStore.addCustomPictogram(
       selectedPictogram?._id,
-      selectedText.toLowerCase(),
+      selectedText,
       selectedImage,
     );
     close();
