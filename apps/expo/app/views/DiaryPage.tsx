@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { BackHandler, Text, View } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { randomUUID } from "expo-crypto";
@@ -16,11 +16,7 @@ import {
   useInputStore,
   usePictogramStore,
 } from "../store/store";
-import {
-  formatToMatchColumns,
-  getTextFromPictogramsArray,
-  isDeviceLarge,
-} from "../utils/commonFunctions";
+import { formatToMatchColumns, isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type DiaryPage, type diaryReqArgs } from "../utils/types/commonTypes";
 
@@ -33,6 +29,10 @@ export default function DiaryPage() {
 
   const [requestID, setReqId] = useState(undefined as string | undefined);
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
+  const [readEntryIndex, setReadEntryIndex] = useState(
+    undefined as number | undefined,
+  );
+  const [readIndex, setReadIndex] = useState(undefined as number | undefined);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
@@ -65,15 +65,48 @@ export default function DiaryPage() {
     setPage(loadedPage);
   };
 
-  const readEntry = (entry: string[]) => {
+  const resetSpeech = () => {
+    companionStore.resetSpeech();
+    setReadEntryIndex(undefined);
+    setReadIndex(undefined);
+  };
+
+  // Used to recursively read all pictograms while updating state
+  const recursiveRead = (i: number, page: string[]) => {
+    if (i >= page.length) {
+      resetSpeech();
+      return;
+    }
+    setReadIndex(i);
+    const currentPictogram = pictogramStore.getPictogram(page[i]!);
+    const currentText = currentPictogram
+      ? pictogramStore.getTextFromPictogram(currentPictogram)
+      : undefined;
+    if (currentText)
+      companionStore.speak(currentText, undefined, undefined, () => {
+        recursiveRead(i + 1, page);
+      });
+  };
+
+  const readOne = (id: string) => {
+    resetSpeech();
+    const pictogram = pictogramStore.getPictogram(id);
+    const text = pictogram
+      ? pictogramStore.getTextFromPictogram(pictogram)
+      : undefined;
+    if (text) companionStore.speak(text);
+  };
+
+  const readEntry = (entryI: number, entry: string[]) => {
     if (entry.length > 0) {
-      const pictograms = pictogramStore.getPictograms(entry);
-      companionStore.speak(getTextFromPictogramsArray(pictograms));
+      setReadEntryIndex(entryI);
+      recursiveRead(0, entry);
     }
   };
 
   const modifyEntry = (index: number) => {
     if (currentPage) {
+      resetSpeech();
       const id = randomUUID() as string;
       setReqId(id);
       inputStore.inputRequest(id, "modifyEntry", {
@@ -92,6 +125,7 @@ export default function DiaryPage() {
 
   const goPreviousDay = () => {
     if (!currentPage) return;
+    resetSpeech();
     const previousDayString = moment(currentPage.date)
       .subtract(1, "day")
       .toDate()
@@ -109,6 +143,7 @@ export default function DiaryPage() {
 
   const goNextDay = () => {
     if (!currentPage) return;
+    resetSpeech();
     const nextDayString = moment(currentPage.date)
       .add(1, "day")
       .toDate()
@@ -218,6 +253,20 @@ export default function DiaryPage() {
       });
   }, [inputStore.requestCompleted]);
 
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        resetSpeech();
+        router.back();
+
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
   if (!currentPage)
     return (
       <SafeAreaView className="h-full w-full items-center justify-center">
@@ -283,7 +332,7 @@ export default function DiaryPage() {
                 noCaption
                 pictogram={pictogramStore.getPictogram("36257")}
                 bgcolor="#f2b30a"
-                onPress={() => readEntry(diaryEntry)}
+                onPress={() => readEntry(i, diaryEntry)}
               />
             </View>
             <View className="w-[90%] flex-col">
@@ -298,16 +347,13 @@ export default function DiaryPage() {
                       <PictogramCard
                         pictogram={pictogramStore.getPictogram(col)}
                         bgcolor={"#B9D2C3"}
-                        onPress={() => {
-                          const current = pictogramStore.getPictogram(col);
-                          companionStore.speak(
-                            current?.customPictogram?.text
-                              ? current.customPictogram.text
-                              : current?.keywords[0]
-                              ? current.keywords[0].keyword
-                              : "",
-                          );
-                        }}
+                        highlight={
+                          readEntryIndex == i &&
+                          readIndex == rowI * columns + colI
+                            ? "#15d0f1b4"
+                            : undefined
+                        }
+                        onPress={() => readOne(col)}
                       />
                     </View>
                   ))}
@@ -324,20 +370,21 @@ export default function DiaryPage() {
             </View>
           </View>
         ))}
-        <View className={`pt-20`} />
+        <View className="flex w-full content-center justify-center py-4">
+          <View
+            className={`mx-auto flex ${
+              isDeviceLarge() ? "h-32 w-32" : "h-16 w-28"
+            }`}
+          >
+            <PictogramCard
+              pictogram={pictogramStore.getPictogram("38218")}
+              noCaption={true}
+              bgcolor="#89BF93"
+              onPress={addParagraph}
+            />
+          </View>
+        </View>
       </ScrollView>
-      <View
-        className={`absolute bottom-4 left-[45%] ${
-          isDeviceLarge() ? "h-32 w-32" : "h-16 w-28"
-        }`}
-      >
-        <PictogramCard
-          pictogram={pictogramStore.getPictogram("38218")}
-          noCaption={true}
-          bgcolor="#89BF93"
-          onPress={addParagraph}
-        />
-      </View>
       <BottomIcons />
     </SafeAreaView>
   );

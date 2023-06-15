@@ -28,13 +28,13 @@ interface CompanionState {
   volumeOn: boolean;
   bubbleOn: boolean;
   load: () => Promise<void>;
-  reset: () => void;
   speak: (
     text: string,
     bubblePosition?: string,
     onBoundary?: (e: any) => void,
+    onDone?: () => void,
   ) => Promise<void>;
-  stopSpeak: () => void;
+  resetSpeech: () => Promise<void>;
   changeVolume: () => Promise<void>;
   changeBubble: () => Promise<void>;
   setPosition: (newPosition: string) => void;
@@ -60,14 +60,11 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
     })) as CompanionSettings;
     if (result) set({ volumeOn: result.volumeOn, bubbleOn: result.bubbleOn });
   },
-  reset: () => {
-    set({ currentText: "", bubblePosition: "left" });
-  },
-  stopSpeak: async () => {
-    set({ currentText: "" });
+  resetSpeech: async () => {
     await Speech.stop();
+    set({ currentText: "" });
   },
-  speak: async (text, bubblePosition?, onBoundary?) => {
+  speak: async (text, bubblePosition?, onBoundary?, onDone?) => {
     if (!get().isVisible) return;
 
     if (bubblePosition && ["top", "left"].includes(bubblePosition)) {
@@ -78,17 +75,21 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
     // Just show bubble if no volume
     if (!get().volumeOn) {
       await sleep(5000);
-      get().reset();
+      set({ currentText: "", bubblePosition: "left" });
     } else {
       Speech.speak(text, {
+        rate: 0.9,
         language: "it-IT",
         // TODO Is this ok (?)
-        onDone: (async () => {
-          await sleep(1000);
-          // We dont want to reset another text
-          if (!(await Speech.isSpeakingAsync())) get().reset();
-          return;
-        }) as () => void,
+        onDone: onDone
+          ? onDone
+          : ((async () => {
+              await sleep(1000);
+              // We dont want to reset another text
+              if (!(await Speech.isSpeakingAsync()))
+                set({ currentText: "", bubblePosition: "left" });
+              return;
+            }) as () => void),
         onBoundary: onBoundary,
       });
     }
@@ -264,7 +265,7 @@ interface PictogramState {
   save: () => Promise<void>;
   getPictogram: (id: string) => Pictogram | undefined;
   getPictograms: (ids: string[]) => Pictogram[];
-  getTextFromPictogram: (pictogram: Pictogram) => string;
+  getTextFromPictogram: (pictogram: Pictogram) => string | undefined;
   getPictogramByText: (text: string) => Pictogram[];
   getFavouritePictograms: () => Pictogram[];
   getPictogramFromCustom: (
@@ -347,8 +348,9 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
   },
   getTextFromPictogram: (pictogram) => {
     if (pictogram.customPictogram?.text) return pictogram.customPictogram.text;
-    if (pictogram.keywords[0]?.keyword) return pictogram.keywords[0].keyword;
-    return "";
+    else if (pictogram.keywords[0]?.keyword)
+      return pictogram.keywords[0]?.keyword;
+    return undefined;
   },
   getPictogramFromCustom: (customPictogram) => {
     if (customPictogram.oldId) {

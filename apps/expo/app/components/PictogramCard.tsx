@@ -12,7 +12,8 @@ const PictogramCard: React.FC<{
   bgcolor: string;
   onPress: (...args: any) => void;
   args?: any;
-}> = ({ pictogram, text, noCaption, bgcolor, onPress, args }) => {
+  highlight?: string;
+}> = ({ pictogram, text, noCaption, bgcolor, onPress, args, highlight }) => {
   const pictogramStore = usePictogramStore();
 
   const getText = () => {
@@ -21,6 +22,7 @@ const PictogramCard: React.FC<{
   };
 
   const sourcePictogram = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     if (!pictogram) return pictograms[3418];
     if (pictogram.customPictogram?.image)
       return {
@@ -34,11 +36,12 @@ const PictogramCard: React.FC<{
       style={[
         shadowStyle.light,
         {
+          borderColor: highlight,
           backgroundColor: bgcolor,
         },
       ]}
-      className={`mx-auto flex ${
-        noCaption ? "h-full w-full" : "h-5/6 w-5/6"
+      className={`mx-auto flex ${noCaption ? "h-full w-full" : "h-5/6 w-5/6"} ${
+        highlight ? "border-2" : null
       } flex-col items-center justify-center rounded-[30px]`}
       onPress={() => onPress(args)}
     >

@@ -6,7 +6,9 @@ import { useCompanionStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 
-const BottomIcons: React.FC = () => {
+const BottomIcons: React.FC<{
+  onMute?: () => void;
+}> = ({ onMute }) => {
   const companionStore = useCompanionStore();
   const router = useRouter();
   const iconSize = isDeviceLarge() ? 60 : 36;
@@ -23,7 +25,10 @@ const BottomIcons: React.FC = () => {
         />
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={async () => await companionStore.changeVolume()}
+        onPress={async () => {
+          if (onMute) onMute();
+          await companionStore.changeVolume();
+        }}
       >
         <MaterialIcons
           style={shadowStyle.icon}

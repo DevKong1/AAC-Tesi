@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { BackHandler, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -22,6 +22,20 @@ export default function GamesPage() {
       "Evvaiiiii giochiamo! \nScegli a cosa vuoi giocare",
       isDeviceLarge() ? "top" : "left",
     );
+  }, []);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        companionStore.resetSpeech();
+        router.back();
+
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
   }, []);
 
   return (

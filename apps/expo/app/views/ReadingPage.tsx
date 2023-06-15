@@ -16,10 +16,7 @@ import {
   useCompanionStore,
   usePictogramStore,
 } from "../store/store";
-import {
-  getTextFromPictogramsArray,
-  isDeviceLarge,
-} from "../utils/commonFunctions";
+import { isDeviceLarge } from "../utils/commonFunctions";
 import { dummyBooks } from "../utils/dummyResponses";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
@@ -36,12 +33,80 @@ export default function ReadingPage() {
   const [books, setBooks] = useState([] as Book[]);
   const [currentBook, setCurrentBook] = useState(undefined as Book | undefined);
   const [currentPage, setCurrentPage] = useState(1);
+  const [readIndex, setReadIndex] = useState(undefined as number | undefined);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
 
   const iconColor = "#5C5C5C";
   const rows = bookStore.readingSettings.rows;
   const columns = bookStore.readingSettings.columns;
+
+  const resetSpeech = () => {
+    companionStore.resetSpeech();
+    setReadIndex(undefined);
+  };
+
+  const previousPage = () => {
+    if (currentBook && currentPage > 1) {
+      resetSpeech();
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const nextPage = () => {
+    if (currentBook && countPages() > currentPage) {
+      resetSpeech();
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const countPages = () => {
+    if (currentBook) {
+      return Math.ceil(currentBook.pictograms.length / rows);
+    } else return 0;
+  };
+
+  // Used to recursively read all pictograms while updating state
+  const recursiveRead = (i: number, flattenedPage: string[]) => {
+    if (i >= flattenedPage.length) {
+      resetSpeech();
+      return;
+    }
+    setReadIndex(i);
+    const currentPictogram = pictogramStore.getPictogram(flattenedPage[i]!);
+    const currentText = currentPictogram
+      ? pictogramStore.getTextFromPictogram(currentPictogram)
+      : undefined;
+    if (currentText)
+      companionStore.speak(currentText, undefined, undefined, () => {
+        recursiveRead(i + 1, flattenedPage);
+      });
+  };
+
+  const readOne = (id: string) => {
+    resetSpeech();
+    const pictogram = pictogramStore.getPictogram(id);
+    const text = pictogram
+      ? pictogramStore.getTextFromPictogram(pictogram)
+      : undefined;
+    if (text) companionStore.speak(text);
+  };
+
+  const readAll = () => {
+    if (currentBook) {
+      const currentPageFlattened = getCurrentPage().flatMap((el) => el);
+      recursiveRead(0, currentPageFlattened);
+    }
+  };
+
+  const getCurrentPage = () => {
+    if (currentBook && currentBook.pictograms.length > 0)
+      return currentBook.pictograms.slice(
+        rows * (currentPage - 1),
+        rows * currentPage,
+      );
+    else return [];
+  };
 
   useEffect(() => {
     const baseBooks = dummyBooks; // Just for testing purposes
@@ -57,50 +122,17 @@ export default function ReadingPage() {
       "hardwareBackPress",
       () => {
         if (currentBook) {
+          setCurrentPage(1);
           setCurrentBook(undefined);
-        } else {
-          companionStore.setPosition("default");
-          router.back();
-        }
+        } else router.back();
+
+        resetSpeech();
         return true;
       },
     );
 
     return () => backHandler.remove();
-  }, []);
-
-  const previousPage = () => {
-    if (currentBook && currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const nextPage = () => {
-    if (currentBook && countPages() > currentPage)
-      setCurrentPage(currentPage + 1);
-  };
-
-  const countPages = () => {
-    if (currentBook) {
-      return Math.ceil(currentBook.pictograms.length / rows);
-    } else return 0;
-  };
-
-  const readAll = () => {
-    if (currentBook) {
-      const text = getTextFromPictogramsArray(
-        pictogramStore.getPictograms(getCurrentPage().flatMap((el) => el)),
-      );
-      companionStore.speak(text);
-    }
-  };
-
-  const getCurrentPage = () => {
-    if (currentBook && currentBook.pictograms.length > 0)
-      return currentBook.pictograms.slice(
-        rows * (currentPage - 1),
-        rows * currentPage,
-      );
-    else return [];
-  };
+  }, [currentBook]);
 
   if (currentBook) {
     return (
@@ -123,7 +155,6 @@ export default function ReadingPage() {
         </View>
         <View className="flex h-full w-[84%] flex-col">
           <View className="h-[75%] w-full">
-            {/* FOR EACH ROW */}
             {getCurrentPage().map((row, i) => (
               <View
                 key={`row${i}`}
@@ -132,7 +163,6 @@ export default function ReadingPage() {
                 }}
                 className="w-full flex-row items-center justify-start"
               >
-                {/* FOR EACH COLUMN */}
                 {row.map((col, j) => (
                   <View
                     key={`row${i}_col${j}`}
@@ -142,14 +172,10 @@ export default function ReadingPage() {
                     <PictogramCard
                       pictogram={pictogramStore.getPictogram(col)}
                       bgcolor={"#B9D2C3"}
-                      onPress={() => {
-                        const pictogram = pictogramStore.getPictogram(col);
-                        companionStore.speak(
-                          pictogram?.keywords[0]
-                            ? pictogram.keywords[0].keyword
-                            : "",
-                        );
-                      }}
+                      highlight={
+                        readIndex == i * columns + j ? "#15d0f1b4" : undefined
+                      }
+                      onPress={() => readOne(col)}
                     />
                   </View>
                 ))}
@@ -188,7 +214,7 @@ export default function ReadingPage() {
             </TouchableOpacity>
           </View>
         </View>
-        <BottomIcons />
+        <BottomIcons onMute={() => setReadIndex(undefined)} />
       </SafeAreaView>
     );
   }
@@ -220,8 +246,7 @@ export default function ReadingPage() {
               <BookCard
                 book={el.item}
                 onPress={() => {
-                  setCurrentBook(el.item); // TODO Check for correct book format (rows, columns) and fix if incorrect
-                  companionStore.setPosition("center");
+                  setCurrentBook(el.item);
                 }}
               />
             )}

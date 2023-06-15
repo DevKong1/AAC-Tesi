@@ -54,6 +54,7 @@ export default function WhatsItPage() {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        companionStore.resetSpeech();
         companionStore.setPosition("default");
         router.back();
         return true;

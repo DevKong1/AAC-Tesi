@@ -38,9 +38,11 @@ export default function TalkingPage() {
   const [pictograms, setPictograms] = useState([] as string[]);
   const [selectedPictograms, selectPictograms] = useState([] as string[]);
   const [showModal, setShowModal] = useState(false);
+  const [readIndex, setReadIndex] = useState(undefined as number | undefined);
 
   const addPictogram = (pressed: Pictogram) => {
-    companionStore.speak(pictogramStore.getTextFromPictogram(pressed));
+    const text = pictogramStore.getTextFromPictogram(pressed);
+    if (text) companionStore.speak(text);
     selectPictograms((old) => [...old, pressed._id]);
 
     // TODO carousel bugs out if the index is 0
@@ -67,14 +69,30 @@ export default function TalkingPage() {
     loadPictograms();
   };
 
-  const readAll = () => {
-    if (selectedPictograms.length > 0) {
-      companionStore.speak(
-        getTextFromPictogramsArray(
-          pictogramStore.getPictograms(selectedPictograms),
-        ),
-      );
+  const resetSpeech = () => {
+    companionStore.resetSpeech();
+    setReadIndex(undefined);
+  };
+
+  // Used to recursively read all pictograms while updating state
+  const recursiveRead = (i: number, flattenedPage: string[]) => {
+    if (i >= flattenedPage.length) {
+      resetSpeech();
+      return;
     }
+    setReadIndex(i);
+    const currentPictogram = pictogramStore.getPictogram(flattenedPage[i]!);
+    const currentText = currentPictogram
+      ? pictogramStore.getTextFromPictogram(currentPictogram)
+      : undefined;
+    if (currentText)
+      companionStore.speak(currentText, undefined, undefined, () => {
+        recursiveRead(i + 1, flattenedPage);
+      });
+  };
+
+  const readAll = () => {
+    if (selectedPictograms.length > 0) recursiveRead(0, selectedPictograms);
   };
 
   const listView = () => {
@@ -117,17 +135,16 @@ export default function TalkingPage() {
   }, []);
 
   useEffect(() => {
-    if (inputID) {
-      const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        () => {
-          inputStore.clear();
-          router.back();
-          return true;
-        },
-      );
-      return () => backHandler.remove();
-    }
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        resetSpeech();
+        inputStore.clear();
+        router.back();
+        return true;
+      },
+    );
+    return () => backHandler.remove();
   }, []);
 
   return (
@@ -162,6 +179,7 @@ export default function TalkingPage() {
                   pictogram={pictogramStore.getPictogram(el.item)}
                   bgcolor="#C6D7F9"
                   onPress={removePictogram}
+                  highlight={readIndex == el.index ? "#15d0f1b4" : undefined}
                   args={el.index}
                 />
               )}
@@ -262,6 +280,7 @@ export default function TalkingPage() {
             noCaption={true}
             bgcolor="#f05252"
             onPress={() => {
+              resetSpeech();
               selectPictograms([]);
               loadPictograms();
             }}
