@@ -12596,7 +12596,7 @@
 export default pictograms;
  */
 const pictograms: { [key: number]: any } = {
-  2239: require("../../assets/pictograms/img_2239.png"),
-  3418: require("../../assets/pictograms/img_3418.png"),
+  2239: require("../../assets/img_2239.png"),
+  3418: require("../../assets/img_3418.png"),
 };
 export default pictograms;

@@ -1,7 +1,13 @@
+import Constants from "expo-constants";
+import { HUGGINGFACE_BEARER } from "@env";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 
-import getEnvVars from "../../enviroment";
+const huggingfaceBearer = Constants.expoConfig?.extra?.huggingfaceBearer
+  ? Constants.expoConfig?.extra?.huggingfaceBearer
+  : HUGGINGFACE_BEARER;
+
+console.log(huggingfaceBearer);
 
 export interface ParsedFileResponse {
   pictograms: string[];
@@ -28,7 +34,7 @@ export interface PredictedPictogramsResponse {
 const reqInstance = axios.create({
   baseURL: "https://api-inference.huggingface.co/models/",
   headers: {
-    Authorization: `Bearer ${getEnvVars().HUGGINGFACE_BEARER}`,
+    Authorization: `Bearer ${huggingfaceBearer}`,
   },
 });
 

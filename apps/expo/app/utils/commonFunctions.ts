@@ -19,20 +19,20 @@ export const formatToMatchColumns = (pictograms: string[], columns: number) => {
   return result;
 };
 
-export const getTextFromPictogramsMatrix = (pictograms: Pictogram[][]) => {
-  let text = "";
-  pictograms.forEach((row) => {
-    text += getTextFromPictogramsArray(row);
-  });
-  return text;
-};
-
 export const getTextFromPictogramsArray = (pictograms: Pictogram[]) => {
   let text = "";
   pictograms.forEach((el) => {
     if (el.customPictogram?.text) text += el.customPictogram.text;
     else if (el.keywords[0]?.keyword) text += el.keywords[0]?.keyword;
     text += " ";
+  });
+  return text;
+};
+
+export const getTextFromPictogramsMatrix = (pictograms: Pictogram[][]) => {
+  let text = "";
+  pictograms.forEach((row) => {
+    text += getTextFromPictogramsArray(row);
   });
   return text;
 };
