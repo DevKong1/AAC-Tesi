@@ -1,10 +1,12 @@
 import { randomUUID } from "expo-crypto";
+import * as FileSystem from "expo-file-system";
 import * as Speech from "expo-speech";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
-import { getPictogram, getPictograms } from "../hooks/pictogramsHandler";
+import dictionary from "../../assets/dictionaries/Dizionario_it.json";
+import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
+import { sortBySimilarity } from "../utils/commonFunctions";
 import {
   type Book,
   type CustomPictogram,
@@ -13,9 +15,13 @@ import {
   type ReadingSettings,
 } from "../utils/types/commonTypes";
 
+const companionUri = `${FileSystem.documentDirectory}companion.json`;
+const diaryUri = `${FileSystem.documentDirectory}diary.json`;
+const pictogramUri = `${FileSystem.documentDirectory}pictograms.json`;
+const booksUri = `${FileSystem.documentDirectory}books.json`;
+
 interface CompanionState {
   isVisible: boolean;
-  currentMood: string;
   currentText: string;
   position: string;
   bubblePosition: string;
@@ -24,21 +30,27 @@ interface CompanionState {
   started: boolean;
   start: () => void;
   stop: () => void;
-  reset: () => void;
+  load: () => Promise<void>;
   speak: (
     text: string,
     bubblePosition?: string,
     onBoundary?: (e: any) => void,
+    onDone?: () => void,
   ) => Promise<void>;
+  resetSpeech: () => Promise<void>;
   changeVolume: () => Promise<void>;
-  changeBubble: () => void;
+  changeBubble: () => Promise<void>;
   setPosition: (newPosition: string) => void;
   setVisible: (value: boolean) => void;
 }
 
+type CompanionSettings = {
+  volumeOn: boolean;
+  bubbleOn: boolean;
+};
+
 export const useCompanionStore = create<CompanionState>((set, get) => ({
-  isVisible: false,
-  currentMood: "",
+  isVisible: true,
   currentText: "",
   position: "default",
   bubblePosition: "left",
@@ -51,10 +63,18 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   stop: () => {
     set({ started: false, isVisible: false, volumeOn: false, bubbleOn: false });
   },
-  reset: () => {
-    set({ currentText: "", bubblePosition: "left" });
+  load: async () => {
+    const result = (await getJSONOrCreate(companionUri, {
+      volumeOn: get().volumeOn,
+      bubbleOn: get().bubbleOn,
+    })) as CompanionSettings;
+    if (result) set({ volumeOn: result.volumeOn, bubbleOn: result.bubbleOn });
   },
-  speak: async (text, bubblePosition?, onBoundary?) => {
+  resetSpeech: async () => {
+    await Speech.stop();
+    set({ currentText: "" });
+  },
+  speak: async (text, bubblePosition?, onBoundary?, onDone?) => {
     if (!get().isVisible) return;
 
     if (bubblePosition && ["top", "left"].includes(bubblePosition)) {
@@ -65,17 +85,21 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
     // Just show bubble if no volume
     if (!get().volumeOn) {
       await sleep(5000);
-      get().reset();
+      set({ currentText: "", bubblePosition: "left" });
     } else {
       Speech.speak(text, {
+        rate: 0.9,
         language: "it-IT",
         // TODO Is this ok (?)
-        onDone: (async () => {
-          await sleep(1000);
-          // We dont want to reset another text
-          if (!(await Speech.isSpeakingAsync())) get().reset();
-          return;
-        }) as () => void,
+        onDone: onDone
+          ? onDone
+          : ((async () => {
+              await sleep(1000);
+              // We dont want to reset another text
+              if (!(await Speech.isSpeakingAsync()))
+                set({ currentText: "", bubblePosition: "left" });
+              return;
+            }) as () => void),
         onBoundary: onBoundary,
       });
     }
@@ -83,8 +107,18 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   changeVolume: async () => {
     await Speech.stop();
     set({ currentText: "", volumeOn: !get().volumeOn });
+    await saveToJSON(companionUri, {
+      volumeOn: get().volumeOn,
+      bubbleOn: get().bubbleOn,
+    });
   },
-  changeBubble: () => set({ bubbleOn: !get().bubbleOn }),
+  changeBubble: async () => {
+    set({ bubbleOn: !get().bubbleOn });
+    await saveToJSON(companionUri, {
+      volumeOn: get().volumeOn,
+      bubbleOn: get().bubbleOn,
+    });
+  },
   setPosition: (newPosition) => {
     ["default", "center"].includes(newPosition)
       ? set({ position: newPosition })
@@ -97,53 +131,42 @@ interface DiaryState {
   diary: DiaryPage[];
   readingSettings: ReadingSettings;
   load: () => Promise<void>;
+  save: () => Promise<void>;
   getDiaryPage: (date: string) => DiaryPage | undefined;
-  getPreviousPage: (date: string) => DiaryPage | undefined;
-  getNextPage: (date: string) => DiaryPage | undefined;
   addPictogramsToPage: (
     date: string,
-    pictograms: Pictogram[],
+    pictograms: string[],
   ) => Promise<DiaryPage | undefined>;
   addDiaryPage: (page: DiaryPage) => Promise<boolean>;
   updatePictogramsInPage: (
     date: string,
     entryIndex: number,
-    pictograms: Pictogram[],
+    pictograms: string[],
   ) => Promise<boolean>;
   removeDiaryPage: (date: string) => Promise<boolean>;
+  removePictogramFromPages: (pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
 }
 
 export const useDiaryStore = create<DiaryState>((set, get) => ({
-  //TODO TEST BACKUP!
   diary: [],
   readingSettings: { rows: 3, columns: 4 } as ReadingSettings, // TODO Customizable
   load: async () => {
-    try {
-      const diaryValue = await AsyncStorage.getItem("@diary");
-
-      if (diaryValue !== null) {
-        set({ diary: JSON.parse(diaryValue) });
-        console.log("AsyncStorage: Loaded diary");
-      } else {
-        console.log("AsyncStorage: Null diary value");
-        await AsyncStorage.setItem("@diary", JSON.stringify([]));
-      }
-    } catch (e) {
-      console.log("AsyncStorage: ERROR");
-    }
+    const result = await getJSONOrCreate(diaryUri, []);
+    if (result)
+      set({
+        diary: result,
+      });
+  },
+  save: async () => {
+    await saveToJSON(diaryUri, get().diary);
   },
   getDiaryPage: (date) => {
     return get().diary.find((el) => el.date == date);
   },
-  getPreviousPage: (date) => {
-    return get().diary.find((el) => new Date(el.date) < new Date(date));
-  },
-  getNextPage: (date) => {
-    return get().diary.find((el) => new Date(el.date) > new Date(date));
-  },
   addDiaryPage: async (page) => {
     if (!get().getDiaryPage(page.date)) {
       set((state) => ({ diary: [...state.diary, page] }));
+      await get().save();
       return true;
     } else return false;
   },
@@ -153,6 +176,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
       const newDiary = get().diary;
       newDiary[pageIndex]!.pictograms.push(pictograms);
       set({ diary: newDiary });
+      await get().save();
       return get().getDiaryPage(date);
     } else return undefined;
   },
@@ -164,9 +188,10 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
         newDiary[pageIndex]!.pictograms[entryIndex] = pictograms;
       else newDiary[pageIndex]!.pictograms.splice(entryIndex, 1);
       set({ diary: newDiary });
-      // If the page is empty of pictograms we remove it
+      // If the page is empty we remove it
       if (newDiary[pageIndex]!.pictograms.length <= 0)
         return get().removeDiaryPage(date);
+      await get().save();
       return true;
     } else return false;
   },
@@ -179,19 +204,42 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
           ...state.diary.slice(pageIndex + 1),
         ],
       }));
+      await get().save();
       return true;
     } else return false;
+  },
+  removePictogramFromPages: async (toRemove) => {
+    // Remove each occurency of given id
+    get().diary.forEach((page) => {
+      page.pictograms.forEach((row) => {
+        let i = row.length;
+        while (i--) {
+          if (row[i] == toRemove) {
+            row.splice(i, 1);
+          }
+        }
+      });
+
+      // Remove empty rows
+      let i = page.pictograms.length;
+      while (i--) {
+        if (page.pictograms[i]!.length <= 0) {
+          page.pictograms.splice(i, 1);
+        }
+      }
+    });
+    await get().save();
   },
 }));
 
 interface inputState {
   id: string | undefined;
   command: string | undefined;
-  inputPictograms: Pictogram[] | undefined;
+  inputPictograms: string[] | undefined;
   requestCompleted: boolean;
   args: any | undefined;
   inputRequest: (id: string, command: string, args?: any) => void;
-  setInput: (reqID: string, inputPictograms: Pictogram[]) => void;
+  setInput: (reqID: string, inputPictograms: string[]) => void;
   clear: () => void;
 }
 
@@ -204,7 +252,7 @@ export const useInputStore = create<inputState>((set, get) => ({
   inputRequest: (id: string, command: string, args?: any) => {
     set({ id: id, command: command, requestCompleted: false, args: args });
   },
-  setInput: (reqID: string, inputPictograms: Pictogram[]) => {
+  setInput: (reqID: string, inputPictograms: string[]) => {
     if (reqID == get().id)
       set({ inputPictograms: inputPictograms, requestCompleted: true });
   },
@@ -220,91 +268,208 @@ export const useInputStore = create<inputState>((set, get) => ({
 }));
 
 interface PictogramState {
+  pictograms: Pictogram[];
   favourites: string[];
   customPictograms: CustomPictogram[];
+  load: () => Promise<void>;
+  save: () => Promise<void>;
+  getPictogram: (id: string) => Pictogram | undefined;
+  getPictograms: (ids: string[]) => Pictogram[];
+  getTextFromPictogram: (pictogram: Pictogram) => string | undefined;
+  getPictogramByText: (text: string) => Pictogram[];
   getFavouritePictograms: () => Pictogram[];
+  getPictogramFromCustom: (
+    customPictogram: CustomPictogram,
+  ) => Pictogram | undefined;
   getCustomPictograms: () => Pictogram[];
-  addFavourite: (id: string) => Promise<void>;
-  removeFavourite: (id: string) => Promise<void>;
+  addFavourite: (id: string) => Promise<boolean>;
+  removeFavourite: (id: string) => Promise<boolean>;
   addCustomPictogram: (
     oldId?: string,
     text?: string,
     image?: string,
-  ) => Promise<void>;
-  removeCustomPictogram: (id: string) => Promise<void>;
+  ) => Promise<boolean>;
+  removeCustomPictogram: (id: string) => Promise<boolean>;
 }
 
+type SavedPictograms = {
+  favourites: string[];
+  customPictograms: CustomPictogram[];
+};
+
 export const usePictogramStore = create<PictogramState>((set, get) => ({
+  pictograms: dictionary as Pictogram[],
   favourites: [],
   customPictograms: [],
-  getFavouritePictograms: () => {
-    return getPictograms(get().favourites, get().getCustomPictograms());
+  load: async () => {
+    const result = (await getJSONOrCreate(pictogramUri, {
+      favourites: [],
+      customPictograms: [],
+    } as SavedPictograms)) as SavedPictograms;
+    if (result && result.favourites && result.customPictograms) {
+      set({
+        favourites: result.favourites,
+        customPictograms: result.customPictograms,
+      });
+      result.customPictograms.forEach((customPictogram) => {
+        if (customPictogram.oldId)
+          set((state) => ({
+            pictograms: state.pictograms.map((pictogram) =>
+              pictogram._id == customPictogram.oldId
+                ? { ...pictogram, customPictogram: customPictogram }
+                : pictogram,
+            ),
+          }));
+      });
+    }
   },
-  getCustomPictograms: () => {
+  save: async () => {
+    await saveToJSON(pictogramUri, {
+      favourites: get().favourites,
+      customPictograms: get().customPictograms,
+    } as SavedPictograms);
+  },
+  getPictogram: (id) => {
+    const custom = get().customPictograms.find((el) => el._id == id);
+    return custom
+      ? get().getPictogramFromCustom(custom)
+      : get().pictograms.find((el) => el._id == id);
+  },
+  getPictograms: (ids) => {
     const result = [] as Pictogram[];
-    get().customPictograms.forEach((pictogram) => {
-      if (pictogram.oldId) {
-        const oldValue = getPictogram(pictogram.oldId);
-        oldValue
-          ? result.push({
-              ...oldValue,
-              customPictogram: pictogram,
-            })
-          : null;
-      } else {
-        result.push({
-          _id: pictogram._id,
-          keywords: [],
-          customPictogram: pictogram,
-        });
-      }
+    ids.forEach((id) => {
+      const found = get().getPictogram(id);
+      if (found) result.push(found);
     });
     return result;
   },
+  getFavouritePictograms: () => {
+    return get().getPictograms(get().favourites);
+  },
+  getPictogramByText: (text) => {
+    let result = get().pictograms.filter((el) =>
+      el.keywords?.find((key) => key.keyword.toLowerCase().includes(text)),
+    );
+    result = sortBySimilarity(result, text);
+    return get()
+      .getCustomPictograms()
+      .filter((el) => el.customPictogram?.text?.toLowerCase().includes(text))
+      .concat(result);
+  },
+  getTextFromPictogram: (pictogram) => {
+    if (pictogram.customPictogram?.text) return pictogram.customPictogram.text;
+    else if (pictogram.keywords[0]?.keyword)
+      return pictogram.keywords[0]?.keyword;
+    return undefined;
+  },
+  getPictogramFromCustom: (customPictogram) => {
+    if (customPictogram.oldId) {
+      const oldValue = get().pictograms.find(
+        (el) => el._id == customPictogram.oldId,
+      );
+      return oldValue
+        ? ({
+            ...oldValue,
+            customPictogram: customPictogram,
+          } as Pictogram)
+        : undefined;
+    }
+    return {
+      _id: customPictogram._id,
+      keywords: [],
+      customPictogram: customPictogram,
+    } as Pictogram;
+  },
+  getCustomPictograms: () => {
+    return get()
+      .customPictograms.flatMap((custom) =>
+        get().getPictogramFromCustom(custom),
+      )
+      .filter((el) => el) as Pictogram[];
+  },
   addFavourite: async (id) => {
-    if (!get().favourites.find((el) => el == id))
+    if (!get().favourites.find((el) => el == id)) {
       set((state) => ({ favourites: [...state.favourites, id] }));
+      await get().save();
+      return true;
+    }
+    return false;
   },
   removeFavourite: async (id) => {
     const index = get().favourites.findIndex((el) => el == id);
-    if (index != -1)
+    if (index != -1) {
       set((state) => ({
         favourites: [
           ...state.favourites.slice(0, index),
           ...state.favourites.slice(index + 1),
         ],
       }));
+      await get().save();
+      return true;
+    }
+    return false;
   },
   addCustomPictogram: async (oldId?, text?, image?) => {
+    // Only one customization per existing pictogram allowed
+    if (oldId) {
+      const oldPictogram = get().pictograms.find((el) => el._id == oldId);
+      if (oldPictogram?.customPictogram) return false;
+    }
     const id = randomUUID();
-    const newPictogram = {
+    const newCustomPictogram = {
       _id: id,
       oldId: oldId,
       text: text,
       image: image,
     } as CustomPictogram;
     set((state) => ({
-      customPictograms: [...state.customPictograms, newPictogram],
+      customPictograms: [...state.customPictograms, newCustomPictogram],
     }));
+    if (oldId)
+      set((state) => ({
+        pictograms: state.pictograms.map((pictogram) =>
+          pictogram._id == oldId
+            ? { ...pictogram, customPictogram: newCustomPictogram }
+            : pictogram,
+        ),
+      }));
+    await get().save();
+    return true;
   },
   removeCustomPictogram: async (id) => {
     const index = get().customPictograms.findIndex((el) => el._id == id);
     if (index != -1) {
+      const customPictogram = get().customPictograms[index]!;
+      // If it was also a favorite remove
       if (get().favourites.find((el) => el == id)) get().removeFavourite(id);
+      // If it was a new pictogram also remove all references, otherwise swap it back to the normal one
+      if (customPictogram.oldId) {
+        set((state) => ({
+          pictograms: state.pictograms.map((pictogram) =>
+            pictogram._id == customPictogram.oldId
+              ? { ...pictogram, customPictogram: undefined }
+              : pictogram,
+          ),
+        }));
+      } else useDiaryStore.getState().removePictogramFromPages(id);
       set((state) => ({
         customPictograms: [
           ...state.customPictograms.slice(0, index),
           ...state.customPictograms.slice(index + 1),
         ],
       }));
+      await get().save();
+      return true;
     }
+    return false;
   },
 }));
 
 interface BookState {
   customBooks: Book[];
   readingSettings: ReadingSettings;
-  load: () => Promise<boolean>;
+  load: () => Promise<void>;
+  save: () => Promise<void>;
   getBook: (id: string) => Book | undefined;
   addBook: (book: Book) => Promise<boolean>;
   removeBook: (id: string) => Promise<boolean>;
@@ -312,9 +477,16 @@ interface BookState {
 
 export const useBookStore = create<BookState>((set, get) => ({
   customBooks: [],
-  readingSettings: { rows: 3, columns: 4 } as ReadingSettings, // TODO Customizable
+  readingSettings: { rows: 3, columns: 4 } as ReadingSettings,
   load: async () => {
-    return true;
+    const result = await getJSONOrCreate(booksUri, []);
+    if (result)
+      set({
+        customBooks: result,
+      });
+  },
+  save: async () => {
+    await saveToJSON(booksUri, get().customBooks);
   },
   getBook: (id) => {
     return get().customBooks.find((el) => el.id == id);
@@ -324,6 +496,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       set((state) => ({
         customBooks: [...state.customBooks, book],
       }));
+      await get().save();
       return true;
     }
     return false;
@@ -337,6 +510,7 @@ export const useBookStore = create<BookState>((set, get) => ({
           ...state.customBooks.slice(index + 1),
         ],
       }));
+      await get().save();
       return true;
     }
     return false;

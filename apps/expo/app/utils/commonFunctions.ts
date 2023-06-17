@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Dimensions } from "react-native";
 
 import { type Pictogram } from "./types/commonTypes";
@@ -6,25 +9,14 @@ export const isDeviceLarge = () => {
   return Dimensions.get("window").width >= 1024;
 };
 
-export const formatToMatchColumns = (
-  pictograms: Pictogram[],
-  columns: number,
-) => {
+export const formatToMatchColumns = (pictograms: string[], columns: number) => {
   if (pictograms.length <= columns) return [pictograms];
-  const result = [] as Pictogram[][];
+  const result = [] as string[][];
   const nRows = Math.ceil(pictograms.length / columns);
   for (let i = 0; i < nRows; i++) {
     result.push(pictograms.slice(i * columns, (i + 1) * columns));
   }
   return result;
-};
-
-export const getTextFromPictogramsMatrix = (pictograms: Pictogram[][]) => {
-  let text = "";
-  pictograms.forEach((row) => {
-    text += getTextFromPictogramsArray(row);
-  });
-  return text;
 };
 
 export const getTextFromPictogramsArray = (pictograms: Pictogram[]) => {
@@ -37,116 +29,77 @@ export const getTextFromPictogramsArray = (pictograms: Pictogram[]) => {
   return text;
 };
 
-/* TODO implement user preferences for N columns and rows
-const getPunctuatedText = (pictogram: Pictogram) => {
-  return `${pictogram.keywords[0]?.keyword}${
-    pictogram.followingPunctation ? pictogram.followingPunctation : ""
-  } `;
-};
-
-const getCountAndFirstOfPage = (
-  pictograms: Pictogram[],
-  page: number,
-  rows: number,
-  columns: number,
-) => {
-  let allPictogramsN = 0; // Total number of pictograms counting ALSO spaces after newLine
-  let count = 0; // Used to count the empty spaces in line
-
-  let foundFirst = false;
-  let first = 0; // Index of the first pictogram to consider
-
-  pictograms.forEach((el, i) => {
-    // Check if the index equals the first one of the considered page
-    if (!foundFirst && allPictogramsN >= rows * columns * (page - 1)) {
-      first = i;
-      foundFirst = true;
-    }
-    // If its a newLine we sum the empty spaces
-    if (el.isNewLine) {
-      if (count != columns - 1) allPictogramsN += columns - (count % columns);
-      else allPictogramsN++;
-      count = 0;
-    } else {
-      allPictogramsN++;
-      count++;
-    }
-  });
-
-  return [allPictogramsN, first];
-};
-
-export const getPage = (
-  pictograms: Pictogram[],
-  page: number,
-  rows: number,
-  columns: number,
-) => {
-  const fittedPictograms: Pictogram[][] = [];
-  const pictogramsPerPage = rows * columns;
-
-  let [allPictogramsN, first] = getCountAndFirstOfPage(
-    pictograms,
-    page,
-    rows,
-    columns,
-  );
-  if (!allPictogramsN) allPictogramsN = 0;
-  if (!first) first = 0;
-
-  // Check if the page is in range, also pages should start from 1
-  if (pictogramsPerPage * (page - 1) > allPictogramsN || page == 0)
-    return { pageN: 0, text: "", pictograms: [] } as Page;
-
+export const getTextFromPictogramsMatrix = (pictograms: Pictogram[][]) => {
   let text = "";
-  let last = first + pictogramsPerPage;
-  let newRow = [] as Pictogram[];
-  let currentCol = 0;
+  pictograms.forEach((row) => {
+    text += getTextFromPictogramsArray(row);
+  });
+  return text;
+};
 
-  // Prepare the formatted rows and cols
-  for (let i = first; i < last; ) {
-    if (pictograms[i]) {
-      if (pictograms[i]!.isNewLine) {
-        fittedPictograms.push(newRow);
-        last -= columns - newRow.length - 1; // -1 since the newLine doesnt count
-        newRow = [];
-        currentCol = 0;
-      } // If we didnt reach the desired column size we add it
-      else if (currentCol < columns) {
-        if (pictograms[i]!.keywords[0])
-          text += getPunctuatedText(pictograms[i]!);
-        newRow.push(pictograms[i]!);
-        currentCol++;
-      } // Else we add the current row and reset
-      else {
-        if (pictograms[i]!.keywords[0])
-          text += getPunctuatedText(pictograms[i]!);
-        fittedPictograms.push(newRow);
-        newRow = [pictograms[i]!];
-        currentCol = 1;
+export const getIDsFromPictogramsArray = (pictograms: Pictogram[]) => {
+  return pictograms.flatMap((el) => el._id);
+};
+
+export const getIDsFromPictogramsMatrix = (pictograms: Pictogram[][]) => {
+  return pictograms.map((el) => getIDsFromPictogramsArray(el));
+};
+
+function levenshteinDistance(a: string, b: string): number {
+  // Create a 2D array to store the distances
+  const distances = new Array(a.length + 1);
+  for (let i = 0; i <= a.length; i++) {
+    distances[i] = new Array(b.length + 1);
+  }
+
+  // Initialize the first row and column
+  for (let i = 0; i <= a.length; i++) {
+    distances[i][0] = i;
+  }
+  for (let j = 0; j <= b.length; j++) {
+    distances[0][j] = j;
+  }
+
+  // Fill in the rest of the array
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        distances[i][j] = distances[i - 1][j - 1];
+      } else {
+        distances[i][j] =
+          Math.min(
+            distances[i - 1][j],
+            distances[i][j - 1],
+            distances[i - 1][j - 1],
+          ) + 1;
       }
     }
-    i++;
   }
-  if (fittedPictograms.length < rows && newRow.length > 0)
-    fittedPictograms.push(newRow);
-  return { text: text, pageN: page, pictograms: fittedPictograms } as Page;
-};
 
-export const isPageEmpty = (
+  // Return the final distance
+  return distances[a.length][b.length];
+}
+
+export function sortBySimilarity(
   pictograms: Pictogram[],
-  page: number,
-  rows: number,
-  columns: number,
-) => {
-  const [allPictogramsN, _] = getCountAndFirstOfPage(
-    pictograms,
-    page,
-    rows,
-    columns,
-  );
-  console.log(rows * columns * (page - 1), allPictogramsN);
-  if (!allPictogramsN) return true;
-  if (rows * columns * (page - 1) > allPictogramsN || page == 0) return true;
-  return false;
-}; */
+  singleWord: string,
+): Pictogram[] {
+  // Create an array of objects to store the words and their distances
+  const wordDistances = pictograms.map((pictogram) => {
+    const smallest = Math.min(
+      ...pictogram.keywords.flatMap((keyword) =>
+        levenshteinDistance(keyword.keyword, singleWord),
+      ),
+    );
+    return {
+      pictogram: pictogram,
+      distance: smallest,
+    };
+  });
+
+  // Sort the array by distance
+  wordDistances.sort((a, b) => a.distance - b.distance);
+
+  // Return the sorted list of words
+  return wordDistances.map((wd) => wd.pictogram);
+}

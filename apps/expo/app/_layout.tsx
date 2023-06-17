@@ -2,18 +2,24 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
+import { CLERK_PUBLISHABLE_KEY } from "@env";
 
-import getEnvVars from "../enviroment";
 import Companion from "./components/Companion";
 import SignInWithOAuth from "./components/SignInWithOAuth";
 import useFonts from "./hooks/useFonts";
-import { useBookStore, useDiaryStore } from "./store/store";
+import {
+  useBookStore,
+  useCompanionStore,
+  useDiaryStore,
+  usePictogramStore,
+} from "./store/store";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -23,9 +29,15 @@ SplashScreen.preventAutoHideAsync();
 const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
+  const companionStore = useCompanionStore();
+  const pictogramStore = usePictogramStore();
   const diaryStore = useDiaryStore();
   const bookStore = useBookStore();
+
   const windowHeight = useWindowDimensions().height;
+  const clerkPublicKey = Constants.expoConfig?.extra?.clerkPublicKey
+    ? Constants.expoConfig.extra.clerkPublicKey
+    : CLERK_PUBLISHABLE_KEY;
 
   useEffect(() => {
     async function prepare() {
@@ -33,6 +45,8 @@ const RootLayout = () => {
         // Pre-load fonts, make any API calls you need to do here
         // eslint-disable-next-line react-hooks/rules-of-hooks
         await useFonts();
+        await pictogramStore.load();
+        await companionStore.load();
         await diaryStore.load();
         await bookStore.load();
       } catch (e) {
@@ -81,10 +95,7 @@ const RootLayout = () => {
   }
 
   return (
-    <ClerkProvider
-      tokenCache={tokenCache}
-      publishableKey={getEnvVars().CLERK_PUBLISHABLE_KEY}
-    >
+    <ClerkProvider tokenCache={tokenCache} publishableKey={clerkPublicKey}>
       <SafeAreaProvider
         onLayout={onLayoutRootView}
         style={[{ minHeight: Math.round(windowHeight) }]}

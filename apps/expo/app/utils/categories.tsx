@@ -9,7 +9,7 @@ import {
 import { isDeviceLarge } from "./commonFunctions";
 import { type CategoryType } from "./types/commonTypes";
 
-const categoryIconSize = isDeviceLarge() ? 28 : 20;
+const categoryIconSize = isDeviceLarge() ? 26 : 16;
 const iconColor = "#5C5C5C";
 const categories: CategoryType[] = [
   {

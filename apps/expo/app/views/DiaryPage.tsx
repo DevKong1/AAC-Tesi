@@ -1,65 +1,112 @@
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { BackHandler, Text, View } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { randomUUID } from "expo-crypto";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import moment from "moment";
 
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import Spinner from "../components/Spinner";
-import { getPictogram } from "../hooks/pictogramsHandler";
 import {
   useCompanionStore,
   useDiaryStore,
   useInputStore,
+  usePictogramStore,
 } from "../store/store";
-import {
-  formatToMatchColumns,
-  getTextFromPictogramsArray,
-  isDeviceLarge,
-} from "../utils/commonFunctions";
+import { formatToMatchColumns, isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
-import {
-  type DiaryPage,
-  type Pictogram,
-  type diaryReqArgs,
-} from "../utils/types/commonTypes";
+import { type DiaryPage, type diaryReqArgs } from "../utils/types/commonTypes";
 
 export default function DiaryPage() {
   const router = useRouter();
+  const pictogramStore = usePictogramStore();
   const companionStore = useCompanionStore();
   const diaryStore = useDiaryStore();
   const inputStore = useInputStore();
 
-  const today = new Date();
   const [requestID, setReqId] = useState(undefined as string | undefined);
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
+  const [readEntryIndex, setReadEntryIndex] = useState(
+    undefined as number | undefined,
+  );
+  const [readIndex, setReadIndex] = useState(undefined as number | undefined);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
   const columns = diaryStore.readingSettings.columns;
 
-  const loadPage = async (date: string) => {
+  // Returns todays date without counting hours
+  const getTodayDate = () => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  // Returns currents page date without counting hours
+  const getCurrentPageDate = () => {
+    const currentDate = currentPage
+      ? moment(currentPage.date).toDate()
+      : undefined;
+    if (currentDate) currentDate.setHours(0, 0, 0, 0);
+    return currentDate;
+  };
+
+  const loadPage = (date: string) => {
     let loadedPage = diaryStore.getDiaryPage(date);
     if (!loadedPage) {
       loadedPage = {
-        date: today.toLocaleDateString(),
+        date: getTodayDate().toISOString(),
         pictograms: [],
       } as DiaryPage;
     }
     setPage(loadedPage);
   };
 
-  const readEntry = (entry: Pictogram[]) => {
+  const resetSpeech = () => {
+    companionStore.resetSpeech();
+    setReadEntryIndex(undefined);
+    setReadIndex(undefined);
+  };
+
+  // Used to recursively read all pictograms while updating state
+  const recursiveRead = (i: number, page: string[]) => {
+    if (i >= page.length) {
+      resetSpeech();
+      return;
+    }
+    setReadIndex(i);
+    const currentPictogram = pictogramStore.getPictogram(page[i]!);
+    const currentText = currentPictogram
+      ? pictogramStore.getTextFromPictogram(currentPictogram)
+      : undefined;
+    if (currentText)
+      companionStore.speak(currentText, undefined, undefined, () => {
+        recursiveRead(i + 1, page);
+      });
+  };
+
+  const readOne = (id: string) => {
+    resetSpeech();
+    const pictogram = pictogramStore.getPictogram(id);
+    const text = pictogram
+      ? pictogramStore.getTextFromPictogram(pictogram)
+      : undefined;
+    if (text) companionStore.speak(text);
+  };
+
+  const readEntry = (entryI: number, entry: string[]) => {
     if (entry.length > 0) {
-      companionStore.speak(getTextFromPictogramsArray(entry));
+      setReadEntryIndex(entryI);
+      recursiveRead(0, entry);
     }
   };
 
   const modifyEntry = (index: number) => {
     if (currentPage) {
+      resetSpeech();
       const id = randomUUID() as string;
       setReqId(id);
       inputStore.inputRequest(id, "modifyEntry", {
@@ -74,6 +121,42 @@ export default function DiaryPage() {
         },
       });
     }
+  };
+
+  const goPreviousDay = () => {
+    if (!currentPage) return;
+    resetSpeech();
+    const previousDayString = moment(currentPage.date)
+      .subtract(1, "day")
+      .toDate()
+      .toISOString();
+    const previousDiaryEntry = diaryStore.getDiaryPage(previousDayString);
+    setPage(
+      previousDiaryEntry
+        ? previousDiaryEntry
+        : ({
+            date: previousDayString,
+            pictograms: [],
+          } as DiaryPage),
+    );
+  };
+
+  const goNextDay = () => {
+    if (!currentPage) return;
+    resetSpeech();
+    const nextDayString = moment(currentPage.date)
+      .add(1, "day")
+      .toDate()
+      .toISOString();
+    const nextDiaryEntry = diaryStore.getDiaryPage(nextDayString);
+    setPage(
+      nextDiaryEntry
+        ? nextDiaryEntry
+        : ({
+            date: nextDayString,
+            pictograms: [],
+          } as DiaryPage),
+    );
   };
 
   function addParagraph(): void {
@@ -92,7 +175,7 @@ export default function DiaryPage() {
     }
   }
 
-  // Handling responses from
+  // Handling responses from TalkingPage
   useEffect(() => {
     // Checks if there is a response from an input request
     const checkForInput = async () => {
@@ -159,9 +242,9 @@ export default function DiaryPage() {
 
     checkForInput()
       .then((res) => {
-        if (res) loadPage(res).catch((err) => console.log(err));
+        if (res) loadPage(res);
         else {
-          loadPage(today.toLocaleDateString()).catch((err) => console.log(err));
+          loadPage(getTodayDate().toISOString());
           companionStore.speak("Guardiamo il tuo diario!");
         }
       })
@@ -169,6 +252,20 @@ export default function DiaryPage() {
         console.log(err);
       });
   }, [inputStore.requestCompleted]);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        resetSpeech();
+        router.back();
+
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   if (!currentPage)
     return (
@@ -184,8 +281,11 @@ export default function DiaryPage() {
         className="bg-purpleCard mb-3 flex h-[15%] w-full flex-row items-center justify-center rounded-xl"
       >
         <View className="flex h-full w-[8%] items-start justify-center">
-          {diaryStore.getPreviousPage(currentPage.date) && (
-            <TouchableOpacity className="ml-[10px] h-full w-full justify-center">
+          {getCurrentPageDate() && getCurrentPageDate()! < getTodayDate() && (
+            <TouchableOpacity
+              className="ml-[10px] h-full w-full justify-center"
+              onPress={goNextDay}
+            >
               <MaterialIcons
                 name="arrow-back-ios"
                 size={iconSize}
@@ -197,20 +297,21 @@ export default function DiaryPage() {
         <View className="flex h-full w-[84%] flex-row items-center justify-center">
           <View className="flex h-full w-full flex-row items-center justify-center">
             <Text className="text-default pr-2 text-base font-semibold">
-              {currentPage.date}
+              {getCurrentPageDate()?.toLocaleDateString()}
             </Text>
           </View>
         </View>
         <View className="flex h-full w-[8%] items-end justify-center">
-          {diaryStore.getNextPage(currentPage.date) && (
-            <TouchableOpacity className="h-full w-full justify-center">
-              <MaterialIcons
-                name="arrow-forward-ios"
-                size={iconSize}
-                color={iconColor}
-              />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            className="h-full w-full justify-center"
+            onPress={goPreviousDay}
+          >
+            <MaterialIcons
+              name="arrow-forward-ios"
+              size={iconSize}
+              color={iconColor}
+            />
+          </TouchableOpacity>
         </View>
       </View>
       {currentPage.pictograms.length <= 0 && (
@@ -228,10 +329,10 @@ export default function DiaryPage() {
           >
             <View className="h-16 w-[5%] flex-col pb-2 pl-2">
               <PictogramCard
-                pictogram={getPictogram("36257")}
-                noCaption={true}
+                noCaption
+                pictogram={pictogramStore.getPictogram("36257")}
                 bgcolor="#f2b30a"
-                onPress={() => readEntry(diaryEntry)}
+                onPress={() => readEntry(i, diaryEntry)}
               />
             </View>
             <View className="w-[90%] flex-col">
@@ -244,16 +345,15 @@ export default function DiaryPage() {
                       className="h-full flex-col"
                     >
                       <PictogramCard
-                        pictogram={col}
+                        pictogram={pictogramStore.getPictogram(col)}
                         bgcolor={"#B9D2C3"}
-                        onPress={() => {
-                          const current = col;
-                          companionStore.speak(
-                            current.keywords[0]
-                              ? current.keywords[0].keyword
-                              : "",
-                          );
-                        }}
+                        highlight={
+                          readEntryIndex == i &&
+                          readIndex == rowI * columns + colI
+                            ? "#15d0f1b4"
+                            : undefined
+                        }
+                        onPress={() => readOne(col)}
                       />
                     </View>
                   ))}
@@ -262,7 +362,7 @@ export default function DiaryPage() {
             </View>
             <View className="h-16 w-[5%] flex-col pb-2 pr-2">
               <PictogramCard
-                pictogram={getPictogram("37360")}
+                pictogram={pictogramStore.getPictogram("37360")}
                 noCaption={true}
                 bgcolor="#E49691"
                 onPress={() => modifyEntry(i)}
@@ -270,20 +370,21 @@ export default function DiaryPage() {
             </View>
           </View>
         ))}
-        <View className={`pt-20`} />
+        <View className="flex w-full content-center justify-center py-4">
+          <View
+            className={`mx-auto flex ${
+              isDeviceLarge() ? "h-32 w-32" : "h-16 w-28"
+            }`}
+          >
+            <PictogramCard
+              pictogram={pictogramStore.getPictogram("38218")}
+              noCaption={true}
+              bgcolor="#89BF93"
+              onPress={addParagraph}
+            />
+          </View>
+        </View>
       </ScrollView>
-      <View
-        className={`absolute bottom-4 left-[45%] ${
-          isDeviceLarge() ? "h-32 w-32" : "h-16 w-28"
-        }`}
-      >
-        <PictogramCard
-          pictogram={getPictogram("38218")}
-          noCaption={true}
-          bgcolor="#89BF93"
-          onPress={addParagraph}
-        />
-      </View>
       <BottomIcons />
     </SafeAreaView>
   );

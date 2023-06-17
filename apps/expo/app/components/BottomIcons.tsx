@@ -6,7 +6,9 @@ import { useCompanionStore } from "../store/store";
 import { isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 
-const BottomIcons: React.FC = () => {
+const BottomIcons: React.FC<{
+  onMute?: () => void;
+}> = ({ onMute }) => {
   const companionStore = useCompanionStore();
   const router = useRouter();
   const iconSize = isDeviceLarge() ? 60 : 36;
@@ -22,7 +24,12 @@ const BottomIcons: React.FC = () => {
           color={iconColor}
         />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => companionStore.changeVolume()}>
+      <TouchableOpacity
+        onPress={async () => {
+          if (onMute) onMute();
+          await companionStore.changeVolume();
+        }}
+      >
         <MaterialIcons
           style={shadowStyle.icon}
           name={companionStore.volumeOn ? "volume-up" : "volume-off"}
@@ -30,7 +37,9 @@ const BottomIcons: React.FC = () => {
           color={iconColor}
         />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => companionStore.changeBubble()}>
+      <TouchableOpacity
+        onPress={async () => await companionStore.changeBubble()}
+      >
         <MaterialIcons
           style={shadowStyle.icon}
           name={companionStore.bubbleOn ? "chat" : "chat-bubble"}

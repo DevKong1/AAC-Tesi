@@ -11,7 +11,7 @@ const BookCard: React.FC<{
   return (
     <TouchableOpacity
       style={shadowStyle.heavy}
-      className="mx-auto flex h-5/6 w-5/6 flex-col items-center justify-center rounded-3xl"
+      className="flex h-5/6 w-5/6 items-start justify-center rounded-3xl"
       onPress={() => onPress(args)}
     >
       <Image

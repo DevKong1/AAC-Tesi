@@ -11,13 +11,13 @@ import { MaterialIcons } from "@expo/vector-icons";
 import BookCard from "../components/BookCard";
 import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
-import { getDummyBooks } from "../hooks/booksHandler";
-import { getPictogram } from "../hooks/pictogramsHandler";
-import { useBookStore, useCompanionStore } from "../store/store";
 import {
-  getTextFromPictogramsMatrix,
-  isDeviceLarge,
-} from "../utils/commonFunctions";
+  useBookStore,
+  useCompanionStore,
+  usePictogramStore,
+} from "../store/store";
+import { isDeviceLarge } from "../utils/commonFunctions";
+import { dummyBooks } from "../utils/dummyResponses";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
 
@@ -25,12 +25,15 @@ export default function ReadingPage() {
   const router = useRouter();
   const companionStore = useCompanionStore();
   const bookStore = useBookStore();
+  const pictogramStore = usePictogramStore();
+
   const r = useRef<ICarouselInstance>(null);
   const { width, height } = Dimensions.get("window");
 
   const [books, setBooks] = useState([] as Book[]);
   const [currentBook, setCurrentBook] = useState(undefined as Book | undefined);
   const [currentPage, setCurrentPage] = useState(1);
+  const [readIndex, setReadIndex] = useState(undefined as number | undefined);
 
   const iconSize = isDeviceLarge() ? 90 : 42;
 
@@ -38,8 +41,75 @@ export default function ReadingPage() {
   const rows = bookStore.readingSettings.rows;
   const columns = bookStore.readingSettings.columns;
 
+  const resetSpeech = () => {
+    companionStore.resetSpeech();
+    setReadIndex(undefined);
+  };
+
+  const previousPage = () => {
+    if (currentBook && currentPage > 1) {
+      resetSpeech();
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const nextPage = () => {
+    if (currentBook && countPages() > currentPage) {
+      resetSpeech();
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const countPages = () => {
+    if (currentBook) {
+      return Math.ceil(currentBook.pictograms.length / rows);
+    } else return 0;
+  };
+
+  // Used to recursively read all pictograms while updating state
+  const recursiveRead = (i: number, flattenedPage: string[]) => {
+    if (i >= flattenedPage.length) {
+      resetSpeech();
+      return;
+    }
+    setReadIndex(i);
+    const currentPictogram = pictogramStore.getPictogram(flattenedPage[i]!);
+    const currentText = currentPictogram
+      ? pictogramStore.getTextFromPictogram(currentPictogram)
+      : undefined;
+    if (currentText)
+      companionStore.speak(currentText, undefined, undefined, () => {
+        recursiveRead(i + 1, flattenedPage);
+      });
+  };
+
+  const readOne = (id: string) => {
+    resetSpeech();
+    const pictogram = pictogramStore.getPictogram(id);
+    const text = pictogram
+      ? pictogramStore.getTextFromPictogram(pictogram)
+      : undefined;
+    if (text) companionStore.speak(text);
+  };
+
+  const readAll = () => {
+    if (currentBook) {
+      const currentPageFlattened = getCurrentPage().flatMap((el) => el);
+      recursiveRead(0, currentPageFlattened);
+    }
+  };
+
+  const getCurrentPage = () => {
+    if (currentBook && currentBook.pictograms.length > 0)
+      return currentBook.pictograms.slice(
+        rows * (currentPage - 1),
+        rows * currentPage,
+      );
+    else return [];
+  };
+
   useEffect(() => {
-    const baseBooks = getDummyBooks(); // Just for Development
+    const baseBooks = dummyBooks; // Just for testing purposes
     const customBooks = bookStore.customBooks;
     // set state with the result
     setBooks(baseBooks.concat(customBooks));
@@ -52,48 +122,17 @@ export default function ReadingPage() {
       "hardwareBackPress",
       () => {
         if (currentBook) {
+          setCurrentPage(1);
           setCurrentBook(undefined);
-        } else {
-          companionStore.setPosition("default");
-          router.back();
-        }
+        } else router.back();
+
+        resetSpeech();
         return true;
       },
     );
 
     return () => backHandler.remove();
-  }, []);
-
-  const previousPage = () => {
-    if (currentBook && currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const nextPage = () => {
-    if (currentBook && countPages() > currentPage)
-      setCurrentPage(currentPage + 1);
-  };
-
-  const countPages = () => {
-    if (currentBook) {
-      return Math.ceil(currentBook.pictograms.length / rows);
-    } else return 0;
-  };
-
-  const readAll = () => {
-    if (currentBook) {
-      const text = getTextFromPictogramsMatrix(getCurrentPage());
-      companionStore.speak(text);
-    }
-  };
-
-  const getCurrentPage = () => {
-    if (currentBook && currentBook.pictograms.length > 0)
-      return currentBook.pictograms.slice(
-        rows * (currentPage - 1),
-        rows * currentPage,
-      );
-    else return [];
-  };
+  }, [currentBook]);
 
   if (currentBook) {
     return (
@@ -116,7 +155,6 @@ export default function ReadingPage() {
         </View>
         <View className="flex h-full w-[84%] flex-col">
           <View className="h-[75%] w-full">
-            {/* FOR EACH ROW */}
             {getCurrentPage().map((row, i) => (
               <View
                 key={`row${i}`}
@@ -125,7 +163,6 @@ export default function ReadingPage() {
                 }}
                 className="w-full flex-row items-center justify-start"
               >
-                {/* FOR EACH COLUMN */}
                 {row.map((col, j) => (
                   <View
                     key={`row${i}_col${j}`}
@@ -133,13 +170,12 @@ export default function ReadingPage() {
                     className="flex h-full"
                   >
                     <PictogramCard
-                      pictogram={col}
+                      pictogram={pictogramStore.getPictogram(col)}
                       bgcolor={"#B9D2C3"}
-                      onPress={() => {
-                        companionStore.speak(
-                          col.keywords[0] ? col.keywords[0].keyword : "",
-                        );
-                      }}
+                      highlight={
+                        readIndex == i * columns + j ? "#15d0f1b4" : undefined
+                      }
+                      onPress={() => readOne(col)}
                     />
                   </View>
                 ))}
@@ -148,12 +184,12 @@ export default function ReadingPage() {
           </View>
 
           <View className="flex h-[25%] w-full flex-row items-center justify-center">
-            <View className="h-full w-1/3 items-center justify-center"></View>
+            <View className="h-full w-1/3 items-center justify-center" />
             <View className="h-full w-1/3 items-center justify-center">
               <View className="h-2/3 w-1/2">
                 <PictogramCard
-                  pictogram={getPictogram("36257")}
-                  noCaption={true}
+                  noCaption
+                  pictogram={pictogramStore.getPictogram("36257")}
                   bgcolor="#89BF93"
                   onPress={readAll}
                 />
@@ -178,19 +214,19 @@ export default function ReadingPage() {
             </TouchableOpacity>
           </View>
         </View>
-        <BottomIcons />
+        <BottomIcons onMute={() => setReadIndex(undefined)} />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
-      <View className="flex h-1/5 w-full flex-row items-start justify-center">
+      <View className="flex h-[15%] w-full flex-row items-center justify-center">
         <Text className="text-default text-xl font-semibold">
           Scegli un libro da leggere:
         </Text>
       </View>
-      <View className="flex h-4/5 w-full items-center justify-center">
+      <View className="flex h-[85%] w-full items-start justify-center">
         {books.length > 0 ? (
           <Carousel
             ref={r}
@@ -200,7 +236,7 @@ export default function ReadingPage() {
               width: width,
               height: height * 0.6,
               justifyContent: "center",
-              alignItems: "center",
+              alignItems: "flex-start",
             }}
             width={isDeviceLarge() ? 600 : 300}
             height={height * 0.6}
@@ -210,8 +246,7 @@ export default function ReadingPage() {
               <BookCard
                 book={el.item}
                 onPress={() => {
-                  setCurrentBook(el.item); // TODO Check for correct book format (rows, columns) and fix if incorrect
-                  companionStore.setPosition("center");
+                  setCurrentBook(el.item);
                 }}
               />
             )}

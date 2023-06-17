@@ -1,11 +1,9 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
+import { usePictogramStore } from "../store/store";
 import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
-import {
-  type CustomPictogram,
-  type Pictogram,
-} from "../utils/types/commonTypes";
+import { type Pictogram } from "../utils/types/commonTypes";
 
 const PictogramCard: React.FC<{
   pictogram: Pictogram | undefined;
@@ -14,15 +12,17 @@ const PictogramCard: React.FC<{
   bgcolor: string;
   onPress: (...args: any) => void;
   args?: any;
-}> = ({ pictogram, text, noCaption, bgcolor, onPress, args }) => {
+  highlight?: string;
+}> = ({ pictogram, text, noCaption, bgcolor, onPress, args, highlight }) => {
+  const pictogramStore = usePictogramStore();
+
   const getText = () => {
     if (text) return text;
-    if (pictogram?.customPictogram?.text) return pictogram.customPictogram.text;
-    if (pictogram?.keywords[0]?.keyword) return pictogram.keywords[0].keyword;
-    return "Undefined";
+    return pictogram ? pictogramStore.getTextFromPictogram(pictogram) : "";
   };
 
   const sourcePictogram = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     if (!pictogram) return pictograms[3418];
     if (pictogram.customPictogram?.image)
       return {
@@ -36,11 +36,12 @@ const PictogramCard: React.FC<{
       style={[
         shadowStyle.light,
         {
+          borderColor: highlight,
           backgroundColor: bgcolor,
         },
       ]}
-      className={`mx-auto flex ${
-        noCaption ? "h-full w-full" : "h-5/6 w-5/6"
+      className={`mx-auto flex ${noCaption ? "h-full w-full" : "h-5/6 w-5/6"} ${
+        highlight ? "border-2" : null
       } flex-col items-center justify-center rounded-[30px]`}
       onPress={() => onPress(args)}
     >

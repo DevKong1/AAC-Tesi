@@ -11,11 +11,15 @@ import CategoryTabs from "../components/CategoryTab";
 import PictogramCard from "../components/PictogramCard";
 import PictogramSearchModal from "../components/PictogramSearchModal";
 import Spinner from "../components/Spinner";
-import { getPictogram } from "../hooks/pictogramsHandler";
-import { getPredictedPictograms } from "../hooks/talkingHandler";
-import { useCompanionStore, useInputStore } from "../store/store";
+import { predictPictograms } from "../hooks/useHuggingFace";
+import {
+  useCompanionStore,
+  useInputStore,
+  usePictogramStore,
+} from "../store/store";
 import categories from "../utils/categories";
 import { getTextFromPictogramsArray } from "../utils/commonFunctions";
+import { dummyPredictedPictograms } from "../utils/dummyResponses";
 import { type Pictogram, type diaryReqArgs } from "../utils/types/commonTypes";
 
 export default function TalkingPage() {
@@ -25,18 +29,21 @@ export default function TalkingPage() {
   const router = useRouter();
   const companionStore = useCompanionStore();
   const inputStore = useInputStore();
+  const pictogramStore = usePictogramStore();
 
   // This page might be used to write input for the diary
   const { inputID } = useLocalSearchParams();
 
   const [selectedCategory, selectCategory] = useState(categories[0]!.text);
-  const [pictograms, setPictograms] = useState([] as Pictogram[]);
-  const [selectedPictograms, selectPictograms] = useState([] as Pictogram[]);
+  const [pictograms, setPictograms] = useState([] as string[]);
+  const [selectedPictograms, selectPictograms] = useState([] as string[]);
   const [showModal, setShowModal] = useState(false);
+  const [readIndex, setReadIndex] = useState(undefined as number | undefined);
 
   const addPictogram = (pressed: Pictogram) => {
-    if (pressed.keywords[0]) companionStore.speak(pressed.keywords[0].keyword);
-    selectPictograms((old) => [...old, pressed]);
+    const text = pictogramStore.getTextFromPictogram(pressed);
+    if (text) companionStore.speak(text);
+    selectPictograms((old) => [...old, pressed._id]);
 
     // TODO carousel bugs out if the index is 0
     r.current?.scrollTo({
@@ -62,10 +69,30 @@ export default function TalkingPage() {
     loadPictograms();
   };
 
-  const readAll = () => {
-    if (selectedPictograms.length > 0) {
-      companionStore.speak(getTextFromPictogramsArray(selectedPictograms));
+  const resetSpeech = () => {
+    companionStore.resetSpeech();
+    setReadIndex(undefined);
+  };
+
+  // Used to recursively read all pictograms while updating state
+  const recursiveRead = (i: number, flattenedPage: string[]) => {
+    if (i >= flattenedPage.length) {
+      resetSpeech();
+      return;
     }
+    setReadIndex(i);
+    const currentPictogram = pictogramStore.getPictogram(flattenedPage[i]!);
+    const currentText = currentPictogram
+      ? pictogramStore.getTextFromPictogram(currentPictogram)
+      : undefined;
+    if (currentText)
+      companionStore.speak(currentText, undefined, undefined, () => {
+        recursiveRead(i + 1, flattenedPage);
+      });
+  };
+
+  const readAll = () => {
+    if (selectedPictograms.length > 0) recursiveRead(0, selectedPictograms);
   };
 
   const listView = () => {
@@ -73,18 +100,17 @@ export default function TalkingPage() {
   };
 
   const loadPictograms = async () => {
-    if (pictograms.length > 0)
-      setPictograms(
-        await getPredictedPictograms(undefined, undefined, selectedCategory),
-      );
-    else
-      setPictograms(
-        await getPredictedPictograms(
-          pictograms,
-          selectedPictograms,
-          selectedCategory,
-        ),
-      );
+    const predictedPictograms = await predictPictograms(
+      pictograms,
+      selectedPictograms,
+      selectedCategory,
+    );
+    // We set the response to the predicted pictograms or the default ones if there was an error
+    setPictograms(
+      predictedPictograms
+        ? predictedPictograms.pictograms
+        : dummyPredictedPictograms,
+    );
   };
 
   const submitInput = () => {
@@ -109,17 +135,16 @@ export default function TalkingPage() {
   }, []);
 
   useEffect(() => {
-    if (inputID) {
-      const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        () => {
-          inputStore.clear();
-          router.back();
-          return true;
-        },
-      );
-      return () => backHandler.remove();
-    }
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        resetSpeech();
+        inputStore.clear();
+        router.back();
+        return true;
+      },
+    );
+    return () => backHandler.remove();
   }, []);
 
   return (
@@ -128,7 +153,9 @@ export default function TalkingPage() {
         isVisible={showModal}
         onSelect={addPictogram}
         onClose={onModalClose}
-        defaultText="Qui potrai visualizzare i tuoi pittogrammi personali o preferiti, selezionati dalle impostazioni.."
+        backdrop={false}
+        defaultText="Qui potrai visualizzare i tuoi pittogrammi preferiti, selezionali dalle impostazioni.."
+        defaultData={pictogramStore.getFavouritePictograms()}
       />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">
         {selectedPictograms.length > 0 ? (
@@ -149,9 +176,10 @@ export default function TalkingPage() {
               scrollAnimationDuration={1000}
               renderItem={(el) => (
                 <PictogramCard
-                  pictogram={el.item}
+                  pictogram={pictogramStore.getPictogram(el.item)}
                   bgcolor="#C6D7F9"
                   onPress={removePictogram}
+                  highlight={readIndex == el.index ? "#15d0f1b4" : undefined}
                   args={el.index}
                 />
               )}
@@ -168,13 +196,14 @@ export default function TalkingPage() {
           selectedCategory={selectedCategory}
           categories={categories}
           setCategory={selectCategory}
+          compact
         />
       </View>
       <View className="flex h-[50%] w-full flex-row">
         <View className="flex h-full w-[10%] items-center justify-center">
           <View className="flex h-3/4 w-2/3 lg:mb-20 lg:h-1/2">
             <PictogramCard
-              pictogram={getPictogram("5596")}
+              pictogram={pictogramStore.getPictogram("5596")}
               noCaption={true}
               bgcolor="#A3B0B4"
               onPress={listView}
@@ -185,25 +214,25 @@ export default function TalkingPage() {
           {pictograms.length == 8 ? (
             <View className="flex h-full w-full">
               <View className="flex h-[50%] w-full flex-row">
-                {pictograms.slice(0, 4).map((el) => (
-                  <View key={el._id} className="flex h-full w-1/4">
+                {pictograms.slice(0, 4).map((el, i) => (
+                  <View key={`row1_${i}`} className="flex h-full w-1/4">
                     <PictogramCard
-                      pictogram={el}
+                      pictogram={pictogramStore.getPictogram(el)}
                       bgcolor="#C6D7F9"
                       onPress={addPictogram}
-                      args={el}
+                      args={pictogramStore.getPictogram(el)}
                     />
                   </View>
                 ))}
               </View>
               <View className="flex h-[50%] w-full flex-row">
-                {pictograms.slice(4, 8).map((el) => (
-                  <View key={el._id} className="flex h-full w-1/4">
+                {pictograms.slice(4, 8).map((el, i) => (
+                  <View key={`row2_${i}`} className="flex h-full w-1/4">
                     <PictogramCard
-                      pictogram={el}
+                      pictogram={pictogramStore.getPictogram(el)}
                       bgcolor="#C6D7F9"
                       onPress={addPictogram}
-                      args={el}
+                      args={pictogramStore.getPictogram(el)}
                     />
                   </View>
                 ))}
@@ -216,7 +245,7 @@ export default function TalkingPage() {
         <View className="flex h-full w-[10%] items-center justify-center">
           <View className="mb-20 flex h-1/2 w-2/3">
             <PictogramCard
-              pictogram={getPictogram("8053")}
+              pictogram={pictogramStore.getPictogram("8053")}
               noCaption={true}
               bgcolor="#E49691"
               onPress={loadPictograms}
@@ -228,7 +257,7 @@ export default function TalkingPage() {
         {inputID && (
           <View className="flex h-full w-1/6 items-center justify-center">
             <PictogramCard
-              pictogram={getPictogram("38221")}
+              pictogram={pictogramStore.getPictogram("38221")}
               noCaption={true}
               bgcolor="#89BF93"
               onPress={submitInput}
@@ -238,7 +267,7 @@ export default function TalkingPage() {
         {inputID && <View className="w-8" />}
         <View className="flex h-full w-1/6 items-center justify-center">
           <PictogramCard
-            pictogram={getPictogram("36257")}
+            pictogram={pictogramStore.getPictogram("36257")}
             noCaption={true}
             bgcolor="#f2b30a"
             onPress={readAll}
@@ -247,10 +276,11 @@ export default function TalkingPage() {
         <View className="w-8" />
         <View className="flex h-full w-1/6 items-center justify-center">
           <PictogramCard
-            pictogram={getPictogram("38201")}
+            pictogram={pictogramStore.getPictogram("38201")}
             noCaption={true}
             bgcolor="#f05252"
             onPress={() => {
+              resetSpeech();
               selectPictograms([]);
               loadPictograms();
             }}

@@ -6,11 +6,11 @@ import { useUser } from "@clerk/clerk-expo";
 
 import BottomIcons from "./components/BottomIcons";
 import PictogramCard from "./components/PictogramCard";
-import { getPictogram } from "./hooks/pictogramsHandler";
-import { useCompanionStore } from "./store/store";
+import { useCompanionStore, usePictogramStore } from "./store/store";
 import { isDeviceLarge } from "./utils/commonFunctions";
 
 const Index = () => {
+  const pictogramStore = usePictogramStore();
   const companionStore = useCompanionStore();
   const { user } = useUser();
   const router = useRouter();
@@ -40,7 +40,7 @@ const Index = () => {
         <View className="mx-auto flex flex-grow flex-row items-center justify-center">
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram("23392")}
+              pictogram={pictogramStore.getPictogram("23392")}
               bgcolor="#C6D7F9"
               text="Giochiamo"
               onPress={() => router.push("/views/GamesPage")}
@@ -48,7 +48,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram("28643")}
+              pictogram={pictogramStore.getPictogram("28643")}
               bgcolor="#B9D2C3"
               text="Leggiamo"
               onPress={() => router.push("/views/ReadingPage")}
@@ -56,7 +56,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram("28663")}
+              pictogram={pictogramStore.getPictogram("28663")}
               bgcolor="#EBDBD8"
               text="Parliamo"
               onPress={() => router.push("/views/TalkingPage")}
@@ -64,7 +64,7 @@ const Index = () => {
           </View>
           <View className="flex h-[66%] w-[25%]">
             <PictogramCard
-              pictogram={getPictogram("2359")}
+              pictogram={pictogramStore.getPictogram("2359")}
               bgcolor="#D9D9FD"
               text="Diario"
               onPress={() => router.push("/views/DiaryPage")}

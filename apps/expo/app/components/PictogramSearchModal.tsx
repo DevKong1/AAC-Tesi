@@ -1,32 +1,36 @@
 import { View } from "react-native";
 import Modal from "react-native-modal";
 
-import { usePictogramStore } from "../store/store";
 import { type Pictogram } from "../utils/types/commonTypes";
-import SearchFlatlist from "./SearchFlatlist";
+import SearchFlatlist from "./PictogramSearchFlatlist";
 
 const PictogramSearchModal: React.FC<{
   isVisible: boolean;
   onSelect: (el: Pictogram) => void;
   onClose: () => void;
   defaultText: string;
-  showFavourites?: boolean;
-}> = ({ isVisible, onSelect, onClose, defaultText, showFavourites = true }) => {
-  const pictogramStore = usePictogramStore();
-
+  defaultData?: Pictogram[];
+  backdrop?: boolean;
+}> = ({
+  isVisible,
+  onSelect,
+  onClose,
+  defaultText,
+  defaultData,
+  backdrop = true,
+}) => {
   return (
     <Modal
+      backdropOpacity={backdrop ? 0.5 : 0} 
       isVisible={isVisible}
       onBackdropPress={onClose}
       style={{ margin: 0 }}
       onBackButtonPress={onClose}
     >
-      <View className="absolute bottom-0 h-[75%] w-full flex-col items-center justify-center rounded-t-lg bg-[#2f3235ea]">
+      <View className="absolute bottom-0 h-[75%] w-full flex-col items-center justify-center rounded-t-lg bg-[#2f3235fa]">
         <SearchFlatlist
           defaultText={defaultText}
-          defaultData={
-            showFavourites ? pictogramStore.getFavouritePictograms() : undefined
-          }
+          defaultData={defaultData}
           onSelect={onSelect}
         />
       </View>
