@@ -13,20 +13,15 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "@acme/api": "*",
-    "@acme/auth": "*",
     "@acme/db": "*",
     "@acme/tailwind-config": "*",
+    "@clerk/nextjs": "^4.21.3",
     "@tanstack/react-query": "^4.24.10",
-    "@trpc/client": "^10.12.0",
-    "@trpc/next": "^10.12.0",
-    "@trpc/react-query": "^10.12.0",
-    "@trpc/server": "^10.12.0",
+    "jose": "^4.14.4",
+    "jsonwebtoken": "^9.0.0",
     "next": "^13.2.0",
-    "next-auth": "^4.19.2",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "zod": "^3.20.6"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",

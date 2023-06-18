@@ -12,44 +12,32 @@ datasource db {
 }
 
 model User {
-    id                  String   @id @default(cuid()) @map("_id")
-    name                String?  @db.VarChar(255)
-    email               String   @unique
-    clerkID             String   @unique
-    textOn              Boolean
-    bubbleOn            Boolean
-    diary               Diary?
-    favourites          String?
+    id                  String              @id @default(cuid()) @map("_id")
+    email               String              @unique
+    clerkID             String              @unique
+    diary               DiaryPage[]
+    favourites          String?             @db.Text
     customPictograms    CustomPictogram[]
     books               Book[]
 }
 
-model Diary {
-    id          String      @id @default(cuid()) @map("_id")
-    user        User        @relation(fields: [userId], references: [id])
-    userId      String      @unique
-    rows        Int
-    columns     Int
-    diaryPages  DiaryPage[]
-}
-
 model DiaryPage {
-    diary       Diary       @relation(fields: [diaryId], references: [id])
-    diaryId     String
-    date        String
-    pictograms  Json
+    id          String     @id @default(cuid()) @map("_id")
+    user        User       @relation(fields: [userId], references: [id])
+    userId      String
+    date        String     @db.VarChar(32) @unique
+    pictograms  String     @db.Text
 
-    @@id([diaryId, date])
-    @@index([diaryId])
+    @@index([userId])
 }
 
 model CustomPictogram {
     id         String       @id @default(cuid()) @map("_id")
     user       User         @relation(fields: [userId], references: [id])
     userId     String
-    oldId      String?
-    text       String?
-    image      String?      @db.Text
+    oldId      String?      @unique
+    text       String?      @db.VarChar(128)
+    image      String?      @db.MediumText
 
     @@index([userId])
 }
@@ -59,8 +47,8 @@ model Book {
     user        User        @relation(fields: [userId], references: [id])
     userId      String      @unique
     title       String      @db.VarChar(255)
-    cover       String      @db.Text
-    pictograms  Json
+    cover       String      @db.MediumText
+    pictograms  String      @db.Text
 
     @@index([userId])
 }

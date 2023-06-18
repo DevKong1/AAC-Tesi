@@ -9,7 +9,7 @@ import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
-import { CLERK_PUBLISHABLE_KEY } from "@env";
+import { CLERK_PUBLISHABLE_KEY, NODE_ENV } from "@env";
 
 import Companion from "./components/Companion";
 import SignInWithOAuth from "./components/SignInWithOAuth";
@@ -35,9 +35,11 @@ const RootLayout = () => {
   const bookStore = useBookStore();
 
   const windowHeight = useWindowDimensions().height;
-  const clerkPublicKey = Constants.expoConfig?.extra?.clerkPublicKey
-    ? Constants.expoConfig.extra.clerkPublicKey
-    : CLERK_PUBLISHABLE_KEY;
+  const clerkPublicKey =
+    NODE_ENV !== "production"
+      ? CLERK_PUBLISHABLE_KEY
+      : Constants.expoConfig?.extra?.clerkPublicKey;
+  console.log("KEY: ", NODE_ENV, clerkPublicKey);
 
   useEffect(() => {
     async function prepare() {

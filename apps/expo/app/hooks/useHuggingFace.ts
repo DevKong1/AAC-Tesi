@@ -7,8 +7,6 @@ const huggingfaceBearer = Constants.expoConfig?.extra?.huggingfaceBearer
   ? Constants.expoConfig?.extra?.huggingfaceBearer
   : HUGGINGFACE_BEARER;
 
-console.log(huggingfaceBearer);
-
 export interface ParsedFileResponse {
   pictograms: string[];
 }
