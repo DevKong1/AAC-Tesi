@@ -39,7 +39,6 @@ const RootLayout = () => {
     NODE_ENV !== "production"
       ? CLERK_PUBLISHABLE_KEY
       : Constants.expoConfig?.extra?.clerkPublicKey;
-  console.log("KEY: ", NODE_ENV, clerkPublicKey);
 
   useEffect(() => {
     async function prepare() {

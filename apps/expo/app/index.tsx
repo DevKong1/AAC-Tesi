@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 
 import BottomIcons from "./components/BottomIcons";
 import PictogramCard from "./components/PictogramCard";
@@ -13,21 +13,14 @@ const Index = () => {
   const pictogramStore = usePictogramStore();
   const companionStore = useCompanionStore();
   const { user } = useUser();
-  const lol = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const token = async () => {
-      console.log(await lol.getToken());
-    };
-
     if (!companionStore.started) companionStore.start();
     companionStore.speak(
       user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
       isDeviceLarge() ? "3xl" : "lg",
     );
-
-    token();
   }, []);
 
   return (
