@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import React, { useCallback, useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -8,7 +7,7 @@ import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
+import { ClerkProvider, SignedIn, SignedOut, useAuth } from "@clerk/clerk-expo";
 import { CLERK_PUBLISHABLE_KEY, NODE_ENV } from "@env";
 
 import Companion from "./components/Companion";
@@ -30,9 +29,6 @@ const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
   const companionStore = useCompanionStore();
-  const pictogramStore = usePictogramStore();
-  const diaryStore = useDiaryStore();
-  const bookStore = useBookStore();
 
   const windowHeight = useWindowDimensions().height;
   const clerkPublicKey =
@@ -46,10 +42,7 @@ const RootLayout = () => {
         // Pre-load fonts, make any API calls you need to do here
         // eslint-disable-next-line react-hooks/rules-of-hooks
         await useFonts();
-        await pictogramStore.load();
         await companionStore.load();
-        await diaryStore.load();
-        await bookStore.load();
       } catch (e) {
         console.warn(e);
       } finally {
@@ -101,10 +94,6 @@ const RootLayout = () => {
         onLayout={onLayoutRootView}
         style={[{ minHeight: Math.round(windowHeight) }]}
       >
-        {/*
-          The Stack component displays the current page.
-          It also allows you to configure your screens 
-        */}
         <LinearGradient
           colors={["white", "white", "#FFEEEB"]}
           locations={[0, 0.4, 0.5]}

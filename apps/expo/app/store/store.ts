@@ -5,6 +5,7 @@ import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
 import dictionary from "../../assets/dictionaries/Dizionario_it.json";
+import { deleteDiaryPage, postDiaryPage } from "../hooks/useBackend";
 import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
 import { sortBySimilarity } from "../utils/commonFunctions";
 import {
@@ -16,9 +17,18 @@ import {
 } from "../utils/types/commonTypes";
 
 const companionUri = `${FileSystem.documentDirectory}companion.json`;
-const diaryUri = `${FileSystem.documentDirectory}diary.json`;
-const pictogramUri = `${FileSystem.documentDirectory}pictograms.json`;
-const booksUri = `${FileSystem.documentDirectory}books.json`;
+
+interface ApiState {
+  loaded: boolean;
+  setLoaded: (value: boolean) => void;
+}
+
+export const useApiStore = create<ApiState>((set) => ({
+  loaded: false,
+  setLoaded: (value) => {
+    set({ loaded: value });
+  },
+}));
 
 interface CompanionState {
   isVisible: boolean;
@@ -130,105 +140,132 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
 interface DiaryState {
   diary: DiaryPage[];
   readingSettings: ReadingSettings;
-  load: () => Promise<void>;
-  save: () => Promise<void>;
+  load: (data: DiaryPage[]) => void;
   getDiaryPage: (date: string) => DiaryPage | undefined;
+  addDiaryPage: (token: string, page: DiaryPage) => Promise<boolean>;
   addPictogramsToPage: (
+    token: string,
     date: string,
     pictograms: string[],
   ) => Promise<DiaryPage | undefined>;
-  addDiaryPage: (page: DiaryPage) => Promise<boolean>;
   updatePictogramsInPage: (
+    token: string,
     date: string,
     entryIndex: number,
     pictograms: string[],
   ) => Promise<boolean>;
-  removeDiaryPage: (date: string) => Promise<boolean>;
-  removePictogramFromPages: (pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
+  removeDiaryPage: (token: string, date: string) => Promise<boolean>;
+  removePictogramFromPages: (token: string, pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
 }
 
 export const useDiaryStore = create<DiaryState>((set, get) => ({
   diary: [],
-  readingSettings: { rows: 3, columns: 4 } as ReadingSettings, // TODO Customizable
-  load: async () => {
-    const result = await getJSONOrCreate(diaryUri, []);
-    if (result)
-      set({
-        diary: result,
-      });
-  },
-  save: async () => {
-    await saveToJSON(diaryUri, get().diary);
+  readingSettings: { rows: 3, columns: 4 } as ReadingSettings,
+  load: (data: DiaryPage[]) => {
+    set({
+      diary: data,
+    });
   },
   getDiaryPage: (date) => {
     return get().diary.find((el) => el.date == date);
   },
-  addDiaryPage: async (page) => {
+  addDiaryPage: async (token, page) => {
     if (!get().getDiaryPage(page.date)) {
-      set((state) => ({ diary: [...state.diary, page] }));
-      await get().save();
-      return true;
-    } else return false;
+      const res = await postDiaryPage(token, page);
+      if (res) {
+        set((state) => ({ diary: [...state.diary, page] }));
+        return true;
+      }
+    }
+    return false;
   },
-  addPictogramsToPage: async (date, pictograms) => {
+  addPictogramsToPage: async (token, date, pictograms) => {
     const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
-      const newDiary = get().diary;
-      newDiary[pageIndex]!.pictograms.push(pictograms);
-      set({ diary: newDiary });
-      await get().save();
+      const diary = get().diary;
+      const res = await postDiaryPage(token, {
+        date: date,
+        pictograms: diary[pageIndex]!.pictograms.concat([pictograms]),
+      } as DiaryPage);
+      if (!res) return undefined;
+      diary[pageIndex]!.pictograms.push(pictograms);
       return get().getDiaryPage(date);
     } else return undefined;
   },
-  updatePictogramsInPage: async (date, entryIndex, pictograms) => {
+  updatePictogramsInPage: async (token, date, entryIndex, pictograms) => {
     const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
-      const newDiary = get().diary;
-      if (pictograms.length > 0)
-        newDiary[pageIndex]!.pictograms[entryIndex] = pictograms;
-      else newDiary[pageIndex]!.pictograms.splice(entryIndex, 1);
-      set({ diary: newDiary });
+      const diary = get().diary;
+
+      const pageCopy = { ...diary[pageIndex]! };
+      // Check if we are updating or removing
+      if (pictograms.length > 0) pageCopy.pictograms[entryIndex] = pictograms;
+      else pageCopy.pictograms.splice(entryIndex, 1);
+
+      const res = await postDiaryPage(token, {
+        date: date,
+        pictograms: pageCopy.pictograms,
+      } as DiaryPage);
+      if (!res) return false;
+
+      console.log(diary[pageIndex]);
+      diary[pageIndex] = pageCopy;
+      console.log(diary[pageIndex]);
+
       // If the page is empty we remove it
-      if (newDiary[pageIndex]!.pictograms.length <= 0)
-        return get().removeDiaryPage(date);
-      await get().save();
+      if (pageCopy.pictograms.length <= 0)
+        return get().removeDiaryPage(token, date);
+
       return true;
     } else return false;
   },
-  removeDiaryPage: async (date) => {
+  removeDiaryPage: async (token, date) => {
     const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
+      const res = await deleteDiaryPage(token, date);
+      if (!res) return false;
       set((state) => ({
         diary: [
           ...state.diary.slice(0, pageIndex),
           ...state.diary.slice(pageIndex + 1),
         ],
       }));
-      await get().save();
       return true;
     } else return false;
   },
-  removePictogramFromPages: async (toRemove) => {
+  removePictogramFromPages: async (token, toRemove) => {
     // Remove each occurency of given id
-    get().diary.forEach((page) => {
-      page.pictograms.forEach((row) => {
-        let i = row.length;
+    get().diary.forEach(async (page, pageI) => {
+      const pageCopy = { ...page };
+      let found = false;
+      page.pictograms.forEach((row, rowI) => {
+        const pictogramsCopy = [...row];
+        let i = pictogramsCopy.length;
         while (i--) {
-          if (row[i] == toRemove) {
-            row.splice(i, 1);
+          if (pictogramsCopy[i] == toRemove) {
+            found = true;
+            pictogramsCopy.splice(i, 1);
           }
         }
+        pageCopy.pictograms[rowI] = pictogramsCopy;
       });
 
       // Remove empty rows
       let i = page.pictograms.length;
       while (i--) {
         if (page.pictograms[i]!.length <= 0) {
-          page.pictograms.splice(i, 1);
+          pageCopy.pictograms.splice(i, 1);
         }
       }
+      if (found) {
+        const res = await postDiaryPage(token, {
+          date: page.date,
+          pictograms: pageCopy.pictograms,
+        } as DiaryPage);
+        if (!res) return;
+        get().diary[pageI] = pageCopy;
+      }
     });
-    await get().save();
   },
 }));
 
@@ -302,7 +339,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
   favourites: [],
   customPictograms: [],
   load: async () => {
-    const result = (await getJSONOrCreate(pictogramUri, {
+    const result = (await getJSONOrCreate("", {
       favourites: [],
       customPictograms: [],
     } as SavedPictograms)) as SavedPictograms;
@@ -324,7 +361,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     }
   },
   save: async () => {
-    await saveToJSON(pictogramUri, {
+    await saveToJSON("pictogramUri", {
       favourites: get().favourites,
       customPictograms: get().customPictograms,
     } as SavedPictograms);
@@ -479,14 +516,14 @@ export const useBookStore = create<BookState>((set, get) => ({
   customBooks: [],
   readingSettings: { rows: 3, columns: 4 } as ReadingSettings,
   load: async () => {
-    const result = await getJSONOrCreate(booksUri, []);
+    const result = await getJSONOrCreate("booksUri", []);
     if (result)
       set({
         customBooks: result,
       });
   },
   save: async () => {
-    await saveToJSON(booksUri, get().customBooks);
+    await saveToJSON("booksUri", get().customBooks);
   },
   getBook: (id) => {
     return get().customBooks.find((el) => el.id == id);

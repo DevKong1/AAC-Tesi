@@ -16,6 +16,7 @@ import PictogramSearchModal from "../components/PictogramSearchModal";
 import PictogramSelectionModal from "../components/PictogramSelectionModal";
 import SettingsButton from "../components/SettingsButton";
 import {
+  useApiStore,
   useBookStore,
   useCompanionStore,
   usePictogramStore,
@@ -23,6 +24,7 @@ import {
 import { type Book, type Pictogram } from "../utils/types/commonTypes";
 
 export default function SettingsPage() {
+  const apiStore = useApiStore();
   const companionStore = useCompanionStore();
   const pictogramStore = usePictogramStore();
   const bookStore = useBookStore();
@@ -248,9 +250,10 @@ export default function SettingsPage() {
                 <SettingsButton
                   text="Logout"
                   color="#F69898"
-                  onPress={() => {
-                    signOut();
+                  onPress={async () => {
+                    await signOut();
                     companionStore.stop();
+                    apiStore.setLoaded(false);
                   }}
                 />
               </View>

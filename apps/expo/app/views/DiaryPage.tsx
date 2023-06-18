@@ -4,6 +4,7 @@ import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { randomUUID } from "expo-crypto";
 import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
 import { MaterialIcons } from "@expo/vector-icons";
 import moment from "moment";
 
@@ -26,6 +27,7 @@ export default function DiaryPage() {
   const companionStore = useCompanionStore();
   const diaryStore = useDiaryStore();
   const inputStore = useInputStore();
+  const { getToken } = useAuth();
 
   const [requestID, setReqId] = useState(undefined as string | undefined);
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
@@ -180,6 +182,8 @@ export default function DiaryPage() {
     // Checks if there is a response from an input request
     const checkForInput = async () => {
       if (currentPage && requestID && inputStore.id == requestID) {
+        const token = await getToken();
+        if (!token) return undefined;
         // Response to an addParagraph
         if (
           inputStore.command == "addParagraph" &&
@@ -198,12 +202,13 @@ export default function DiaryPage() {
               !diaryStore.getDiaryPage(responseDate) &&
               currentPage.date == responseDate
             ) {
-              if (!(await diaryStore.addDiaryPage(currentPage))) {
+              if (!(await diaryStore.addDiaryPage(token, currentPage))) {
                 console.log("Error adding page");
                 return undefined;
               }
             }
             await diaryStore.addPictogramsToPage(
+              token,
               responseDate,
               responsePictograms,
             );
@@ -227,6 +232,7 @@ export default function DiaryPage() {
             responseIndex != undefined
           ) {
             const done = await diaryStore.updatePictogramsInPage(
+              token,
               responseDate,
               responseIndex,
               responsePictograms,
@@ -245,7 +251,7 @@ export default function DiaryPage() {
         if (res) loadPage(res);
         else {
           loadPage(getTodayDate().toISOString());
-          companionStore.speak("Guardiamo il tuo diario!");
+          if (!requestID) companionStore.speak("Guardiamo il tuo diario!");
         }
       })
       .catch((err) => {
