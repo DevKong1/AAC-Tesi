@@ -29,6 +29,9 @@ const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
   const companionStore = useCompanionStore();
+  const pictogramStore = usePictogramStore();
+  const diaryStore = useDiaryStore();
+  const bookStore = useBookStore();
 
   const windowHeight = useWindowDimensions().height;
   const clerkPublicKey =
@@ -42,7 +45,10 @@ const RootLayout = () => {
         // Pre-load fonts, make any API calls you need to do here
         // eslint-disable-next-line react-hooks/rules-of-hooks
         await useFonts();
+        await pictogramStore.load();
         await companionStore.load();
+        await diaryStore.load();
+        await bookStore.load();
       } catch (e) {
         console.warn(e);
       } finally {

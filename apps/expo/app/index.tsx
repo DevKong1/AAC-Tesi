@@ -8,7 +8,6 @@ import BottomIcons from "./components/BottomIcons";
 import PictogramCard from "./components/PictogramCard";
 import { getUser } from "./hooks/useBackend";
 import {
-  useApiStore,
   useCompanionStore,
   useDiaryStore,
   usePictogramStore,
@@ -17,7 +16,6 @@ import { parseDiary } from "./utils/backendParsers";
 import { isDeviceLarge } from "./utils/commonFunctions";
 
 const Index = () => {
-  const apiStore = useApiStore();
   const pictogramStore = usePictogramStore();
   const diaryStore = useDiaryStore();
   const companionStore = useCompanionStore();
@@ -25,28 +23,32 @@ const Index = () => {
   const { getToken } = useAuth();
   const router = useRouter();
 
+  // useEffect(() => {
+  //   const loadAll = async () => {
+  //     const token = await getToken();
+  //     if (token) {
+  //       const dbUser = await getUser(token);
+  //       if (!dbUser) {
+  //         Alert.alert("Error connecting to Backend!");
+  //         return;
+  //       }
+  //       diaryStore.load(parseDiary(dbUser.diary));
+  //     }
+  //   };
+
+  //   if (!apiStore.loaded) {
+  //     companionStore.start();
+  //     loadAll();
+  //   }
+
+  //   companionStore.speak(
+  //     user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
+  //     isDeviceLarge() ? "3xl" : "lg",
+  //   );
+  // }, []);
+
   useEffect(() => {
-    const loadAll = async () => {
-      const token = await getToken();
-      if (token) {
-        const dbUser = await getUser(token);
-        if (!dbUser) {
-          Alert.alert("Error connecting to Backend!");
-          return;
-        }
-        diaryStore.load(parseDiary(dbUser.diary));
-      }
-    };
-
-    if (!apiStore.loaded) {
-      companionStore.start();
-      loadAll();
-    }
-
-    companionStore.speak(
-      user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
-      isDeviceLarge() ? "3xl" : "lg",
-    );
+    companionStore.speak("Benvenuto!", isDeviceLarge() ? "3xl" : "lg");
   }, []);
 
   return (
