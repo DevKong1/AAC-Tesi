@@ -103,3 +103,8 @@ export function sortBySimilarity(
   // Return the sorted list of words
   return wordDistances.map((wd) => wd.pictogram);
 }
+
+export const chunk = (arr: Array<any>, size: number) =>
+  Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+    arr.slice(i * size, i * size + size),
+  );

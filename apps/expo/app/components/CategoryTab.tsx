@@ -4,16 +4,17 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { type CategoryType } from "../utils/types/commonTypes";
 
 const CategoryTab: React.FC<{
+  value: string;
   text: string;
   icon: ReactNode;
   isSelected: boolean;
   width: string | number;
   compact: boolean;
-  setCategory: React.Dispatch<React.SetStateAction<string>>;
-}> = ({ text, icon, isSelected, width, setCategory, compact }) => {
+  setCategory?: (category: string) => void;
+}> = ({ value, text, icon, isSelected, width, setCategory, compact }) => {
   return (
     <TouchableOpacity
-      onPress={() => setCategory(text)}
+      onPress={() => (setCategory ? setCategory(value) : null)}
       style={{ width: width }}
       className={`flex h-3/4 flex-col justify-center align-middle lg:pt-5 ${
         isSelected ? "border-default border-b" : ""
@@ -37,18 +38,19 @@ const CategoryTab: React.FC<{
 
 const CategoryTabs: React.FC<{
   categories: CategoryType[];
-  selectedCategory: string;
-  setCategory: React.Dispatch<React.SetStateAction<string>>;
+  selectedCategory?: string; 
+  setCategory?: (category: string) => void;
   compact?: boolean;
 }> = ({ categories, selectedCategory, setCategory, compact = false }) => {
   return (
     <View className="mx-8 flex h-full flex-row content-center justify-center">
-      {categories.map(({ text, icon }) => (
+      {categories.map(({ textARASAAC, text, icon }) => (
         <CategoryTab
+          value={textARASAAC}
           key={text}
           text={text}
           icon={icon}
-          isSelected={selectedCategory == text}
+          isSelected={selectedCategory == textARASAAC}
           width={`${100 / categories.length}%`}
           setCategory={setCategory}
           compact={compact}

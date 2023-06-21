@@ -40,6 +40,7 @@ export type Board = {
 };
 
 export type CategoryType = {
+  textARASAAC: string; //text as in ARASAAC
   text: string;
   icon: ReactNode;
 };
@@ -57,8 +58,9 @@ export type Book = {
   id: string;
   title: string;
   cover: any;
-  pictograms: string[][];
+  pictograms: string[];
   isCustom?: boolean;
+  customPictograms?: CustomPictogram[];
 };
 
 export type DiaryPage = {

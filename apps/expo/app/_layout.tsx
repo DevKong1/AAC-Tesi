@@ -15,6 +15,7 @@ import SignInWithOAuth from "./components/SignInWithOAuth";
 import useFonts from "./hooks/useFonts";
 import {
   useBookStore,
+  useCategoryStore,
   useCompanionStore,
   useDiaryStore,
   usePictogramStore,
@@ -32,6 +33,7 @@ const RootLayout = () => {
   const pictogramStore = usePictogramStore();
   const diaryStore = useDiaryStore();
   const bookStore = useBookStore();
+  const categoryStore = useCategoryStore();
 
   const windowHeight = useWindowDimensions().height;
   const clerkPublicKey =
@@ -46,9 +48,9 @@ const RootLayout = () => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         await useFonts();
         await pictogramStore.load();
-        await companionStore.load();
         await diaryStore.load();
         await bookStore.load();
+        await categoryStore.load();
       } catch (e) {
         console.warn(e);
       } finally {

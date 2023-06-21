@@ -62,11 +62,9 @@ const AddBookModal: React.FC<{
   };
 
   // Contact HuggingFace to get book pictograms and format them to match given columns
-  const parseDocument = async (uri: string, columns: number) => {
+  const parseDocument = async (uri: string) => {
     const response = await getPictogramsFromFile(uri);
-    return response
-      ? formatToMatchColumns(response.pictograms, columns)
-      : undefined;
+    return response;
   };
 
   // Add pictogram
@@ -81,18 +79,16 @@ const AddBookModal: React.FC<{
     }
 
     // Retrieve the pictograms, already formatted
-    const parsedPictograms = await parseDocument(
-      selectedFile,
-      bookStore.readingSettings.columns,
-    );
+    const parsedPictograms = await parseDocument(selectedFile);
 
     if (parsedPictograms) {
       const addedBook = await bookStore.addBook({
         id: randomUUID(),
         title: selectedText,
         cover: selectedImage,
-        pictograms: parsedPictograms,
+        pictograms: parsedPictograms.pictograms,
         isCustom: true,
+        customPictograms: parsedPictograms.customPictograms,
       } as Book);
       addedBook ? close() : Alert.alert("Errore nella creazione del libro.");
     } else Alert.alert("Errore nella creazione del libro.");

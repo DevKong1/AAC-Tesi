@@ -6,8 +6,10 @@ import { create } from "zustand";
 
 import dictionary from "../../assets/dictionaries/Dizionario_it.json";
 import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
+import { allCategories, baseCategories } from "../utils/categories";
 import { sortBySimilarity } from "../utils/commonFunctions";
 import {
+  CategoryType,
   type Book,
   type CustomPictogram,
   type DiaryPage,
@@ -15,10 +17,10 @@ import {
   type ReadingSettings,
 } from "../utils/types/commonTypes";
 
-const companionUri = `${FileSystem.documentDirectory}companion.json`;
 const diaryUri = `${FileSystem.documentDirectory}diary.json`;
 const pictogramUri = `${FileSystem.documentDirectory}pictograms.json`;
 const booksUri = `${FileSystem.documentDirectory}books.json`;
+const categoriesUri = `${FileSystem.documentDirectory}categories.json`;
 
 interface CompanionState {
   isVisible: boolean;
@@ -27,24 +29,22 @@ interface CompanionState {
   bubblePosition: string;
   volumeOn: boolean;
   bubbleOn: boolean;
-  load: () => Promise<void>;
   speak: (
     text: string,
     bubblePosition?: string,
     onBoundary?: (e: any) => void,
     onDone?: () => void,
   ) => Promise<void>;
+  resume: () => void;
+  pause: () => void;
   resetSpeech: () => Promise<void>;
   changeVolume: () => Promise<void>;
-  changeBubble: () => Promise<void>;
+  changeBubble: () => void;
   setPosition: (newPosition: string) => void;
   setVisible: (value: boolean) => void;
+  hideAll: () => void;
+  showAll: () => void;
 }
-
-type CompanionSettings = {
-  volumeOn: boolean;
-  bubbleOn: boolean;
-};
 
 export const useCompanionStore = create<CompanionState>((set, get) => ({
   isVisible: true,
@@ -53,20 +53,11 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
   bubblePosition: "left",
   volumeOn: true,
   bubbleOn: true,
-  load: async () => {
-    const result = (await getJSONOrCreate(companionUri, {
-      volumeOn: get().volumeOn,
-      bubbleOn: get().bubbleOn,
-    })) as CompanionSettings;
-    if (result) set({ volumeOn: result.volumeOn, bubbleOn: result.bubbleOn });
-  },
   resetSpeech: async () => {
-    await Speech.stop();
     set({ currentText: "" });
+    await Speech.stop();
   },
   speak: async (text, bubblePosition?, onBoundary?, onDone?) => {
-    if (!get().isVisible) return;
-
     if (bubblePosition && ["top", "left"].includes(bubblePosition)) {
       set({ bubblePosition: bubblePosition });
     }
@@ -94,20 +85,18 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
       });
     }
   },
+  pause: async () => {
+    await Speech.pause();
+  },
+  resume: async () => {
+    await Speech.resume();
+  },
   changeVolume: async () => {
     await Speech.stop();
     set({ currentText: "", volumeOn: !get().volumeOn });
-    await saveToJSON(companionUri, {
-      volumeOn: get().volumeOn,
-      bubbleOn: get().bubbleOn,
-    });
   },
-  changeBubble: async () => {
+  changeBubble: () => {
     set({ bubbleOn: !get().bubbleOn });
-    await saveToJSON(companionUri, {
-      volumeOn: get().volumeOn,
-      bubbleOn: get().bubbleOn,
-    });
   },
   setPosition: (newPosition) => {
     ["default", "center"].includes(newPosition)
@@ -115,6 +104,8 @@ export const useCompanionStore = create<CompanionState>((set, get) => ({
       : null;
   },
   setVisible: (value) => set({ isVisible: value }),
+  hideAll: () => set({ isVisible: false, bubbleOn: false }),
+  showAll: () => set({ isVisible: true, bubbleOn: true }),
 }));
 
 interface DiaryState {
@@ -353,6 +344,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     return undefined;
   },
   getPictogramFromCustom: (customPictogram) => {
+    if (!customPictogram) return undefined;
     if (customPictogram.oldId) {
       const oldValue = get().pictograms.find(
         (el) => el._id == customPictogram.oldId,
@@ -467,7 +459,7 @@ interface BookState {
 
 export const useBookStore = create<BookState>((set, get) => ({
   customBooks: [],
-  readingSettings: { rows: 3, columns: 4 } as ReadingSettings,
+  readingSettings: { rows: 2, columns: 4 } as ReadingSettings,
   load: async () => {
     const result = await getJSONOrCreate(booksUri, []);
     if (result)
@@ -504,6 +496,91 @@ export const useBookStore = create<BookState>((set, get) => ({
       return true;
     }
     return false;
+  },
+}));
+
+interface CategoryState {
+  currentCategories: CategoryType[];
+  defaultCategory: string | undefined;
+  maxCategories: number;
+  allCategories: CategoryType[];
+  load: () => Promise<void>;
+  save: () => Promise<void>;
+  addCategory: (toAdd: string) => Promise<void>;
+  removeCategory: (toRemove: string) => Promise<void>;
+  setDefault: (text?: string) => Promise<void>;
+}
+
+type SavedCategories = {
+  defaultCategory: string;
+  current: string[];
+};
+
+export const useCategoryStore = create<CategoryState>((set, get) => ({
+  defaultCategory: undefined,
+  currentCategories: baseCategories,
+  maxCategories: 6,
+  allCategories: allCategories,
+  load: async () => {
+    const result = (await getJSONOrCreate(
+      categoriesUri,
+      baseCategories.map((el) => el.textARASAAC),
+    )) as SavedCategories;
+    if (result) {
+      set({
+        defaultCategory: result.defaultCategory,
+        currentCategories: result.current
+          .map((savedARASAAC) =>
+            get().allCategories.find((el) => el.textARASAAC == savedARASAAC),
+          )
+          .filter((el) => el) as CategoryType[],
+      });
+    }
+  },
+  save: async () => {
+    await saveToJSON(categoriesUri, {
+      defaultCategory: get().defaultCategory,
+      current: get().currentCategories.map((el) => el.textARASAAC),
+    } as SavedCategories);
+  },
+  addCategory: async (toAdd) => {
+    const category = get().allCategories.find((el) => el.textARASAAC === toAdd);
+    if (
+      !category ||
+      get().currentCategories.length >= get().maxCategories ||
+      get().currentCategories.find((el) => el.textARASAAC == toAdd)
+    )
+      return;
+    set((state) => ({
+      currentCategories: [...state.currentCategories, category],
+    }));
+    await get().save();
+  },
+  removeCategory: async (toRemove) => {
+    const index = get().currentCategories.findIndex(
+      (el) => el.textARASAAC === toRemove,
+    );
+    if (index === -1 || get().currentCategories.length <= 1) return;
+    set((state) => ({
+      currentCategories: [
+        ...state.currentCategories.slice(0, index),
+        ...state.currentCategories.slice(index + 1),
+      ],
+    }));
+    await get().save();
+  },
+  setDefault: async (text) => {
+    if (!text) {
+      set({ defaultCategory: undefined });
+      await get().save();
+      return;
+    }
+    const index = get().allCategories.findIndex(
+      (el) => el.textARASAAC === text,
+    );
+    if (index === -1) return;
+    set({ defaultCategory: get().allCategories[index]!.textARASAAC });
+    await get().save();
   },
 }));
 

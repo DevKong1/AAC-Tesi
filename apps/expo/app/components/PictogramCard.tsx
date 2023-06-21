@@ -9,11 +9,21 @@ const PictogramCard: React.FC<{
   pictogram: Pictogram | undefined;
   text?: string;
   noCaption?: boolean;
+  squared?: boolean;
   bgcolor: string;
   onPress: (...args: any) => void;
   args?: any;
   highlight?: string;
-}> = ({ pictogram, text, noCaption, bgcolor, onPress, args, highlight }) => {
+}> = ({
+  pictogram,
+  text,
+  noCaption,
+  squared,
+  bgcolor,
+  onPress,
+  args,
+  highlight,
+}) => {
   const pictogramStore = usePictogramStore();
 
   const getText = () => {
@@ -36,13 +46,14 @@ const PictogramCard: React.FC<{
       style={[
         shadowStyle.light,
         {
-          borderColor: highlight,
-          backgroundColor: bgcolor,
+          backgroundColor: highlight ? highlight : bgcolor,
         },
       ]}
-      className={`mx-auto flex ${noCaption ? "h-full w-full" : "h-5/6 w-5/6"} ${
-        highlight ? "border-2" : null
-      } flex-col items-center justify-center rounded-[30px]`}
+      className={`flex ${
+        noCaption || squared ? "h-full w-full" : "h-5/6 w-5/6"
+      } flex-col items-center justify-center ${
+        !squared ? "rounded-[30px]" : null
+      }`}
       onPress={() => onPress(args)}
     >
       <View
@@ -62,7 +73,7 @@ const PictogramCard: React.FC<{
       </View>
 
       {!noCaption && (
-        <View className="flex h-[25%] w-[85%] items-center justify-center">
+        <View className="flex h-[25%] w-[85%] items-center justify-start">
           <Text
             numberOfLines={1}
             adjustsFontSizeToFit

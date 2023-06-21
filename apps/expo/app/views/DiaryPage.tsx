@@ -202,13 +202,18 @@ export default function DiaryPage() {
               !diaryStore.getDiaryPage(responseDate) &&
               currentPage.date == responseDate
             ) {
-              if (!(await diaryStore.addDiaryPage(token, currentPage))) {
+              if (
+                !(await diaryStore.addDiaryPage(
+                  //                token,
+                  currentPage,
+                ))
+              ) {
                 console.log("Error adding page");
                 return undefined;
               }
             }
             await diaryStore.addPictogramsToPage(
-              token,
+              //              token,
               responseDate,
               responsePictograms,
             );
@@ -232,7 +237,7 @@ export default function DiaryPage() {
             responseIndex != undefined
           ) {
             const done = await diaryStore.updatePictogramsInPage(
-              token,
+              //              token,
               responseDate,
               responseIndex,
               responsePictograms,

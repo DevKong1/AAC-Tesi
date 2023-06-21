@@ -3,11 +3,12 @@ import { Alert, BackHandler, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useAuth } from "@clerk/clerk-expo";
+//import { useAuth } from "@clerk/clerk-expo";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import AddBookModal from "../components/AddBookModal";
 import BookSelectionModal from "../components/BookSelectionModal";
+import CategorySelection from "../components/CategorySelection";
 import IconButton from "../components/IconButton";
 import MenuCard from "../components/MenuCard";
 import PictogramCard from "../components/PictogramCard";
@@ -38,7 +39,7 @@ export default function SettingsPage() {
   const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   // LOGOUT
-  const { signOut } = useAuth();
+  // const { signOut } = useAuth();
 
   const addPictogram = async (pressed: Pictogram) => {
     if (!(await pictogramStore.addFavourite(pressed._id)))
@@ -83,6 +84,12 @@ export default function SettingsPage() {
 
   const selectedTab = () => {
     switch (selectedMenu) {
+      case "Categorie":
+        return (
+          <View className="flex h-full w-full flex-col items-center justify-start">
+            <CategorySelection />
+          </View>
+        );
       case "Libri":
         return (
           <View className="flex h-full w-full flex-col items-center justify-start pt-4">
@@ -177,7 +184,7 @@ export default function SettingsPage() {
             </View>
           </View>
         );
-      case "Personalizza Pittogrammi":
+      case "Pittogrammi":
         return (
           <View className="flex h-full w-full flex-col items-center justify-start pt-4">
             <PictogramCustomizationModal
@@ -212,9 +219,9 @@ export default function SettingsPage() {
         );
       default:
         return (
-          <View className="justify-centerr h-full w-full flex-col items-center">
+          <View className="justify-centerr h-full w-full flex-col items-center pt-6">
             <View className="flex h-[70%] w-full flex-row items-start justify-center">
-              <View className="flex h-[90%] w-[25%]">
+              <View className="flex h-[90%] w-[20%]">
                 <MenuCard
                   text="Preferiti"
                   bgcolor="#FFFFCA"
@@ -223,18 +230,18 @@ export default function SettingsPage() {
                 />
               </View>
               <View className="w-6" />
-              <View className="flex h-[90%] w-[25%]">
+              <View className="flex h-[90%] w-[20%]">
                 <MenuCard
-                  text="Personalizza Pittogrammi"
+                  text="Pittogrammi"
                   bgcolor="#C6D7F9"
                   icon={
                     <MaterialIcons name="create" size={90} color="#5C5C5C" />
                   }
-                  onPress={() => setMenu("Personalizza Pittogrammi")}
+                  onPress={() => setMenu("Pittogrammi")}
                 />
               </View>
               <View className="w-6" />
-              <View className="flex h-[90%] w-[25%]">
+              <View className="flex h-[90%] w-[20%]">
                 <MenuCard
                   text="Libri"
                   bgcolor="#B9D2C3"
@@ -242,6 +249,17 @@ export default function SettingsPage() {
                     <MaterialIcons name="menu-book" size={90} color="#5C5C5C" />
                   }
                   onPress={() => setMenu("Libri")}
+                />
+              </View>
+              <View className="w-6" />
+              <View className="flex h-[90%] w-[20%]">
+                <MenuCard
+                  text="Categorie"
+                  bgcolor="#e8b7cf"
+                  icon={
+                    <MaterialIcons name="category" size={90} color="#5C5C5C" />
+                  }
+                  onPress={() => setMenu("Categorie")}
                 />
               </View>
             </View>
@@ -267,12 +285,12 @@ export default function SettingsPage() {
   return (
     <SafeAreaView>
       <View className="flex h-full w-full flex-col">
-        <View className="flex h-[15%] items-center justify-center text-center">
+        <View className="flex h-[10%] items-center justify-center text-center">
           <Text className="text-default text-center text-lg font-semibold lg:text-4xl">
             {selectedMenu}
           </Text>
         </View>
-        <View className="flex h-[85%] items-center justify-center">
+        <View className="flex h-[90%] items-center justify-center">
           {selectedTab()}
         </View>
       </View>

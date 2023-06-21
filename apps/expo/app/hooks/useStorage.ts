@@ -23,6 +23,7 @@ export const getJSONOrCreate = async (file: string, data: any) => {
     if (!fileInfo.exists) {
       console.log(`${file}: File doesnt exist, creating...`);
       await saveToJSON(file, data);
+      return undefined;
     } else {
       const result = await FileSystem.readAsStringAsync(file);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BackHandler, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Audio } from "expo-av";
 import { randomUUID } from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
@@ -20,6 +21,9 @@ export default function WhatsItPage() {
 
   const { category } = useLocalSearchParams();
 
+  const successSound = require("../../assets/success.mp3");
+  const failureSound = require("../../assets/failure.mp3");
+  const [sound, setSound] = useState(undefined as Audio.Sound | undefined);
   const [game, setGame] = useState({
     pictograms: [] as string[],
   } as WhatsItGameProperties);
@@ -41,11 +45,30 @@ export default function WhatsItPage() {
     // Set state with the result or Dummy Game
     setGame(newGame);
 
-    companionStore.setPosition("center");
     companionStore.speak(newGame.text, "top");
   };
 
+  const playSound = async (success: boolean) => {
+    const { sound } = await Audio.Sound.createAsync(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      success ? successSound : failureSound,
+    );
+    setSound(sound);
+    await sound.playAsync();
+  };
+
+  const playerGuess = async (guess: string) => {
+    companionStore.speak(
+      guess == game.answer
+        ? "Yaaay!\nHai indovinato!"
+        : "Purtroppo hai sbagliato!",
+    );
+    setGuess(guess);
+    await playSound(guess == game.answer);
+  };
+
   useEffect(() => {
+    companionStore.hideAll();
     // In case of reload
     if (!guess) generateGame().catch((err) => console.log(err));
   }, []);
@@ -55,7 +78,7 @@ export default function WhatsItPage() {
       "hardwareBackPress",
       () => {
         companionStore.resetSpeech();
-        companionStore.setPosition("default");
+        companionStore.showAll();
         router.back();
         return true;
       },
@@ -64,18 +87,16 @@ export default function WhatsItPage() {
     return () => backHandler.remove();
   }, []);
 
-  const playerGuess = (guess: string) => {
-    companionStore.setPosition("default");
-    companionStore.speak(
-      guess == game.answer
-        ? "Yaaay!\nHai indovinato!"
-        : "Purtroppo non era la risposta giusta!",
-    );
-    setGuess(guess);
-  };
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
 
   // Error Screen
-  if (game.pictograms.length != 6) {
+  if (game.pictograms.length != 4) {
     return (
       <SafeAreaView>
         <Spinner />
@@ -91,28 +112,34 @@ export default function WhatsItPage() {
         <View className="flex h-[40%] w-full flex-row justify-center">
           <View
             style={shadowStyle.light}
-            className="h-full w-1/2 border border-transparent"
+            className="h-full w-1/3 border border-transparent"
           >
             <Image
               style={{
                 backgroundColor: "white",
-                resizeMode: "contain",
+                resizeMode: "cover",
               }}
               className="h-full w-full"
               source={game.picture}
               alt="Immagine usata nel quiz"
             />
           </View>
-          <View className="flex h-full w-1/4 flex-col items-center justify-center">
-            <Text className="text-default text-base font-semibold lg:text-2xl">
-              Risposta:
-            </Text>
-            <PictogramCard
-              pictogram={pictogramStore.getPictogram(game.answer)}
-              bgcolor="#C6D7F9"
-              onPress={() => null}
-            />
-          </View>
+          {guess != game.answer && (
+            <View className="ml-6 flex h-full w-1/4 flex-col content-center justify-center">
+              <View className="flex h-[20%] w-full items-center justify-center">
+                <Text className="text-default text-base font-semibold lg:text-2xl">
+                  Risposta:
+                </Text>
+              </View>
+              <View className="flex h-[80%] w-full content-center items-center justify-center">
+                <PictogramCard
+                  pictogram={pictogramStore.getPictogram(game.answer)}
+                  bgcolor="#C6D7F9"
+                  onPress={() => null}
+                />
+              </View>
+            </View>
+          )}
         </View>
         <View className=" flex h-[60%] w-full flex-col justify-center pb-4 lg:pb-16">
           <View className="flex h-1/4 w-full items-center justify-center">
@@ -140,7 +167,8 @@ export default function WhatsItPage() {
                 text="Esci"
                 bgcolor="#F69898"
                 onPress={() => {
-                  companionStore.setPosition("default");
+                  companionStore.resetSpeech();
+                  companionStore.showAll();
                   router.back();
                 }}
               />
@@ -160,10 +188,36 @@ export default function WhatsItPage() {
           Indovina cosa c&apos;è nell&apos;immagine!
         </Text>
       </View>
-      <View className="flex h-[88%] w-full flex-col justify-center">
-        <View className="flex h-1/2 w-full flex-row">
+      <View className="flex h-[88%] w-full flex-col content-center items-center justify-center">
+        <View className="flex h-1/2 w-full content-center items-center justify-center pb-6 lg:pb-24">
+          <View
+            style={shadowStyle.light}
+            className="flex h-full w-1/3 content-center justify-center border border-transparent"
+          >
+            <Image
+              style={{
+                backgroundColor: "white",
+                resizeMode: "cover",
+              }}
+              className="h-full w-full"
+              source={
+                game.isGenerated
+                  ? {
+                      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+                      uri: "data:image/jpeg;base64," + game.picture,
+                    }
+                  : game.picture
+              }
+              alt="Immagine del quiz"
+            />
+          </View>
+        </View>
+        <View className="flex h-1/2 w-full flex-row content-center justify-center">
           {game.pictograms.slice(0, 4).map((pic) => (
-            <View className="m-auto h-[90%] w-1/4" key={`row1_${pic}`}>
+            <View
+              className="flex h-[90%] w-1/4 flex-row content-center justify-center"
+              key={`row1_${pic} `}
+            >
               <PictogramCard
                 pictogram={pictogramStore.getPictogram(pic)}
                 bgcolor="#C6D7F9"
@@ -172,48 +226,6 @@ export default function WhatsItPage() {
               />
             </View>
           ))}
-        </View>
-        <View className="flex h-1/2 w-full flex-row justify-center">
-          <View className="flex h-full w-1/4 items-start">
-            <PictogramCard
-              pictogram={pictogramStore.getPictogram(game.pictograms[4]!)}
-              bgcolor="#C6D7F9"
-              onPress={playerGuess}
-              args={game.pictograms[4]!}
-            />
-          </View>
-          <View className=" flex w-1/2 items-center justify-center pb-6 lg:pb-24">
-            <View
-              style={shadowStyle.light}
-              className="h-full w-5/6 border border-transparent lg:w-full"
-            >
-              <Image
-                style={{
-                  backgroundColor: "white",
-                  resizeMode: "contain",
-                }}
-                className="h-full w-full"
-                // JUST FOR DEVELOPMENT
-                source={
-                  game.isGenerated
-                    ? {
-                        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-                        uri: "data:image/jpeg;base64," + game.picture,
-                      }
-                    : game.picture
-                }
-                alt="Immagine del quiz"
-              />
-            </View>
-          </View>
-          <View className="h-full w-1/4">
-            <PictogramCard
-              pictogram={pictogramStore.getPictogram(game.pictograms[5]!)}
-              bgcolor="#C6D7F9"
-              onPress={playerGuess}
-              args={game.pictograms[5]!}
-            />
-          </View>
         </View>
       </View>
     </SafeAreaView>

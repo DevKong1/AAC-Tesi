@@ -48,6 +48,7 @@ importers:
       eslint-config-acme: 0.0.0
       expo: ^48.0.4
       expo-auth-session: ^4.0.3
+      expo-av: ^13.2.1
       expo-cli: ^6.3.2
       expo-crypto: ^12.2.1
       expo-document-picker: ~11.2.2
@@ -94,6 +95,7 @@ importers:
       eas-cli: 3.13.3
       expo: 48.0.4_@babel+core@7.20.12
       expo-auth-session: 4.0.3_expo@48.0.4
+      expo-av: 13.2.1_expo@48.0.4
       expo-cli: 6.3.2_expo@48.0.4
       expo-crypto: 12.2.1_expo@48.0.4
       expo-document-picker: 11.2.2_expo@48.0.4
@@ -7110,6 +7112,14 @@ packages:
     transitivePeerDependencies:
       - expo
       - supports-color
+    dev: false
+
+  /expo-av/13.2.1_expo@48.0.4:
+    resolution: {integrity: sha512-mC0mYSzaOaZgXjzhW2l4Ag325JjH6q5IbptfwD7gkMOFYy7VPOMxEMUnetadbs3DDzmgE6vUWrTjUIUbwq59qg==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 48.0.4_@babel+core@7.20.12
     dev: false
 
   /expo-cli/6.3.2_expo@48.0.4:

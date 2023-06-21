@@ -3,12 +3,15 @@ import { HUGGINGFACE_BEARER } from "@env";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 
+import { type CustomPictogram } from "../utils/types/commonTypes";
+
 const huggingfaceBearer = Constants.expoConfig?.extra?.huggingfaceBearer
   ? Constants.expoConfig?.extra?.huggingfaceBearer
   : HUGGINGFACE_BEARER;
 
 export interface ParsedFileResponse {
   pictograms: string[];
+  customPictograms: CustomPictogram[];
 }
 
 export interface GeneratedWhatsItGameResponse {

@@ -7,10 +7,10 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   version: "1.0.0",
   scheme: "https",
   orientation: "landscape",
-  icon: "./assets/icon.png",
+  icon: "./assets/logo.png",
   userInterfaceStyle: "light",
   splash: {
-    image: "./assets/icon.png",
+    image: "./assets/logo.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
@@ -28,7 +28,7 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   android: {
     package: "com.unibo.pictoai",
     adaptiveIcon: {
-      foregroundImage: "./assets/icon.png",
+      foregroundImage: "./assets/logo.png",
       backgroundColor: "#ffffff",
     },
     allowBackup: true,

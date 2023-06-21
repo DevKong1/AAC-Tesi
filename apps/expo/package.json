@@ -28,6 +28,7 @@
     "eas-cli": "^3.13.3",
     "expo": "^48.0.4",
     "expo-auth-session": "^4.0.3",
+    "expo-av": "^13.2.1",
     "expo-cli": "^6.3.2",
     "expo-crypto": "^12.2.1",
     "expo-document-picker": "~11.2.2",

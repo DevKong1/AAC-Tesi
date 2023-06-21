@@ -20,7 +20,7 @@ const Companion: React.FC = () => {
       }`}
     >
       {/* Bubble */}
-      {text !== "" && companionStore.bubbleOn && (
+      {isVisible && text !== "" && companionStore.bubbleOn && (
         <View
           pointerEvents="none"
           style={shadowStyle.chatBubble}
