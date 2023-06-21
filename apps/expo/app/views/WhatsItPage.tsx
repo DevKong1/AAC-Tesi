@@ -133,6 +133,7 @@ export default function WhatsItPage() {
               </View>
               <View className="flex h-[80%] w-full content-center items-center justify-center">
                 <PictogramCard
+                radius={30}
                   pictogram={pictogramStore.getPictogram(game.answer)}
                   bgcolor="#C6D7F9"
                   onPress={() => null}
@@ -152,6 +153,7 @@ export default function WhatsItPage() {
           <View className=" flex h-3/4 w-full flex-row items-center justify-center">
             <View className="flex h-full w-1/4 items-center justify-center">
               <PictogramCard
+                radius={30}
                 pictogram={pictogramStore.getPictogram("37162")}
                 text="Gioca ancora"
                 bgcolor="#FFFFCA"
@@ -163,6 +165,7 @@ export default function WhatsItPage() {
             </View>
             <View className="flex h-full w-1/4 items-center justify-center">
               <PictogramCard
+                radius={30}
                 pictogram={pictogramStore.getPictogram("2806")}
                 text="Esci"
                 bgcolor="#F69898"
@@ -219,6 +222,7 @@ export default function WhatsItPage() {
               key={`row1_${pic} `}
             >
               <PictogramCard
+                radius={30}
                 pictogram={pictogramStore.getPictogram(pic)}
                 bgcolor="#C6D7F9"
                 onPress={playerGuess}

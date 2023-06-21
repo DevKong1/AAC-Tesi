@@ -7,8 +7,9 @@ const MenuCard: React.FC<{
   text: string;
   icon: ReactNode;
   bgcolor: string;
+  squared?: boolean;
   onPress: () => void;
-}> = ({ text, icon, bgcolor, onPress }) => {
+}> = ({ text, icon, bgcolor, squared, onPress }) => {
   return (
     <TouchableOpacity
       style={[
@@ -17,7 +18,9 @@ const MenuCard: React.FC<{
           backgroundColor: bgcolor,
         },
       ]}
-      className="flex h-full w-full flex-col items-center justify-center rounded-[30px]"
+      className={`flex h-full w-full flex-col items-center justify-center ${
+        !squared ? null : "rounded-[30px]"
+      }`}
       onPress={onPress}
     >
       <View className="flex h-[70%] w-full items-center justify-center">

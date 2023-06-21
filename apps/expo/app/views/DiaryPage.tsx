@@ -340,6 +340,7 @@ export default function DiaryPage() {
           >
             <View className="h-16 w-[5%] flex-col pb-2 pl-2">
               <PictogramCard
+                radius={30}
                 noCaption
                 pictogram={pictogramStore.getPictogram("36257")}
                 bgcolor="#f2b30a"
@@ -356,6 +357,7 @@ export default function DiaryPage() {
                       className="h-full flex-col"
                     >
                       <PictogramCard
+                radius={30}
                         pictogram={pictogramStore.getPictogram(col)}
                         bgcolor={"#B9D2C3"}
                         highlight={
@@ -373,6 +375,7 @@ export default function DiaryPage() {
             </View>
             <View className="h-16 w-[5%] flex-col pb-2 pr-2">
               <PictogramCard
+                radius={30}
                 pictogram={pictogramStore.getPictogram("37360")}
                 noCaption={true}
                 bgcolor="#E49691"
@@ -388,6 +391,7 @@ export default function DiaryPage() {
             }`}
           >
             <PictogramCard
+                radius={30}
               pictogram={pictogramStore.getPictogram("38218")}
               noCaption={true}
               bgcolor="#89BF93"

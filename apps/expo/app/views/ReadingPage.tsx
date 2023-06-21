@@ -199,6 +199,7 @@ export default function ReadingPage() {
                     className="flex h-full items-center justify-center"
                   >
                     <PictogramCard
+                radius={30}
                       pictogram={getPictogramOrCustom(col)}
                       bgcolor={"#B9D2C3"}
                       highlight={
@@ -217,6 +218,7 @@ export default function ReadingPage() {
             <View className="h-full w-1/3 items-center justify-center">
               <View className="h-2/3 w-1/2">
                 <PictogramCard
+                radius={30}
                   noCaption
                   pictogram={pictogramStore.getPictogram(
                     !paused && readIndex !== undefined ? "38213" : "36257",

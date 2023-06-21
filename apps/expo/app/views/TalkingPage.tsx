@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { BackHandler, Dimensions, Text, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import Carousel, {
   type ICarouselInstance,
 } from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
-import BottomIcons from "../components/BottomIcons";
 import CategoryTabs from "../components/CategoryTab";
+import IconButton from "../components/IconButton";
 import PictogramCard from "../components/PictogramCard";
 import PictogramSearchModal from "../components/PictogramSearchModal";
 import Spinner from "../components/Spinner";
@@ -18,6 +20,7 @@ import {
   useInputStore,
   usePictogramStore,
 } from "../store/store";
+import { chunk } from "../utils/commonFunctions";
 import { dummyPredictedPictograms } from "../utils/dummyResponses";
 import { type Pictogram, type diaryReqArgs } from "../utils/types/commonTypes";
 
@@ -43,6 +46,7 @@ export default function TalkingPage() {
   const [readIndex, setReadIndex] = useState(undefined as number | undefined);
 
   const addPictogram = (pressed: Pictogram) => {
+    resetSpeech();
     const text = pictogramStore.getTextFromPictogram(pressed);
     if (text) companionStore.speak(text);
     selectPictograms((old) => [...old, pressed._id]);
@@ -56,6 +60,7 @@ export default function TalkingPage() {
   };
 
   const removePictogram = (index: number) => {
+    resetSpeech();
     const current = r.current!.getCurrentIndex();
     selectPictograms((old) => [
       ...old.slice(0, index),
@@ -183,6 +188,7 @@ export default function TalkingPage() {
               scrollAnimationDuration={1000}
               renderItem={(el) => (
                 <PictogramCard
+                  radius={10}
                   pictogram={pictogramStore.getPictogram(el.item)}
                   bgcolor="#C6D7F9"
                   onPress={removePictogram}
@@ -198,7 +204,7 @@ export default function TalkingPage() {
           </Text>
         )}
       </View>
-      <View className="flex h-[12%] w-full">
+      <View className="flex h-[15%] w-full">
         <CategoryTabs
           selectedCategory={selectedCategory}
           categories={categoryStore.currentCategories}
@@ -206,88 +212,94 @@ export default function TalkingPage() {
           compact
         />
       </View>
-      <View className="flex h-[50%] w-full flex-row">
-        <View className="flex h-full w-[10%] items-center justify-center">
-          <View className="flex h-3/4 w-2/3 lg:mb-20 lg:h-1/2">
-            <PictogramCard
+      <View className="flex h-[62%] w-full flex-row items-center justify-center">
+        <View className="flex h-full w-[6%] items-center justify-center">
+          <View className="flex h-full w-full">
+            <IconButton
               squared
-              pictogram={pictogramStore.getPictogram("5596")}
-              noCaption={true}
-              bgcolor="#A3B0B4"
+              full
+              icon={<Ionicons name="search" size={32} color="white" />}
+              color="#A3B0B4"
               onPress={listView}
             />
           </View>
         </View>
-        <View className="flex h-full w-[80%]">
-          {pictograms.length == 8 ? (
-            <View className="flex h-full w-full">
-              <View className="flex h-[50%] w-full flex-row">
-                {pictograms.slice(0, 4).map((el, i) => (
-                  <View key={`row1_${i}`} className="flex h-full w-1/4">
-                    <PictogramCard
-                      squared
-                      pictogram={pictogramStore.getPictogram(el)}
-                      bgcolor="#C6D7F9"
-                      onPress={addPictogram}
-                      args={pictogramStore.getPictogram(el)}
-                    />
+        {pictograms.length > 0 ? (
+          <ScrollView
+            horizontal
+            pagingEnabled
+            className="flex h-full w-[84%] flex-row"
+          >
+            {(chunk(pictograms, 8) as string[][]).map(
+              (wholeScreenPictograms, page) => (
+                <View
+                  style={{ width: width * 0.84 }}
+                  className="flex h-full flex-col"
+                  key={page}
+                >
+                  <View className="flex h-[50%] w-full flex-row">
+                    {wholeScreenPictograms.slice(0, 4).map((el, i) => (
+                      <View
+                        key={`page${page}_${i}`}
+                        className="flex h-full w-1/4"
+                      >
+                        <PictogramCard
+                          full
+                          pictogram={pictogramStore.getPictogram(el)}
+                          bgcolor="#C6D7F9"
+                          onPress={addPictogram}
+                          args={pictogramStore.getPictogram(el)}
+                        />
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
-              <View className="flex h-[50%] w-full flex-row">
-                {pictograms.slice(4, 8).map((el, i) => (
-                  <View key={`row2_${i}`} className="flex h-full w-1/4">
-                    <PictogramCard
-                      squared
-                      pictogram={pictogramStore.getPictogram(el)}
-                      bgcolor="#C6D7F9"
-                      onPress={addPictogram}
-                      args={pictogramStore.getPictogram(el)}
-                    />
+                  <View className="flex h-[50%] w-full flex-row">
+                    {wholeScreenPictograms.slice(4, 8).map((el, i) => (
+                      <View key={`row2_${i}`} className="flex h-full w-1/4">
+                        <PictogramCard
+                          full
+                          pictogram={pictogramStore.getPictogram(el)}
+                          bgcolor="#C6D7F9"
+                          onPress={addPictogram}
+                          args={pictogramStore.getPictogram(el)}
+                        />
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
-            </View>
-          ) : (
+                </View>
+              ),
+            )}
+          </ScrollView>
+        ) : (
+          <View className="h-full w-[80%] flex-row content-center items-center justify-center">
             <Spinner />
-          )}
-        </View>
-      </View>
-      <View className=" flex h-[10%] w-full flex-row items-center justify-center">
-        {inputID && (
-          <View className="flex h-full w-1/6 items-center justify-center">
-            <PictogramCard
-              squared
-              pictogram={pictogramStore.getPictogram("38221")}
-              noCaption={true}
-              bgcolor="#FFFFCA"
-              onPress={submitInput}
-            />
           </View>
         )}
-        {inputID && <View className="w-8" />}
-        <View className="flex h-full w-1/6 items-center justify-center">
-          <PictogramCard
-            squared
-            pictogram={pictogramStore.getPictogram("36257")}
-            noCaption={true}
-            bgcolor="#89BF93"
-            onPress={readAll}
-          />
-        </View>
-        <View className="w-8" />
-        <View className="flex h-full w-1/6 items-center justify-center">
-          <PictogramCard
-            squared
-            pictogram={pictogramStore.getPictogram("38201")}
-            noCaption={true}
-            bgcolor="#f05252"
-            onPress={() => {
-              resetSpeech();
-              selectPictograms([]);
-              loadPictograms();
-            }}
-          />
+        <View className="flex h-[50%] w-[10%] flex-col items-center justify-center">
+          <View className="flex h-full w-full items-center justify-center">
+            <PictogramCard
+              full
+              pictogram={pictogramStore.getPictogram(
+                inputID ? "38221" : "36257",
+              )}
+              noCaption={true}
+              bgcolor="#89BF93"
+              onPress={inputID ? submitInput : readAll}
+            />
+          </View>
+          <View className="flex h-full w-full items-center justify-center">
+            <PictogramCard
+              full
+              pictogram={pictogramStore.getPictogram("38201")}
+              noCaption={true}
+              bgcolor="#f05252"
+              onPress={() => {
+                resetSpeech();
+                selectPictograms([]);
+                loadPictograms();
+              }}
+            />
+          </View>
         </View>
       </View>
     </SafeAreaView>

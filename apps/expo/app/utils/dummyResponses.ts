@@ -76,6 +76,14 @@ export const dummyPredictedPictograms = [
   "7764",
   "31859",
   "36480",
+  "5431",
+  "8025",
+  "8022",
+  "27794",
+  "34669",
+  "36926",
+  "2239",
+  "2244",
 ];
 
 export const dummyGame = {

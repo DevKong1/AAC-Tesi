@@ -74,6 +74,7 @@ export default function GamesPage() {
             <View className="flex h-2/3 w-full flex-col items-center justify-center">
               <View className="h-4/5 w-1/5 items-center justify-center">
                 <PictogramCard
+                radius={30}
                   pictogram={pictogramStore.getPictogram("5431")}
                   bgcolor="#89BF93"
                   onPress={() =>
@@ -94,6 +95,7 @@ export default function GamesPage() {
           <View className="mx-auto flex h-4/5 flex-row items-center justify-center">
             <View className="flex h-4/5 w-1/4">
               <PictogramCard
+                radius={30}
                 pictogram={pictogramStore.getPictogram("2680")}
                 bgcolor="#C6D7F9"
                 text="Che cos’è??"
