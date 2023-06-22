@@ -8,7 +8,6 @@ import { useAuth } from "@clerk/clerk-expo";
 import { MaterialIcons } from "@expo/vector-icons";
 import moment from "moment";
 
-import BottomIcons from "../components/BottomIcons";
 import PictogramCard from "../components/PictogramCard";
 import Spinner from "../components/Spinner";
 import {
@@ -17,7 +16,7 @@ import {
   useInputStore,
   usePictogramStore,
 } from "../store/store";
-import { formatToMatchColumns, isDeviceLarge } from "../utils/commonFunctions";
+import { chunk, isDeviceLarge } from "../utils/commonFunctions";
 import { shadowStyle } from "../utils/shadowStyle";
 import { type DiaryPage, type diaryReqArgs } from "../utils/types/commonTypes";
 
@@ -33,8 +32,9 @@ export default function DiaryPage() {
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
   const [readEntryIndex, setReadEntryIndex] = useState(
     undefined as number | undefined,
-  );
-  const [readIndex, setReadIndex] = useState(undefined as number | undefined);
+  ); // Currently read entry in page
+  const [readIndex, setReadIndex] = useState(undefined as number | undefined); // Currently read index in entry
+  const [readingOne, setReadOne] = useState(false); // Used to prevent useEffect from reading the next pictograms
 
   const iconSize = isDeviceLarge() ? 90 : 42;
   const iconColor = "#5C5C5C";
@@ -56,6 +56,7 @@ export default function DiaryPage() {
     return currentDate;
   };
 
+  // Loads current page
   const loadPage = (date: string) => {
     let loadedPage = diaryStore.getDiaryPage(date);
     if (!loadedPage) {
@@ -67,48 +68,33 @@ export default function DiaryPage() {
     setPage(loadedPage);
   };
 
-  const resetSpeech = () => {
-    companionStore.resetSpeech();
+  // Stops the speech and resets all states
+  const resetSpeech = async () => {
+    await companionStore.resetSpeech();
+    setReadOne(false);
     setReadEntryIndex(undefined);
     setReadIndex(undefined);
   };
 
-  // Used to recursively read all pictograms while updating state
-  const recursiveRead = (i: number, page: string[]) => {
-    if (i >= page.length) {
-      resetSpeech();
-      return;
-    }
-    setReadIndex(i);
-    const currentPictogram = pictogramStore.getPictogram(page[i]!);
-    const currentText = currentPictogram
-      ? pictogramStore.getTextFromPictogram(currentPictogram)
-      : undefined;
-    if (currentText)
-      companionStore.speak(currentText, undefined, undefined, () => {
-        recursiveRead(i + 1, page);
-      });
+  // Sets states so that one pictogram is read
+  const readOne = async (entryIndex: number, index: number) => {
+    await resetSpeech();
+    setReadOne(true);
+    setReadEntryIndex(entryIndex);
+    setReadIndex(index);
   };
 
-  const readOne = (id: string) => {
-    resetSpeech();
-    const pictogram = pictogramStore.getPictogram(id);
-    const text = pictogram
-      ? pictogramStore.getTextFromPictogram(pictogram)
-      : undefined;
-    if (text) companionStore.speak(text);
+  // Sets states so that an entry is read
+  const readEntry = async (entryI: number) => {
+    await resetSpeech();
+    setReadEntryIndex(entryI);
+    setReadIndex(0);
   };
 
-  const readEntry = (entryI: number, entry: string[]) => {
-    if (entry.length > 0) {
-      setReadEntryIndex(entryI);
-      recursiveRead(0, entry);
-    }
-  };
-
-  const modifyEntry = (index: number) => {
+  // Routes to TalkingPage, setting the InputState so that we can retrieve the response
+  const modifyEntry = async (index: number) => {
     if (currentPage) {
-      resetSpeech();
+      await resetSpeech();
       const id = randomUUID() as string;
       setReqId(id);
       inputStore.inputRequest(id, "modifyEntry", {
@@ -125,9 +111,10 @@ export default function DiaryPage() {
     }
   };
 
-  const goPreviousDay = () => {
+  // Gets the previous day page, if not present create a new one (but not save till one entry is added)
+  const goPreviousDay = async () => {
     if (!currentPage) return;
-    resetSpeech();
+    await resetSpeech();
     const previousDayString = moment(currentPage.date)
       .subtract(1, "day")
       .toDate()
@@ -143,9 +130,10 @@ export default function DiaryPage() {
     );
   };
 
-  const goNextDay = () => {
+  // Gets the next day page, if not present create a new one (but not save till one entry is added)
+  const goNextDay = async () => {
     if (!currentPage) return;
-    resetSpeech();
+    await resetSpeech();
     const nextDayString = moment(currentPage.date)
       .add(1, "day")
       .toDate()
@@ -161,7 +149,8 @@ export default function DiaryPage() {
     );
   };
 
-  function addParagraph(): void {
+  // Adds an entry to the current page
+  function addEntry(): void {
     if (currentPage) {
       const id = randomUUID() as string;
       setReqId(id);
@@ -251,6 +240,7 @@ export default function DiaryPage() {
       }
     };
 
+    companionStore.hideAll();
     checkForInput()
       .then((res) => {
         if (res) loadPage(res);
@@ -264,11 +254,48 @@ export default function DiaryPage() {
       });
   }, [inputStore.requestCompleted]);
 
+  // Read pictograms
+  useEffect(() => {
+    (async () => {
+      if (
+        readIndex === undefined ||
+        readEntryIndex === undefined ||
+        currentPage === undefined
+      )
+        return;
+      const currentEntry = currentPage.pictograms[readEntryIndex];
+      if (currentEntry === undefined) return;
+      if (readIndex >= currentEntry.length) {
+        await resetSpeech();
+        return;
+      }
+      const currentId = currentEntry[readIndex];
+      const currentPictogram = currentId
+        ? pictogramStore.getPictogram(currentId)
+        : undefined;
+      const currentText = currentPictogram
+        ? pictogramStore.getTextFromPictogram(currentPictogram)
+        : undefined;
+      if (currentText)
+        await companionStore.speak(
+          currentText,
+          undefined,
+          undefined,
+          async () => {
+            if (readingOne) await resetSpeech();
+            else setReadIndex(readIndex + 1);
+          },
+        );
+    })();
+  }, [readIndex, readEntryIndex, currentPage]);
+
+  // Show back the companion and stop speech
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
         resetSpeech();
+        companionStore.showAll();
         router.back();
 
         return true;
@@ -289,7 +316,7 @@ export default function DiaryPage() {
     <SafeAreaView className="h-full w-full flex-col">
       <View
         style={shadowStyle.heavy}
-        className="bg-purpleCard mb-3 flex h-[15%] w-full flex-row items-center justify-center rounded-xl"
+        className="bg-purpleCard flex h-[15%] w-full flex-row items-center justify-center"
       >
         <View className="flex h-full w-[8%] items-start justify-center">
           {getCurrentPageDate() && getCurrentPageDate()! < getTodayDate() && (
@@ -325,82 +352,95 @@ export default function DiaryPage() {
           </TouchableOpacity>
         </View>
       </View>
-      {currentPage.pictograms.length <= 0 && (
-        <View className="flex h-[50%] w-full items-center justify-center">
-          <Text className="text-default text-base font-semibold lg:text-3xl">
-            Aggiungi qualcosa col pulsante sotto...
-          </Text>
-        </View>
-      )}
-      <ScrollView className="flex h-[85%] w-full">
-        {currentPage.pictograms.map((diaryEntry, i) => (
-          <View
-            key={`entry_${i}`}
-            className="flex w-full flex-row items-center justify-start pb-4"
-          >
-            <View className="h-16 w-[5%] flex-col pb-2 pl-2">
-              <PictogramCard
-                radius={30}
-                noCaption
-                pictogram={pictogramStore.getPictogram("36257")}
-                bgcolor="#f2b30a"
-                onPress={() => readEntry(i, diaryEntry)}
-              />
-            </View>
-            <View className="w-[90%] flex-col">
-              {formatToMatchColumns(diaryEntry, columns).map((row, rowI) => (
-                <View key={`row${rowI}`} className="h-16 w-full flex-row">
-                  {row.map((col, colI) => (
-                    <View
-                      key={`row_${rowI}_col_${colI}`}
-                      style={{ width: `${(100 / columns).toFixed(0)}%` }}
-                      className="h-full flex-col"
-                    >
-                      <PictogramCard
-                radius={30}
-                        pictogram={pictogramStore.getPictogram(col)}
-                        bgcolor={"#B9D2C3"}
-                        highlight={
-                          readEntryIndex == i &&
-                          readIndex == rowI * columns + colI
-                            ? "#15d0f1b4"
-                            : undefined
-                        }
-                        onPress={() => readOne(col)}
-                      />
-                    </View>
-                  ))}
-                </View>
-              ))}
-            </View>
-            <View className="h-16 w-[5%] flex-col pb-2 pr-2">
-              <PictogramCard
-                radius={30}
-                pictogram={pictogramStore.getPictogram("37360")}
-                noCaption={true}
-                bgcolor="#E49691"
-                onPress={() => modifyEntry(i)}
-              />
-            </View>
+      <View className="h-[2%]" />
+      {currentPage.pictograms.length <= 0 ? (
+        <View className="flex w-full grow flex-col">
+          <View className="flex w-full flex-1 items-center justify-center">
+            <Text className="text-default text-base font-semibold lg:text-3xl">
+              Aggiungi qualcosa col pulsante sotto...
+            </Text>
           </View>
-        ))}
-        <View className="flex w-full content-center justify-center py-4">
-          <View
-            className={`mx-auto flex ${
-              isDeviceLarge() ? "h-32 w-32" : "h-16 w-28"
-            }`}
-          >
+          <View className="flex h-16 w-full justify-end">
             <PictogramCard
-                radius={30}
+              full
+              text="Aggiungi"
               pictogram={pictogramStore.getPictogram("38218")}
-              noCaption={true}
               bgcolor="#89BF93"
-              onPress={addParagraph}
+              onPress={addEntry}
             />
           </View>
         </View>
-      </ScrollView>
-      <BottomIcons />
+      ) : (
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, flexDirection: "column" }}
+          className="flex h-[83%] w-full "
+        >
+          {currentPage.pictograms.map((diaryEntry, i) => (
+            <View
+              key={`entry_${i}`}
+              className="flex w-full flex-1 flex-row items-center justify-start pb-4"
+            >
+              <View
+                style={{ height: 128 * Math.ceil(diaryEntry.length / columns) }}
+                className="w-[8%] flex-col"
+              >
+                <View className="h-1/2 w-full">
+                  <PictogramCard
+                    full
+                    text="Leggi"
+                    pictogram={pictogramStore.getPictogram("36257")}
+                    bgcolor="#89BF93"
+                    onPress={() => readEntry(i)}
+                  />
+                </View>
+                <View className="h-1/2 w-full">
+                  <PictogramCard
+                    full
+                    text="Modifica"
+                    pictogram={pictogramStore.getPictogram("37360")}
+                    bgcolor="#f2b30a"
+                    onPress={() => modifyEntry(i)}
+                  />
+                </View>
+              </View>
+              <View className="w-[92%] flex-col">
+                {(chunk(diaryEntry, columns) as string[][]).map((row, rowI) => (
+                  <View key={`row${rowI}`} className="h-32 w-full flex-row">
+                    {row.map((col, colI) => (
+                      <View
+                        key={`row_${rowI}_col_${colI}`}
+                        style={{ width: `${(100 / columns).toFixed(0)}%` }}
+                        className="h-full flex-col items-center justify-center"
+                      >
+                        <PictogramCard
+                          full
+                          pictogram={pictogramStore.getPictogram(col)}
+                          highlight={
+                            readEntryIndex == i &&
+                            readIndex == rowI * columns + colI
+                              ? "#FFFFCA"
+                              : undefined
+                          }
+                          onPress={() => readOne(i, rowI * columns + colI)}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
+          <View className="flex h-16 w-full justify-end">
+            <PictogramCard
+              full
+              text="Aggiungi"
+              pictogram={pictogramStore.getPictogram("38218")}
+              bgcolor="#89BF93"
+              onPress={addEntry}
+            />
+          </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

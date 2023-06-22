@@ -286,9 +286,9 @@ const PictogramCustomizationModal: React.FC<{
                   />
                 </View>
               )}
-              <View className="flex grow items-end justify-end">
+              <View className="flex w-full grow items-end justify-end">
                 <View className="h-14 w-full flex-row items-center justify-center">
-                  <View className="w-1/2">
+                  <View className="w-1/2 items-center justify-center">
                     <IconButton
                       icon={
                         <MaterialIcons name="check" size={32} color="white" />
@@ -297,7 +297,7 @@ const PictogramCustomizationModal: React.FC<{
                       onPress={onConfirm}
                     />
                   </View>
-                  <View className="w-1/2">
+                  <View className="w-1/2 items-center justify-center">
                     <IconButton
                       icon={
                         <MaterialIcons name="clear" size={32} color="white" />

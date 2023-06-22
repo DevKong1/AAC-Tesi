@@ -14,8 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { getPictogramsFromFile } from "../hooks/useHuggingFace";
-import { useBookStore } from "../store/store";
-import { formatToMatchColumns } from "../utils/commonFunctions";
+import { useBookStore } from "../store/store"; 
 import { shadowStyle } from "../utils/shadowStyle";
 import { type Book } from "../utils/types/commonTypes";
 import IconButton from "./IconButton";
@@ -88,7 +87,7 @@ const AddBookModal: React.FC<{
         cover: selectedImage,
         pictograms: parsedPictograms.pictograms,
         isCustom: true,
-        customPictograms: parsedPictograms.customPictograms,
+        customPictograms: parsedPictograms.customPictograms, 
       } as Book);
       addedBook ? close() : Alert.alert("Errore nella creazione del libro.");
     } else Alert.alert("Errore nella creazione del libro.");

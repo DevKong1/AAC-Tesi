@@ -10,6 +10,7 @@ const PictogramCard: React.FC<{
   text?: string;
   noCaption?: boolean;
   full?: boolean;
+  horizontal?: boolean;
   radius?: number;
   bgcolor?: string;
   onPress: (...args: any) => void;
@@ -20,6 +21,7 @@ const PictogramCard: React.FC<{
   text,
   noCaption,
   full,
+  horizontal,
   radius,
   bgcolor,
   onPress,
@@ -59,9 +61,9 @@ const PictogramCard: React.FC<{
           backgroundColor: getColor(),
         },
       ]}
-      className={`flex ${
-        noCaption || full ? "h-full w-full" : "h-5/6 w-5/6"
-      } flex-col items-center justify-center`}
+      className={`flex ${noCaption || full ? "h-full w-full" : "h-5/6 w-5/6"} ${
+        horizontal ? "flex-row" : "flex-col"
+      } items-center justify-center`}
       onPress={() => onPress(args)}
     >
       <View

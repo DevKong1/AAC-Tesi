@@ -44,12 +44,19 @@ export default function TalkingPage() {
   const [selectedPictograms, selectPictograms] = useState([] as string[]);
   const [showModal, setShowModal] = useState(false);
   const [readIndex, setReadIndex] = useState(undefined as number | undefined);
+  const [readingOne, setReadingOne] = useState(false);
+
+  const resetSpeech = async () => {
+    await companionStore.resetSpeech();
+    setReadIndex(undefined);
+    setReadingOne(false);
+  };
 
   const addPictogram = async (pressed: Pictogram) => {
-    resetSpeech();
-    const text = pictogramStore.getTextFromPictogram(pressed);
-    if (text) companionStore.speak(text);
+    await resetSpeech();
     selectPictograms((old) => [...old, pressed._id]);
+    setReadingOne(true);
+    setReadIndex(selectedPictograms.length);
 
     // TODO carousel bugs out if the index is 0
     r.current?.scrollTo({
@@ -60,7 +67,7 @@ export default function TalkingPage() {
   };
 
   const removePictogram = async (index: number) => {
-    resetSpeech();
+    await resetSpeech();
     const current = r.current!.getCurrentIndex();
     selectPictograms((old) => [
       ...old.slice(0, index),
@@ -76,30 +83,9 @@ export default function TalkingPage() {
     await loadPictograms();
   };
 
-  const resetSpeech = () => {
-    companionStore.resetSpeech();
-    setReadIndex(undefined);
-  };
-
-  // Used to recursively read all pictograms while updating state
-  const recursiveRead = (i: number, flattenedPage: string[]) => {
-    if (i >= flattenedPage.length) {
-      resetSpeech();
-      return;
-    }
-    setReadIndex(i);
-    const currentPictogram = pictogramStore.getPictogram(flattenedPage[i]!);
-    const currentText = currentPictogram
-      ? pictogramStore.getTextFromPictogram(currentPictogram)
-      : undefined;
-    if (currentText)
-      companionStore.speak(currentText, undefined, undefined, () => {
-        recursiveRead(i + 1, flattenedPage);
-      });
-  };
-
-  const readAll = () => {
-    if (selectedPictograms.length > 0) recursiveRead(0, selectedPictograms);
+  const readAll = async () => {
+    await resetSpeech();
+    setReadIndex(0);
   };
 
   const listView = () => {
@@ -160,7 +146,7 @@ export default function TalkingPage() {
       "hardwareBackPress",
       () => {
         resetSpeech();
-        companionStore.showAll();
+        if (!inputID) companionStore.showAll();
         inputStore.clear();
         router.back();
         return true;
@@ -174,6 +160,34 @@ export default function TalkingPage() {
       await loadPictograms();
     })();
   }, [selectedCategory]);
+
+  // Read pictograms
+  useEffect(() => {
+    (async () => {
+      if (readIndex === undefined) return;
+      if (readIndex >= selectedPictograms.length) {
+        await resetSpeech();
+        return;
+      }
+      const currentID = selectedPictograms[readIndex];
+      const currentPictogram = currentID
+        ? pictogramStore.getPictogram(currentID)
+        : undefined;
+      const currentText = currentPictogram
+        ? pictogramStore.getTextFromPictogram(currentPictogram)
+        : undefined;
+      if (currentText)
+        await companionStore.speak(
+          currentText,
+          undefined,
+          undefined,
+          async () => {
+            if (readingOne) await resetSpeech();
+            else setReadIndex(readIndex + 1);
+          },
+        );
+    })();
+  }, [readIndex, selectedPictograms]);
 
   return (
     <SafeAreaView className="h-full w-full flex-col">
@@ -313,7 +327,7 @@ export default function TalkingPage() {
               noCaption={true}
               bgcolor="#f05252"
               onPress={async () => {
-                resetSpeech();
+                await resetSpeech();
                 selectPictograms([]);
                 await loadPictograms();
               }}

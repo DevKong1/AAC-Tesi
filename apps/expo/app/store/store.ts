@@ -130,7 +130,7 @@ interface DiaryState {
 
 export const useDiaryStore = create<DiaryState>((set, get) => ({
   diary: [],
-  readingSettings: { rows: 3, columns: 4 } as ReadingSettings, // TODO Customizable
+  readingSettings: { rows: 3, columns: 5 } as ReadingSettings, // TODO Customizable
   load: async () => {
     const result = await getJSONOrCreate(diaryUri, []);
     if (result)
@@ -823,7 +823,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
       if (!res) return false;
 
       console.log(diary[pageIndex]);
-      diary[pageIndex] = pageCopy;
+      diary[pageIndex] = pageCopy; 
       console.log(diary[pageIndex]);
 
       // If the page is empty we remove it

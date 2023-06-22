@@ -27,9 +27,8 @@ const PictogramSelectionModal: React.FC<{
               renderItem={(pictogram) => (
                 <View className="h-full w-44 items-center justify-center">
                   <PictogramCard
-                radius={30}
+                    radius={30}
                     pictogram={pictogram.item}
-                    bgcolor="#C6D7F9"
                     onPress={onSelect}
                     args={pictogram.item}
                   />
