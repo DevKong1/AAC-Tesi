@@ -1,7 +1,9 @@
 import { useState } from "react";
 import {
   Alert,
+  Dimensions,
   Image,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -11,10 +13,11 @@ import Modal from "react-native-modal";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { usePictogramStore } from "../store/store";
+import { useCategoryStore, usePictogramStore } from "../store/store";
+import { chunk } from "../utils/commonFunctions";
 import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
-import { type Pictogram } from "../utils/types/commonTypes";
+import { CategoryType, type Pictogram } from "../utils/types/commonTypes";
 import IconButton from "./IconButton";
 import SearchFlatlist from "./PictogramSearchFlatlist";
 import SettingsButton from "./SettingsButton";
@@ -23,7 +26,13 @@ const PictogramCustomizationModal: React.FC<{
   isVisible: boolean;
   onClose: () => void;
 }> = ({ isVisible, onClose }) => {
+  const { width } = Dimensions.get("window");
+
+  const categoryCols = 5;
+  const maxCategories = 5;
+
   const pictogramStore = usePictogramStore();
+  const categoryStore = useCategoryStore();
 
   const [selectedView, setView] = useState("");
   const [selectedPictogram, setSelectedPictogram] = useState(
@@ -33,6 +42,7 @@ const PictogramCustomizationModal: React.FC<{
     undefined as string | undefined,
   );
   const [selectedText, setSelectedText] = useState("");
+  const [selectedCategories, setCategories] = useState([] as string[]);
   const [textError, setTextError] = useState(false);
 
   const onSelectedPictogram = (pictogram: Pictogram) => {
@@ -40,6 +50,13 @@ const PictogramCustomizationModal: React.FC<{
     setSelectedPictogram(pictogram);
     if (text) setSelectedText(text);
     setView("");
+  };
+
+  const addCategory = (category: string) => {
+    if (selectedCategories.includes(category))
+      setCategories(selectedCategories.filter((el) => el != category));
+    else if (selectedCategories.length < maxCategories)
+      setCategories([...selectedCategories, category]);
   };
 
   // Add pictogram
@@ -56,6 +73,7 @@ const PictogramCustomizationModal: React.FC<{
       selectedPictogram?._id,
       selectedText,
       selectedImage,
+      selectedCategories,
     );
     close();
   };
@@ -86,6 +104,63 @@ const PictogramCustomizationModal: React.FC<{
 
   const currentView = () => {
     switch (selectedView) {
+      case "Category":
+        return (
+          <View className="flex h-full w-full flex-col items-center justify-center">
+            <View className="flex h-[25%] w-full items-center justify-center py-2">
+              <View className="h-full w-32">
+                <SettingsButton
+                  textColor="white"
+                  text="Conferma"
+                  color="#89BF93"
+                  onPress={() => setView("")}
+                />
+              </View>
+            </View>
+            <View className="flex h-[10%] w-full items-center justify-start">
+              <Text className="text-default font-text text-center">{`Seleziona le categorie del pittogramma: ${selectedCategories.length}/${maxCategories}`}</Text>
+            </View>
+            <ScrollView
+              contentContainerStyle={{
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              className="h-[65%] w-full flex-col"
+            >
+              {(
+                chunk(
+                  categoryStore.allCategories,
+                  categoryCols,
+                ) as CategoryType[][]
+              ).map((columns, i) => (
+                <View
+                  key={i}
+                  className="flex h-16 w-full flex-row content-center justify-center pt-2"
+                >
+                  {columns.map((column) => (
+                    <View
+                      key={column.textARASAAC}
+                      style={{ width: (width * 0.85) / categoryCols }}
+                      className="flex h-12 px-4"
+                    >
+                      <SettingsButton
+                        text={column.text}
+                        color={
+                          selectedCategories.includes(column.textARASAAC)
+                            ? "#B9D2C3"
+                            : "#FFFFCA"
+                        }
+                        onPress={() => {
+                          addCategory(column.textARASAAC);
+                        }}
+                      />
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        );
       case "Search":
         return (
           <View className="h-full w-full items-center justify-center">
@@ -161,7 +236,7 @@ const PictogramCustomizationModal: React.FC<{
               </View>
             </View>
             <View className="flex h-full w-1/2 flex-col items-center justify-start gap-4 pt-10">
-              <View className="h-14 w-full flex-col items-center justify-center">
+              <View className="h-[15%] w-full flex-col items-center justify-center">
                 <TextInput
                   className={`w-3/4 rounded-xl  ${
                     textError
@@ -177,17 +252,27 @@ const PictogramCustomizationModal: React.FC<{
                 />
               </View>
               {selectedImage ? (
-                <View className="h-14 w-3/4 flex-col items-center justify-center">
-                  <SettingsButton
-                    icon={
-                      <MaterialIcons name="clear" size={22} color="#5c5c5c" />
-                    }
-                    text="Annulla selezione"
-                    color="#FFFFCA"
-                    onPress={() => {
-                      setSelectedImage(undefined);
-                    }}
-                  />
+                <View className="h-[40%] w-full flex-col items-center justify-center">
+                  <View className="h-[50%] w-3/4 flex-col items-center justify-center">
+                    <SettingsButton
+                      icon={
+                        <MaterialIcons name="clear" size={22} color="#5c5c5c" />
+                      }
+                      text="Annulla selezione"
+                      color="#FFFFCA"
+                      onPress={() => {
+                        setSelectedImage(undefined);
+                      }}
+                    />
+                  </View>
+                  <View className="h-2" />
+                  <View className="h-[50%] w-3/4 flex-col items-center justify-center">
+                    <SettingsButton
+                      text="Seleziona Categorie"
+                      color="#FFFFCA"
+                      onPress={() => setView("Category")}
+                    />
+                  </View>
                 </View>
               ) : (
                 <View className="h-14 w-3/4 flex-col items-center justify-center">

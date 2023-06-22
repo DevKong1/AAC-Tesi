@@ -29,7 +29,6 @@ SplashScreen.preventAutoHideAsync();
 const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
-  const companionStore = useCompanionStore();
   const pictogramStore = usePictogramStore();
   const diaryStore = useDiaryStore();
   const bookStore = useBookStore();

@@ -4,7 +4,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { shadowStyle } from "../utils/shadowStyle";
 
 const MenuCard: React.FC<{
-  text: string;
+  text?: string;
   icon: ReactNode;
   bgcolor: string;
   squared?: boolean;
@@ -19,7 +19,7 @@ const MenuCard: React.FC<{
         },
       ]}
       className={`flex h-full w-full flex-col items-center justify-center ${
-        !squared ? null : "rounded-[30px]"
+        squared ? null : "rounded-[30px]"
       }`}
       onPress={onPress}
     >

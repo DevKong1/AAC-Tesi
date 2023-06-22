@@ -148,7 +148,7 @@ export default function SettingsPage() {
                           key={i}
                         >
                           <PictogramCard
-                radius={30}
+                            radius={30}
                             pictogram={pictogram}
                             bgcolor="#FFFFCA"
                             onPress={pictogramStore.removeFavourite}

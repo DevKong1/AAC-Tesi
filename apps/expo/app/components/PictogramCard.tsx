@@ -11,7 +11,7 @@ const PictogramCard: React.FC<{
   noCaption?: boolean;
   full?: boolean;
   radius?: number;
-  bgcolor: string;
+  bgcolor?: string;
   onPress: (...args: any) => void;
   args?: any;
   highlight?: string;
@@ -33,6 +33,13 @@ const PictogramCard: React.FC<{
     return pictogram ? pictogramStore.getTextFromPictogram(pictogram) : "";
   };
 
+  const getColor = () => {
+    if (highlight) return highlight;
+    else if (bgcolor) return bgcolor;
+    else if (pictogram?.categoryColor) return pictogram.categoryColor;
+    else return "#C6D7F9";
+  };
+
   const sourcePictogram = () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     if (!pictogram) return pictograms[3418];
@@ -49,7 +56,7 @@ const PictogramCard: React.FC<{
         shadowStyle.light,
         {
           borderRadius: radius ? radius : undefined,
-          backgroundColor: highlight ? highlight : bgcolor,
+          backgroundColor: getColor(),
         },
       ]}
       className={`flex ${

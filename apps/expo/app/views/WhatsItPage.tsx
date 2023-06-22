@@ -133,9 +133,8 @@ export default function WhatsItPage() {
               </View>
               <View className="flex h-[80%] w-full content-center items-center justify-center">
                 <PictogramCard
-                radius={30}
+                  radius={30}
                   pictogram={pictogramStore.getPictogram(game.answer)}
-                  bgcolor="#C6D7F9"
                   onPress={() => null}
                 />
               </View>
@@ -224,7 +223,6 @@ export default function WhatsItPage() {
               <PictogramCard
                 radius={30}
                 pictogram={pictogramStore.getPictogram(pic)}
-                bgcolor="#C6D7F9"
                 onPress={playerGuess}
                 args={pic}
               />

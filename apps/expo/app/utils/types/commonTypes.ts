@@ -25,6 +25,7 @@ export type Pictogram = {
   lastUpdated?: string;
   keywords: keyword[];
   customPictogram?: CustomPictogram;
+  categoryColor?: string;
 };
 
 export type CustomPictogram = {
@@ -32,6 +33,7 @@ export type CustomPictogram = {
   oldId?: string;
   text?: string;
   image?: string;
+  tags?: string[];
 };
 
 export type Board = {
@@ -43,6 +45,7 @@ export type CategoryType = {
   textARASAAC: string; //text as in ARASAAC
   text: string;
   icon: ReactNode;
+  color: string;
 };
 
 export type WhatsItGameProperties = {

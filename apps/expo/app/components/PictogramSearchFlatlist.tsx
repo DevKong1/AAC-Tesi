@@ -55,7 +55,6 @@ const SearchFlatlist: React.FC<{
             <PictogramCard
               radius={30}
               pictogram={pictogram.item}
-              bgcolor="#C6D7F9"
               onPress={onSelect}
               args={pictogram.item}
             />

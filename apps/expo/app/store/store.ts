@@ -269,6 +269,7 @@ interface PictogramState {
     oldId?: string,
     text?: string,
     image?: string,
+    tags?: string[],
   ) => Promise<boolean>;
   removeCustomPictogram: (id: string) => Promise<boolean>;
 }
@@ -276,6 +277,20 @@ interface PictogramState {
 type SavedPictograms = {
   favourites: string[];
   customPictograms: CustomPictogram[];
+};
+
+const getPictogramsWithColor = (pictograms: Pictogram[]) => {
+  const mapped = pictograms.map((el) => {
+    return {
+      ...el,
+      categoryColor: useCategoryStore
+        .getState()
+        .allCategories.find((category) =>
+          el.tags?.includes(category.textARASAAC),
+        )?.color,
+    } as Pictogram;
+  });
+  return mapped;
 };
 
 export const usePictogramStore = create<PictogramState>((set, get) => ({
@@ -312,9 +327,10 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
   },
   getPictogram: (id) => {
     const custom = get().customPictograms.find((el) => el._id == id);
-    return custom
+    const result = custom
       ? get().getPictogramFromCustom(custom)
       : get().pictograms.find((el) => el._id == id);
+    return result ? getPictogramsWithColor([result])[0] : undefined;
   },
   getPictograms: (ids) => {
     const result = [] as Pictogram[];
@@ -332,10 +348,13 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       el.keywords?.find((key) => key.keyword.toLowerCase().includes(text)),
     );
     result = sortBySimilarity(result, text);
-    return get()
-      .getCustomPictograms()
-      .filter((el) => el.customPictogram?.text?.toLowerCase().includes(text))
-      .concat(result);
+    const mapped = getPictogramsWithColor(
+      get()
+        .getCustomPictograms()
+        .filter((el) => el.customPictogram?.text?.toLowerCase().includes(text))
+        .concat(result),
+    );
+    return mapped ? mapped : [];
   },
   getTextFromPictogram: (pictogram) => {
     if (pictogram.customPictogram?.text) return pictogram.customPictogram.text;
@@ -351,7 +370,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       );
       return oldValue
         ? ({
-            ...oldValue,
+            ...getPictogramsWithColor([oldValue])[0],
             customPictogram: customPictogram,
           } as Pictogram)
         : undefined;
@@ -360,6 +379,12 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       _id: customPictogram._id,
       keywords: [],
       customPictogram: customPictogram,
+      tags: customPictogram.tags,
+      categoryColor: useCategoryStore
+        .getState()
+        .allCategories.find((el) =>
+          customPictogram.tags?.includes(el.textARASAAC),
+        )?.color,
     } as Pictogram;
   },
   getCustomPictograms: () => {
@@ -391,7 +416,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     }
     return false;
   },
-  addCustomPictogram: async (oldId?, text?, image?) => {
+  addCustomPictogram: async (oldId?, text?, image?, tags?) => {
     // Only one customization per existing pictogram allowed
     if (oldId) {
       const oldPictogram = get().pictograms.find((el) => el._id == oldId);
@@ -403,6 +428,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       oldId: oldId,
       text: text,
       image: image,
+      tags: tags,
     } as CustomPictogram;
     set((state) => ({
       customPictograms: [...state.customPictograms, newCustomPictogram],
@@ -518,13 +544,15 @@ type SavedCategories = {
 
 export const useCategoryStore = create<CategoryState>((set, get) => ({
   defaultCategory: undefined,
-  currentCategories: baseCategories,
-  maxCategories: 6,
   allCategories: allCategories,
+  currentCategories: baseCategories
+    .map((text) => allCategories.find((el) => el.textARASAAC == text))
+    .filter((el) => el) as CategoryType[],
+  maxCategories: 6,
   load: async () => {
     const result = (await getJSONOrCreate(
       categoriesUri,
-      baseCategories.map((el) => el.textARASAAC),
+      baseCategories,
     )) as SavedCategories;
     if (result) {
       set({
