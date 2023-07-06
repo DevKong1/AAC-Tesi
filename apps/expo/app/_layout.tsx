@@ -16,7 +16,6 @@ import useFonts from "./hooks/useFonts";
 import {
   useBookStore,
   useCategoryStore,
-  useCompanionStore,
   useDiaryStore,
   usePictogramStore,
 } from "./store/store";

@@ -48,7 +48,6 @@ export default function ReadingPage() {
       const customPictogram = currentBook.customPictograms.find(
         (el) => el._id == id,
       );
-      console.log(customPictogram);
       if (customPictogram !== undefined)
         return pictogramStore.getPictogramFromCustom(customPictogram);
     }
@@ -85,11 +84,13 @@ export default function ReadingPage() {
   const readFromOne = async (index: number) => {
     await companionStore.resetSpeech();
     setReadIndex(index);
+    setPaused(false);
   };
 
   const readAll = async () => {
     await resetSpeech();
     setReadIndex(0);
+    setPaused(false);
   };
 
   const pause = async () => {
@@ -200,11 +201,10 @@ export default function ReadingPage() {
                     className="flex h-full items-center justify-center"
                   >
                     <PictogramCard
+                      textAtTop
                       radius={30}
                       pictogram={getPictogramOrCustom(col)}
-                      highlight={
-                        readIndex == i * columns + j ? "#FFFFCA" : undefined
-                      }
+                      highlight={readIndex == i * columns + j}
                       onPress={() => readFromOne(i * columns + j)}
                     />
                   </View>
@@ -221,7 +221,7 @@ export default function ReadingPage() {
                   radius={30}
                   noCaption
                   pictogram={pictogramStore.getPictogram(
-                    !paused && readIndex !== undefined ? "38213" : "36257",
+                    !paused && readIndex !== undefined ? "38213" : "2447",
                   )}
                   bgcolor={
                     !paused && readIndex !== undefined ? "#FFFFCA" : "#89BF93"

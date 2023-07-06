@@ -12,12 +12,13 @@ import {
 import Modal from "react-native-modal";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
+import ColorPicker, { HueSlider, Panel1 } from "reanimated-color-picker";
 
 import { useCategoryStore, usePictogramStore } from "../store/store";
 import { chunk } from "../utils/commonFunctions";
 import pictograms from "../utils/pictograms";
 import { shadowStyle } from "../utils/shadowStyle";
-import { CategoryType, type Pictogram } from "../utils/types/commonTypes";
+import { type CategoryType, type Pictogram } from "../utils/types/commonTypes";
 import IconButton from "./IconButton";
 import SearchFlatlist from "./PictogramSearchFlatlist";
 import SettingsButton from "./SettingsButton";
@@ -43,6 +44,9 @@ const PictogramCustomizationModal: React.FC<{
   );
   const [selectedText, setSelectedText] = useState("");
   const [selectedCategories, setCategories] = useState([] as string[]);
+  const [selectedColor, setSelectedColor] = useState(
+    undefined as string | undefined,
+  );
   const [textError, setTextError] = useState(false);
 
   const onSelectedPictogram = (pictogram: Pictogram) => {
@@ -57,6 +61,37 @@ const PictogramCustomizationModal: React.FC<{
       setCategories(selectedCategories.filter((el) => el != category));
     else if (selectedCategories.length < maxCategories)
       setCategories([...selectedCategories, category]);
+  };
+
+  const onSelectColor = (value: any) => {
+    // do something with the selected color.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    setSelectedColor(value?.hex);
+  };
+
+  // Close modal and reset State
+  const close = () => {
+    setView("");
+    setSelectedPictogram(undefined);
+    setSelectedImage(undefined);
+    setSelectedText("");
+    setSelectedColor(undefined);
+    setTextError(false);
+    onClose();
+  };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0]?.base64) {
+      setSelectedImage(result.assets[0]?.base64);
+    }
   };
 
   // Add pictogram
@@ -74,32 +109,18 @@ const PictogramCustomizationModal: React.FC<{
       selectedText,
       selectedImage,
       selectedCategories,
+      selectedColor,
     );
     close();
   };
 
-  // Close modal and reset State
-  const close = () => {
-    setView("");
-    setSelectedPictogram(undefined);
-    setSelectedImage(undefined);
-    setSelectedText("");
-    setTextError(false);
-    onClose();
-  };
-
-  const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      base64: true,
-    });
-
-    if (!result.canceled && result.assets[0]?.base64) {
-      setSelectedImage(result.assets[0]?.base64);
+  const getColor = () => {
+    if (selectedColor) return selectedColor;
+    else if (selectedPictogram && pictogramStore.showColors) {
+      const color = categoryStore.getCategoryColor(selectedPictogram);
+      if (color) return color;
     }
+    return "#C6D7F9";
   };
 
   const currentView = () => {
@@ -161,6 +182,58 @@ const PictogramCustomizationModal: React.FC<{
             </ScrollView>
           </View>
         );
+      case "Color":
+        return (
+          <View className="flex h-full w-full flex-col items-center justify-center">
+            <View className="flex h-[15%] w-full items-center justify-center">
+              <Text className="text-default font-text text-center">
+                Seleziona un colore per il pittogramma:
+              </Text>
+            </View>
+            <View className="flex h-[65%] w-full flex-col items-center justify-center">
+              <ColorPicker
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+                onComplete={onSelectColor}
+              >
+                <Panel1 style={{ height: "80%", width: "95%" }} />
+                <HueSlider
+                  style={{
+                    height: "20%",
+                    width: "95%",
+                    marginTop: 10,
+                  }}
+                />
+              </ColorPicker>
+            </View>
+
+            <View className="flex h-[25%] w-full flex-row items-center justify-center py-2">
+              <View className="h-10 w-32">
+                <SettingsButton
+                  textColor="white"
+                  text="Conferma"
+                  color="#89BF93"
+                  onPress={() => setView("")}
+                />
+              </View>
+              <View className="w-2" />
+              <View className="h-10 w-32">
+                <SettingsButton
+                  textColor="white"
+                  text="Annulla"
+                  color="#F69898"
+                  onPress={() => {
+                    setSelectedColor(undefined);
+                    setView("");
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        );
       case "Search":
         return (
           <View className="h-full w-full items-center justify-center">
@@ -192,14 +265,15 @@ const PictogramCustomizationModal: React.FC<{
                   </Text>
                 </View>
               )}
-              <View
-                className={`flex ${
-                  !selectedImage && !selectedPictogram ? "h-[90%]" : "h-full"
-                } w-full items-center justify-center`}
-              >
+              <View className="flex h-[85%] w-full items-center justify-center">
                 <TouchableOpacity
-                  style={[shadowStyle.light]}
-                  className="flex h-5/6 w-2/3 flex-col items-center justify-center rounded-[30px] bg-[#C6D7F9]"
+                  style={[
+                    shadowStyle.light,
+                    {
+                      backgroundColor: getColor(),
+                    },
+                  ]}
+                  className="flex h-5/6 w-2/3 flex-col items-center justify-center rounded-[30px]"
                   onPress={() => {
                     if (selectedImage) setSelectedImage(undefined);
                     setView("Search");
@@ -215,7 +289,7 @@ const PictogramCustomizationModal: React.FC<{
                         ? { uri: "data:image/jpeg;base64," + selectedImage }
                         : selectedPictogram
                         ? // TODO JUST FOR DEBUG pictogram[selectedPictogram._id]
-                          pictograms[2239]
+                          pictograms[+selectedPictogram._id]
                         : // Default Pictogram Image
                           pictograms[3418]
                     }
@@ -233,6 +307,22 @@ const PictogramCustomizationModal: React.FC<{
                     </Text>
                   </View>
                 </TouchableOpacity>
+                {(selectedImage || selectedPictogram) && (
+                  <View className="mt-2 h-10 w-2/3 flex-col items-center justify-center">
+                    <SettingsButton
+                      icon={
+                        <MaterialIcons
+                          name="format-paint"
+                          size={22}
+                          color="#5c5c5c"
+                        />
+                      }
+                      text="Personalizza Colore"
+                      color="#FFFFCA"
+                      onPress={() => setView("Color")}
+                    />
+                  </View>
+                )}
               </View>
             </View>
             <View className="flex h-full w-1/2 flex-col items-center justify-start gap-4 pt-10">
@@ -252,8 +342,8 @@ const PictogramCustomizationModal: React.FC<{
                 />
               </View>
               {selectedImage ? (
-                <View className="h-[40%] w-full flex-col items-center justify-center">
-                  <View className="h-[50%] w-3/4 flex-col items-center justify-center">
+                <View className="h-20 w-full flex-col items-center justify-center">
+                  <View className="h-10 w-3/4 flex-col items-center justify-center">
                     <SettingsButton
                       icon={
                         <MaterialIcons name="clear" size={22} color="#5c5c5c" />
@@ -266,7 +356,7 @@ const PictogramCustomizationModal: React.FC<{
                     />
                   </View>
                   <View className="h-2" />
-                  <View className="h-[50%] w-3/4 flex-col items-center justify-center">
+                  <View className="h-10 w-3/4 flex-col items-center justify-center">
                     <SettingsButton
                       text="Seleziona Categorie"
                       color="#FFFFCA"
@@ -275,18 +365,18 @@ const PictogramCustomizationModal: React.FC<{
                   </View>
                 </View>
               ) : (
-                <View className="h-14 w-3/4 flex-col items-center justify-center">
+                <View className="h-10 w-3/4 flex-col items-center justify-center">
                   <SettingsButton
                     icon={
                       <MaterialIcons name="image" size={22} color="#5c5c5c" />
                     }
-                    text="Seleziona un'immagine per il pittogramma"
+                    text="Personalizza immagine"
                     color="#FFFFCA"
                     onPress={pickImage}
                   />
                 </View>
               )}
-              <View className="flex w-full grow items-end justify-end">
+              <View className="flex w-full flex-1 grow items-end justify-end">
                 <View className="h-14 w-full flex-row items-center justify-center">
                   <View className="w-1/2 items-center justify-center">
                     <IconButton

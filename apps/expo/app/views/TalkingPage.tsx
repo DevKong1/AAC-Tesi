@@ -8,9 +8,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import CategoryTabs from "../components/CategoryTab";
 import IconButton from "../components/IconButton";
 import PictogramCard from "../components/PictogramCard";
+import PictogramCategoryTabs from "../components/PictogramCategoryTabs";
 import PictogramSearchModal from "../components/PictogramSearchModal";
 import Spinner from "../components/Spinner";
 import { predictPictograms } from "../hooks/useHuggingFace";
@@ -40,6 +40,8 @@ export default function TalkingPage() {
   const [selectedCategory, selectCategory] = useState(
     undefined as string | undefined,
   );
+
+  const [loading, setLoading] = useState(false);
   const [pictograms, setPictograms] = useState([] as string[]);
   const [selectedPictograms, selectPictograms] = useState([] as string[]);
   const [showModal, setShowModal] = useState(false);
@@ -63,7 +65,9 @@ export default function TalkingPage() {
       index: selectedPictograms.length,
       animated: true,
     });
-    await loadPictograms();
+
+    if (selectedCategory) selectCategory(undefined);
+    else loadPictograms();
   };
 
   const removePictogram = async (index: number) => {
@@ -80,7 +84,7 @@ export default function TalkingPage() {
         animated: true,
       });
     }
-    await loadPictograms();
+    loadPictograms();
   };
 
   const readAll = async () => {
@@ -93,10 +97,12 @@ export default function TalkingPage() {
   };
 
   const loadPictograms = async () => {
+    setLoading(true);
     const predictedPictograms = await predictPictograms(
       pictograms,
       selectedPictograms,
       selectedCategory,
+      pictogramStore.showAdjectives,
     );
 
     // TODO Temporary while APIs are not ready
@@ -115,6 +121,7 @@ export default function TalkingPage() {
         ? randomPictograms
         : dummyPredictedPictograms,
     );
+    setLoading(false);
   };
 
   const submitInput = () => {
@@ -157,7 +164,9 @@ export default function TalkingPage() {
 
   useEffect(() => {
     (async () => {
-      await loadPictograms();
+      if (selectedCategory === "favourites")
+        setPictograms(pictogramStore.favourites);
+      else loadPictograms();
     })();
   }, [selectedCategory]);
 
@@ -196,8 +205,7 @@ export default function TalkingPage() {
         onSelect={addPictogram}
         onClose={onModalClose}
         backdrop={false}
-        defaultText="Qui potrai visualizzare i tuoi pittogrammi preferiti, selezionali dalle impostazioni.."
-        defaultData={pictogramStore.getFavouritePictograms()}
+        defaultText="Cerca un pittogramma utilizzando la barra sopra"
       />
       <View className="flex h-[23%] w-full flex-row items-center justify-center">
         {selectedPictograms.length > 0 ? (
@@ -221,7 +229,8 @@ export default function TalkingPage() {
                   radius={10}
                   pictogram={pictogramStore.getPictogram(el.item)}
                   onPress={removePictogram}
-                  highlight={readIndex == el.index ? "#FFFFCA" : undefined}
+                  highlight={readIndex == el.index}
+                  highlightIndicatorSize={30}
                   args={el.index}
                 />
               )}
@@ -233,27 +242,28 @@ export default function TalkingPage() {
           </Text>
         )}
       </View>
-      <View className="flex h-[15%] w-full">
-        <CategoryTabs
+      <View className="flex h-[18%] w-full items-center justify-center">
+        <PictogramCategoryTabs
           selectedCategory={selectedCategory}
           categories={categoryStore.currentCategories}
           setCategory={setCategory}
-          compact
+          showFavourites
         />
       </View>
-      <View className="flex h-[62%] w-full flex-row items-center justify-center">
+      <View className="flex h-[59%] w-full flex-row items-center justify-center">
         <View className="flex h-full w-[6%] items-center justify-center">
           <View className="flex h-full w-full">
             <IconButton
               squared
               full
+              border="#5C5C5C"
               icon={<Ionicons name="search" size={32} color="white" />}
               color="#A3B0B4"
               onPress={listView}
             />
           </View>
         </View>
-        {pictograms.length > 0 ? (
+        {pictograms.length > 0 && !loading ? (
           <ScrollView
             horizontal
             pagingEnabled
@@ -313,23 +323,25 @@ export default function TalkingPage() {
             <PictogramCard
               full
               pictogram={pictogramStore.getPictogram(
-                inputID ? "38221" : "36257",
+                inputID ? "38218" : "2447",
               )}
-              noCaption={true}
+              text={inputID ? "Conferma" : "Leggi"}
               bgcolor="#89BF93"
+              border="#5C5C5C"
               onPress={inputID ? submitInput : readAll}
             />
           </View>
           <View className="flex h-full w-full items-center justify-center">
             <PictogramCard
               full
-              pictogram={pictogramStore.getPictogram("38201")}
-              noCaption={true}
+              pictogram={pictogramStore.getPictogram("11196")}
+              text="Cancella"
               bgcolor="#f05252"
+              border="#5C5C5C"
               onPress={async () => {
                 await resetSpeech();
                 selectPictograms([]);
-                await loadPictograms();
+                loadPictograms();
               }}
             />
           </View>

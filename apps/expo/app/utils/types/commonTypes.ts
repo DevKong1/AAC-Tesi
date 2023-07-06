@@ -25,7 +25,6 @@ export type Pictogram = {
   lastUpdated?: string;
   keywords: keyword[];
   customPictogram?: CustomPictogram;
-  categoryColor?: string;
 };
 
 export type CustomPictogram = {
@@ -34,6 +33,7 @@ export type CustomPictogram = {
   text?: string;
   image?: string;
   tags?: string[];
+  color?: string;
 };
 
 export type Board = {
@@ -46,6 +46,7 @@ export type CategoryType = {
   text: string;
   icon: ReactNode;
   color: string;
+  pictogram?: string;
 };
 
 export type WhatsItGameProperties = {

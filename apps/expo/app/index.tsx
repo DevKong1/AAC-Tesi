@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -63,7 +63,7 @@ const Index = () => {
         <View className="mx-auto flex flex-grow flex-row items-center justify-center pb-4">
           <View className="flex h-4/5 w-1/4 items-center justify-center">
             <PictogramCard
-                radius={30}
+              radius={30}
               pictogram={pictogramStore.getPictogram("23392")}
               bgcolor="#C6D7F9"
               text="Giochiamo"
@@ -72,7 +72,7 @@ const Index = () => {
           </View>
           <View className="flex h-4/5 w-1/4 items-center justify-center">
             <PictogramCard
-                radius={30}
+              radius={30}
               pictogram={pictogramStore.getPictogram("28643")}
               bgcolor="#B9D2C3"
               text="Leggiamo"
@@ -81,7 +81,7 @@ const Index = () => {
           </View>
           <View className="flex h-4/5 w-1/4 items-center justify-center">
             <PictogramCard
-                radius={30}
+              radius={30}
               pictogram={pictogramStore.getPictogram("28663")}
               bgcolor="#EBDBD8"
               text="Parliamo"
@@ -90,7 +90,7 @@ const Index = () => {
           </View>
           <View className="flex h-4/5 w-1/4 items-center justify-center">
             <PictogramCard
-                radius={30}
+              radius={30}
               pictogram={pictogramStore.getPictogram("2359")}
               bgcolor="#D9D9FD"
               text="Diario"

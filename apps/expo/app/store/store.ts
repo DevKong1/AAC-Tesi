@@ -9,18 +9,50 @@ import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
 import { allCategories, baseCategories } from "../utils/categories";
 import { sortBySimilarity } from "../utils/commonFunctions";
 import {
-  CategoryType,
   type Book,
+  type CategoryType,
   type CustomPictogram,
   type DiaryPage,
   type Pictogram,
   type ReadingSettings,
 } from "../utils/types/commonTypes";
 
+const settingsUri = `${FileSystem.documentDirectory}settings.json`;
 const diaryUri = `${FileSystem.documentDirectory}diary.json`;
 const pictogramUri = `${FileSystem.documentDirectory}pictograms.json`;
 const booksUri = `${FileSystem.documentDirectory}books.json`;
 const categoriesUri = `${FileSystem.documentDirectory}categories.json`;
+
+interface SettingsState {
+  firstLoad: boolean;
+  defaultPage: string;
+  load: () => Promise<void>;
+  save: () => Promise<void>;
+  setLoaded: (value: boolean) => void;
+  setDefaultPage: (value: string) => Promise<void>;
+}
+
+export const useSettingsStore = create<SettingsState>((set, get) => ({
+  firstLoad: false,
+  defaultPage: "",
+  load: async () => {
+    const result = await getJSONOrCreate(settingsUri, "");
+    if (result)
+      set({
+        defaultPage: result,
+      });
+  },
+  save: async () => {
+    await saveToJSON(settingsUri, get().defaultPage);
+  },
+  setDefaultPage: async (value) => {
+    set({ defaultPage: value });
+    await get().save();
+  },
+  setLoaded: (value) => {
+    set({ firstLoad: value });
+  },
+}));
 
 interface CompanionState {
   isVisible: boolean;
@@ -32,12 +64,12 @@ interface CompanionState {
   speak: (
     text: string,
     bubblePosition?: string,
-    onBoundary?: (e: any) => void,
-    onDone?: () => void,
+    onBoundary?: (e: any) => void, // Define some code to execute at each space
+    onDone?: () => void, // Define some code to execute when the reading is odne
   ) => Promise<void>;
   resume: () => void;
   pause: () => void;
-  resetSpeech: () => Promise<void>;
+  resetSpeech: () => Promise<void>; // Stop reading and reset all variable to default
   changeVolume: () => Promise<void>;
   changeBubble: () => void;
   setPosition: (newPosition: string) => void;
@@ -218,7 +250,7 @@ interface inputState {
   command: string | undefined;
   inputPictograms: string[] | undefined;
   requestCompleted: boolean;
-  args: any | undefined;
+  args: any;
   inputRequest: (id: string, command: string, args?: any) => void;
   setInput: (reqID: string, inputPictograms: string[]) => void;
   clear: () => void;
@@ -252,8 +284,12 @@ interface PictogramState {
   pictograms: Pictogram[];
   favourites: string[];
   customPictograms: CustomPictogram[];
+  showAdjectives: boolean;
+  showColors: boolean;
   load: () => Promise<void>;
   save: () => Promise<void>;
+  setShowAdjectives: (value: boolean) => Promise<void>;
+  setShowColors: (value: boolean) => Promise<void>;
   getPictogram: (id: string) => Pictogram | undefined;
   getPictograms: (ids: string[]) => Pictogram[];
   getTextFromPictogram: (pictogram: Pictogram) => string | undefined;
@@ -270,6 +306,7 @@ interface PictogramState {
     text?: string,
     image?: string,
     tags?: string[],
+    color?: string,
   ) => Promise<boolean>;
   removeCustomPictogram: (id: string) => Promise<boolean>;
 }
@@ -277,35 +314,29 @@ interface PictogramState {
 type SavedPictograms = {
   favourites: string[];
   customPictograms: CustomPictogram[];
-};
-
-const getPictogramsWithColor = (pictograms: Pictogram[]) => {
-  const mapped = pictograms.map((el) => {
-    return {
-      ...el,
-      categoryColor: useCategoryStore
-        .getState()
-        .allCategories.find((category) =>
-          el.tags?.includes(category.textARASAAC),
-        )?.color,
-    } as Pictogram;
-  });
-  return mapped;
+  showAdjectives: boolean;
+  showColors: boolean;
 };
 
 export const usePictogramStore = create<PictogramState>((set, get) => ({
   pictograms: dictionary as Pictogram[],
   favourites: [],
   customPictograms: [],
+  showAdjectives: false,
+  showColors: false,
   load: async () => {
     const result = (await getJSONOrCreate(pictogramUri, {
       favourites: [],
       customPictograms: [],
+      showAdjectives: false,
+      showColors: false,
     } as SavedPictograms)) as SavedPictograms;
     if (result && result.favourites && result.customPictograms) {
       set({
         favourites: result.favourites,
         customPictograms: result.customPictograms,
+        showAdjectives: result.showAdjectives,
+        showColors: result.showColors,
       });
       result.customPictograms.forEach((customPictogram) => {
         if (customPictogram.oldId)
@@ -323,14 +354,24 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     await saveToJSON(pictogramUri, {
       favourites: get().favourites,
       customPictograms: get().customPictograms,
+      showAdjectives: get().showAdjectives,
+      showColors: get().showColors,
     } as SavedPictograms);
+  },
+  setShowAdjectives: async (value: boolean) => {
+    set({ showAdjectives: value });
+    await get().save();
+  },
+  setShowColors: async (value: boolean) => {
+    set({ showColors: value });
+    await get().save();
   },
   getPictogram: (id) => {
     const custom = get().customPictograms.find((el) => el._id == id);
     const result = custom
       ? get().getPictogramFromCustom(custom)
       : get().pictograms.find((el) => el._id == id);
-    return result ? getPictogramsWithColor([result])[0] : undefined;
+    return result ? result : undefined;
   },
   getPictograms: (ids) => {
     const result = [] as Pictogram[];
@@ -348,12 +389,10 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       el.keywords?.find((key) => key.keyword.toLowerCase().includes(text)),
     );
     result = sortBySimilarity(result, text);
-    const mapped = getPictogramsWithColor(
-      get()
-        .getCustomPictograms()
-        .filter((el) => el.customPictogram?.text?.toLowerCase().includes(text))
-        .concat(result),
-    );
+    const mapped = get()
+      .getCustomPictograms()
+      .filter((el) => el.customPictogram?.text?.toLowerCase().includes(text))
+      .concat(result);
     return mapped ? mapped : [];
   },
   getTextFromPictogram: (pictogram) => {
@@ -370,7 +409,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       );
       return oldValue
         ? ({
-            ...getPictogramsWithColor([oldValue])[0],
+            ...oldValue,
             customPictogram: customPictogram,
           } as Pictogram)
         : undefined;
@@ -380,11 +419,6 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       keywords: [],
       customPictogram: customPictogram,
       tags: customPictogram.tags,
-      categoryColor: useCategoryStore
-        .getState()
-        .allCategories.find((el) =>
-          customPictogram.tags?.includes(el.textARASAAC),
-        )?.color,
     } as Pictogram;
   },
   getCustomPictograms: () => {
@@ -416,7 +450,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     }
     return false;
   },
-  addCustomPictogram: async (oldId?, text?, image?, tags?) => {
+  addCustomPictogram: async (oldId?, text?, image?, tags?, color?) => {
     // Only one customization per existing pictogram allowed
     if (oldId) {
       const oldPictogram = get().pictograms.find((el) => el._id == oldId);
@@ -429,6 +463,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       text: text,
       image: image,
       tags: tags,
+      color: color,
     } as CustomPictogram;
     set((state) => ({
       customPictograms: [...state.customPictograms, newCustomPictogram],
@@ -528,12 +563,12 @@ export const useBookStore = create<BookState>((set, get) => ({
 interface CategoryState {
   currentCategories: CategoryType[];
   defaultCategory: string | undefined;
-  maxCategories: number;
   allCategories: CategoryType[];
   load: () => Promise<void>;
   save: () => Promise<void>;
   addCategory: (toAdd: string) => Promise<void>;
   removeCategory: (toRemove: string) => Promise<void>;
+  getCategoryColor: (pictogram: Pictogram) => string | undefined;
   setDefault: (text?: string) => Promise<void>;
 }
 
@@ -548,7 +583,6 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   currentCategories: baseCategories
     .map((text) => allCategories.find((el) => el.textARASAAC == text))
     .filter((el) => el) as CategoryType[],
-  maxCategories: 6,
   load: async () => {
     const result = (await getJSONOrCreate(
       categoriesUri,
@@ -575,7 +609,6 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
     const category = get().allCategories.find((el) => el.textARASAAC === toAdd);
     if (
       !category ||
-      get().currentCategories.length >= get().maxCategories ||
       get().currentCategories.find((el) => el.textARASAAC == toAdd)
     )
       return;
@@ -596,6 +629,12 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
       ],
     }));
     await get().save();
+  },
+  getCategoryColor: (pictogram) => {
+    const color = allCategories.find((category) =>
+      pictogram.tags?.includes(category.textARASAAC),
+    );
+    return color?.color;
   },
   setDefault: async (text) => {
     if (!text) {

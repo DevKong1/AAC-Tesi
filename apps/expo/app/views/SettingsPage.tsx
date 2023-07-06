@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Alert, BackHandler, Text, View } from "react-native";
+import { Alert, BackHandler, Switch, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-//import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "@clerk/clerk-expo";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import AddBookModal from "../components/AddBookModal";
@@ -32,14 +32,24 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [selectedMenu, setMenu] = useState("Impostazioni");
+
+  // Books
   const [showAddBookModal, setShowAddBookModal] = useState(false);
   const [showRemoveBookModal, setShowRemoveBookModal] = useState(false);
-  const [showAddPictogramModal, setShowAddPictogramModal] = useState(false);
+
+  // Pictograms
+  const [adjectivesSwitch, setAdjectivesSwitch] = useState(
+    pictogramStore.showAdjectives,
+  );
+  const [colorsSwitch, setColorsSwitch] = useState(pictogramStore.showColors);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
 
+  // Favourites
+  const [showAddPictogramModal, setShowAddPictogramModal] = useState(false);
+
   // LOGOUT
-  // const { signOut } = useAuth();
+  const { signOut } = useAuth();
 
   const addPictogram = async (pressed: Pictogram) => {
     if (!(await pictogramStore.addFavourite(pressed._id)))
@@ -59,6 +69,16 @@ export default function SettingsPage() {
     (await bookStore.removeBook(book.id))
       ? null
       : Alert.alert("Errore rimozione libro!");
+  };
+
+  const adjectivesSwitchChanged = async (value: boolean) => {
+    setAdjectivesSwitch(value);
+    await pictogramStore.setShowAdjectives(value);
+  };
+
+  const colorsSwitchChanged = async (value: boolean) => {
+    setColorsSwitch(value);
+    await pictogramStore.setShowColors(value);
   };
 
   useEffect(() => {
@@ -150,14 +170,13 @@ export default function SettingsPage() {
                           <PictogramCard
                             radius={30}
                             pictogram={pictogram}
-                            bgcolor="#FFFFCA"
                             onPress={pictogramStore.removeFavourite}
                             args={pictogram._id}
                           />
                         </View>
                       ))}
                   </ScrollView>
-                  <View className="h-1/5a flex w-full items-center justify-center">
+                  <View className="flex h-1/5 w-full items-center justify-center">
                     <Text className="text-default font-text text-center text-base lg:text-lg">
                       Premi su un pittogramma per rimuoverlo dai preferiti
                     </Text>
@@ -187,7 +206,7 @@ export default function SettingsPage() {
         );
       case "Pittogrammi":
         return (
-          <View className="flex h-full w-full flex-col items-center justify-start pt-4">
+          <View className="flex h-full w-full flex-col items-center justify-start">
             <PictogramCustomizationModal
               isVisible={showCustomizeModal}
               onClose={() => {
@@ -202,6 +221,24 @@ export default function SettingsPage() {
               }}
               data={pictogramStore.getCustomPictograms()}
             />
+            <View className="flex h-10 w-80 flex-row items-center justify-center py-2">
+              <Text className="font-text text-center text-base">
+                Mostra aggettivi:
+              </Text>
+              <Switch
+                value={adjectivesSwitch}
+                onValueChange={adjectivesSwitchChanged}
+              />
+            </View>
+            <View className="flex h-10 w-80 flex-row items-center justify-center py-2">
+              <Text className="font-text text-center text-base">
+                Colora pittogrammi in base alla categoria:
+              </Text>
+              <Switch
+                value={colorsSwitch}
+                onValueChange={colorsSwitchChanged}
+              />
+            </View>
             <View className="flex h-14 w-80 items-center justify-center p-1">
               <SettingsButton
                 text="Modifica/Crea pittogramma"
@@ -221,8 +258,15 @@ export default function SettingsPage() {
       default:
         return (
           <View className="justify-centerr h-full w-full flex-col items-center pt-6">
-            <View className="flex h-[70%] w-full flex-row items-start justify-center">
-              <View className="flex h-[90%] w-[20%]">
+            <ScrollView
+              horizontal
+              contentContainerStyle={{
+                alignItems: "flex-start",
+                justifyContent: "center",
+              }}
+              className="flex h-[70%] flex-row"
+            >
+              <View className="flex h-[90%] w-44 px-3">
                 <MenuCard
                   text="Preferiti"
                   bgcolor="#FFFFCA"
@@ -230,8 +274,7 @@ export default function SettingsPage() {
                   onPress={() => setMenu("Preferiti")}
                 />
               </View>
-              <View className="w-6" />
-              <View className="flex h-[90%] w-[20%]">
+              <View className="flex h-[90%] w-44 px-3">
                 <MenuCard
                   text="Pittogrammi"
                   bgcolor="#C6D7F9"
@@ -241,8 +284,7 @@ export default function SettingsPage() {
                   onPress={() => setMenu("Pittogrammi")}
                 />
               </View>
-              <View className="w-6" />
-              <View className="flex h-[90%] w-[20%]">
+              <View className="flex h-[90%] w-44 px-3">
                 <MenuCard
                   text="Libri"
                   bgcolor="#B9D2C3"
@@ -252,8 +294,7 @@ export default function SettingsPage() {
                   onPress={() => setMenu("Libri")}
                 />
               </View>
-              <View className="w-6" />
-              <View className="flex h-[90%] w-[20%]">
+              <View className="flex h-[90%] w-44 px-3">
                 <MenuCard
                   text="Categorie"
                   bgcolor="#e8b7cf"
@@ -263,8 +304,8 @@ export default function SettingsPage() {
                   onPress={() => setMenu("Categorie")}
                 />
               </View>
-            </View>
-            {/* 
+            </ScrollView>
+
             <View className="flex h-[20%] w-full flex-row items-start justify-center">
               <View className="flex h-12 w-[25%] items-start justify-center">
                 <SettingsButton
@@ -272,12 +313,12 @@ export default function SettingsPage() {
                   color="#F69898"
                   onPress={async () => {
                     await signOut();
-                    companionStore.stop();
-                    apiStore.setLoaded(false);
+                    companionStore.hideAll();
+                    //apiStore.setLoaded(false);
                   }}
                 />
-              </View> 
-            </View> */}
+              </View>
+            </View>
           </View>
         );
     }

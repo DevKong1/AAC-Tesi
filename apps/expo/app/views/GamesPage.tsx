@@ -4,8 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import BottomIcons from "../components/BottomIcons";
-import CategoryTabs from "../components/CategoryTab";
 import PictogramCard from "../components/PictogramCard";
+import PictogramCategoryTabs from "../components/PictogramCategoryTabs";
 import {
   useCategoryStore,
   useCompanionStore,
@@ -64,7 +64,7 @@ export default function GamesPage() {
                 </Text>
               </View>
               <View className="flex h-2/3 w-full items-center justify-center">
-                <CategoryTabs
+                <PictogramCategoryTabs
                   selectedCategory={selectedCategory}
                   categories={categoryStore.currentCategories}
                   setCategory={setCategory}
@@ -74,8 +74,9 @@ export default function GamesPage() {
             <View className="flex h-2/3 w-full flex-col items-center justify-center">
               <View className="h-4/5 w-1/5 items-center justify-center">
                 <PictogramCard
-                radius={30}
-                  pictogram={pictogramStore.getPictogram("5431")}
+                  radius={30}
+                  pictogram={pictogramStore.getPictogram("23392")}
+                  text="Gioca"
                   bgcolor="#89BF93"
                   onPress={() =>
                     router.push({

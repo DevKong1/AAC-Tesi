@@ -22,10 +22,14 @@ const PictogramSelectionModal: React.FC<{
           {data.length > 0 ? (
             <FlatList
               horizontal
+              contentContainerStyle={{
+                justifyContent: "center",
+                alignItems: "center",
+              }}
               showsHorizontalScrollIndicator={false}
               data={data}
               renderItem={(pictogram) => (
-                <View className="h-full w-44 items-center justify-center">
+                <View className="h-5/6 w-44 items-center justify-center">
                   <PictogramCard
                     radius={30}
                     pictogram={pictogram.item}

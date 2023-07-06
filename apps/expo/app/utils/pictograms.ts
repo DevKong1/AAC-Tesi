@@ -1,4 +1,4 @@
-/* const pictograms: {[key: number]: any} = {
+const pictograms: { [key: number]: any } = {
   2239: require("../../assets/pictograms/img_2239.png"),
   2243: require("../../assets/pictograms/img_2243.png"),
   2242: require("../../assets/pictograms/img_2242.png"),
@@ -12594,9 +12594,10 @@
   38554: require("../../assets/pictograms/img_38554.png"),
 };
 export default pictograms;
- */
-const pictograms: { [key: number]: any } = {
+
+/* const pictograms: { [key: number]: any } = {
   2239: require("../../assets/img_2239.png"),
   3418: require("../../assets/img_3418.png"),
 };
 export default pictograms;
+ */

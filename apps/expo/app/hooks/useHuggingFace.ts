@@ -25,6 +25,7 @@ export interface PictogramPredictionRequest {
   previous?: string[];
   current?: string[];
   category?: string;
+  showAdjectives?: boolean;
 }
 
 export interface PredictedPictogramsResponse {
@@ -98,11 +99,13 @@ export const predictPictograms = async (
   previous?: string[],
   current?: string[],
   category?: string,
+  showAdjectives?: boolean,
 ) => {
   const data = await getPredictedPictograms({
     previous: previous,
     current: current,
     category: category,
+    showAdjectives: showAdjectives,
   } as PictogramPredictionRequest);
   return data;
 };

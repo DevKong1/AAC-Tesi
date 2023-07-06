@@ -7,7 +7,7 @@ import { type Pictogram } from "../utils/types/commonTypes";
 import PictogramCard from "./PictogramCard";
 
 const SearchFlatlist: React.FC<{
-  defaultText: string;
+  defaultText?: string;
   defaultData?: Pictogram[];
   backgroundColor?: string;
   inputColor?: string;
@@ -92,7 +92,10 @@ const SearchFlatlist: React.FC<{
             {searchedPictograms.length > 0 || typing ? (
               getFlatList(searchedPictograms)
             ) : (
-              <Text className="font-text m-auto text-base text-white">
+              <Text
+                style={{ color: inputColor ? inputColor : "white" }}
+                className="font-text m-auto text-base"
+              > 
                 Nessun pittogramma trovato.
               </Text>
             )}

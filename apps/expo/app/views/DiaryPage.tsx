@@ -381,14 +381,14 @@ export default function DiaryPage() {
               className="flex w-full flex-1 flex-row items-center justify-start pb-4"
             >
               <View
-                style={{ height: 128 * Math.ceil(diaryEntry.length / columns) }}
+                style={{ height: 96 * Math.ceil(diaryEntry.length / columns) }}
                 className="w-[8%] flex-col"
               >
                 <View className="h-1/2 w-full">
                   <PictogramCard
                     full
                     text="Leggi"
-                    pictogram={pictogramStore.getPictogram("36257")}
+                    pictogram={pictogramStore.getPictogram("2447")}
                     bgcolor="#89BF93"
                     onPress={() => readEntry(i)}
                   />
@@ -397,7 +397,7 @@ export default function DiaryPage() {
                   <PictogramCard
                     full
                     text="Modifica"
-                    pictogram={pictogramStore.getPictogram("37360")}
+                    pictogram={pictogramStore.getPictogram("15018")}
                     bgcolor="#f2b30a"
                     onPress={() => modifyEntry(i)}
                   />
@@ -405,7 +405,7 @@ export default function DiaryPage() {
               </View>
               <View className="w-[92%] flex-col">
                 {(chunk(diaryEntry, columns) as string[][]).map((row, rowI) => (
-                  <View key={`row${rowI}`} className="h-32 w-full flex-row">
+                  <View key={`row${rowI}`} className="h-24 w-full flex-row">
                     {row.map((col, colI) => (
                       <View
                         key={`row_${rowI}_col_${colI}`}
@@ -418,8 +418,6 @@ export default function DiaryPage() {
                           highlight={
                             readEntryIndex == i &&
                             readIndex == rowI * columns + colI
-                              ? "#FFFFCA"
-                              : undefined
                           }
                           onPress={() => readOne(i, rowI * columns + colI)}
                         />

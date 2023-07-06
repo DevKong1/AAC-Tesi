@@ -3,7 +3,7 @@ import { Dimensions, ScrollView, Text, View } from "react-native";
 import { useCategoryStore } from "../store/store";
 import { chunk } from "../utils/commonFunctions";
 import { type CategoryType } from "../utils/types/commonTypes";
-import CategoryTabs from "./CategoryTab";
+import PictogramCategoryTabs from "./PictogramCategoryTabs";
 import SettingsButton from "./SettingsButton";
 
 const CategorySelection: React.FC = () => {
@@ -36,14 +36,17 @@ const CategorySelection: React.FC = () => {
   return (
     <View className="flex h-full w-full flex-col items-center justify-center">
       <View className="flex h-[20%] w-full items-center justify-center pt-4">
-        <CategoryTabs
+        <PictogramCategoryTabs
           setCategory={setDefault}
           selectedCategory={categoryStore.defaultCategory}
           categories={categoryStore.currentCategories}
         />
       </View>
       <View className="flex h-[10%] w-full items-center justify-start">
-        <Text className="text-default font-text text-center">{`Premi una categoria per farla diventare predefinita o seleziona le categorie da visualizzare: ${categoryStore.currentCategories.length}/${categoryStore.maxCategories}`}</Text>
+        <Text className="text-default font-text text-center">
+          Premi una categoria per farla diventare predefinita o seleziona le
+          categorie da visualizzare:
+        </Text>
       </View>
       <ScrollView
         contentContainerStyle={{
