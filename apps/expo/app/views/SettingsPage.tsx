@@ -4,7 +4,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 import AddBookModal from "../components/AddBookModal";
 import BookSelectionModal from "../components/BookSelectionModal";
@@ -32,6 +32,9 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [selectedMenu, setMenu] = useState("Impostazioni");
+
+  // General
+  const [bigMode, setBigMode] = useState(pictogramStore.bigMode);
 
   // Books
   const [showAddBookModal, setShowAddBookModal] = useState(false);
@@ -69,6 +72,11 @@ export default function SettingsPage() {
     (await bookStore.removeBook(book.id))
       ? null
       : Alert.alert("Errore rimozione libro!");
+  };
+
+  const bigModeChanged = async (value: boolean) => {
+    setBigMode(value);
+    await pictogramStore.setBigMode(value);
   };
 
   const adjectivesSwitchChanged = async (value: boolean) => {
@@ -223,6 +231,12 @@ export default function SettingsPage() {
             />
             <View className="flex h-10 w-80 flex-row items-center justify-center py-2">
               <Text className="font-text text-center text-base">
+                Modalità pittogrammi ingranditi:
+              </Text>
+              <Switch value={bigMode} onValueChange={bigModeChanged} />
+            </View>
+            <View className="flex h-10 w-80 flex-row items-center justify-center py-2">
+              <Text className="font-text text-center text-base">
                 Mostra aggettivi:
               </Text>
               <Switch
@@ -264,9 +278,9 @@ export default function SettingsPage() {
                 alignItems: "flex-start",
                 justifyContent: "center",
               }}
-              className="flex h-[70%] flex-row"
+              className="flex h-[75%] flex-row"
             >
-              <View className="flex h-[90%] w-44 px-3">
+              <View className="flex h-[85%] w-44 px-3">
                 <MenuCard
                   text="Preferiti"
                   bgcolor="#FFFFCA"
@@ -274,7 +288,7 @@ export default function SettingsPage() {
                   onPress={() => setMenu("Preferiti")}
                 />
               </View>
-              <View className="flex h-[90%] w-44 px-3">
+              <View className="flex h-[85%] w-44 px-3">
                 <MenuCard
                   text="Pittogrammi"
                   bgcolor="#C6D7F9"
@@ -284,7 +298,7 @@ export default function SettingsPage() {
                   onPress={() => setMenu("Pittogrammi")}
                 />
               </View>
-              <View className="flex h-[90%] w-44 px-3">
+              <View className="flex h-[85%] w-44 px-3">
                 <MenuCard
                   text="Libri"
                   bgcolor="#B9D2C3"
@@ -294,7 +308,7 @@ export default function SettingsPage() {
                   onPress={() => setMenu("Libri")}
                 />
               </View>
-              <View className="flex h-[90%] w-44 px-3">
+              <View className="flex h-[85%] w-44 px-3">
                 <MenuCard
                   text="Categorie"
                   bgcolor="#e8b7cf"
@@ -306,7 +320,7 @@ export default function SettingsPage() {
               </View>
             </ScrollView>
 
-            <View className="flex h-[20%] w-full flex-row items-start justify-center">
+            <View className="flex h-[25%] w-full flex-row items-start justify-center">
               <View className="flex h-12 w-[25%] items-start justify-center">
                 <SettingsButton
                   text="Logout"

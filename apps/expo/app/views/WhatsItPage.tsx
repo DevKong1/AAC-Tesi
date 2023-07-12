@@ -21,7 +21,9 @@ export default function WhatsItPage() {
 
   const { category } = useLocalSearchParams();
 
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const successSound = require("../../assets/success.mp3");
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const failureSound = require("../../assets/failure.mp3");
   const [sound, setSound] = useState(undefined as Audio.Sound | undefined);
   const [game, setGame] = useState({

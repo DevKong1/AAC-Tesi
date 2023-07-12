@@ -15,10 +15,9 @@ model User {
     id                  String              @id @default(cuid()) @map("_id")
     email               String              @unique
     clerkID             String              @unique
-    diary               DiaryPage[]
     favourites          String?             @db.Text
+    diary               DiaryPage[]
     customPictograms    CustomPictogram[]
-    books               Book[]
 }
 
 model DiaryPage {
@@ -35,20 +34,9 @@ model CustomPictogram {
     id         String       @id @default(cuid()) @map("_id")
     user       User         @relation(fields: [userId], references: [id])
     userId     String
-    oldId      String?      @unique
+    oldId      String?
     text       String?      @db.VarChar(128)
     image      String?      @db.MediumText
-
-    @@index([userId])
-}
-
-model Book {
-    id          String      @id @default(cuid()) @map("_id")
-    user        User        @relation(fields: [userId], references: [id])
-    userId      String      @unique
-    title       String      @db.VarChar(255)
-    cover       String      @db.MediumText
-    pictograms  String      @db.Text
 
     @@index([userId])
 }

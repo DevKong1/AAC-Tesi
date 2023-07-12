@@ -5,7 +5,6 @@ export interface BackendUserResponse {
   diary: BackendDiaryPage[];
   favourites: string;
   customPictograms: BackendCustomPictogram[];
-  books: BackendBook[];
 }
 
 export interface BackendDiaryPage {

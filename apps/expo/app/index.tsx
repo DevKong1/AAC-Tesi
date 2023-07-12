@@ -1,55 +1,40 @@
 import React, { useEffect } from "react";
-import { Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-
-//import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 
 import BottomIcons from "./components/BottomIcons";
 import PictogramCard from "./components/PictogramCard";
-//import { getUser } from "./hooks/useBackend";
-import {
-  useCompanionStore,
-  //  useDiaryStore,
-  usePictogramStore,
-} from "./store/store";
-// import { parseDiary } from "./utils/backendParsers";
+import { getUser } from "./hooks/useBackend";
+import { useCompanionStore, usePictogramStore } from "./store/store";
 import { isDeviceLarge } from "./utils/commonFunctions";
 
 const Index = () => {
   const pictogramStore = usePictogramStore();
-  // const diaryStore = useDiaryStore();
   const companionStore = useCompanionStore();
-  // const { user } = useUser();
-  // const { getToken } = useAuth();
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const router = useRouter();
 
-  // useEffect(() => {
-  //   const loadAll = async () => {
-  //     const token = await getToken();
-  //     if (token) {
-  //       const dbUser = await getUser(token);
-  //       if (!dbUser) {
-  //         Alert.alert("Error connecting to Backend!");
-  //         return;
-  //       }
-  //       diaryStore.load(parseDiary(dbUser.diary));
-  //     }
-  //   };
-
-  //   if (!apiStore.loaded) {
-  //     companionStore.start();
-  //     loadAll();
-  //   }
-
-  //   companionStore.speak(
-  //     user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
-  //     isDeviceLarge() ? "3xl" : "lg",
-  //   );
-  // }, []);
-
   useEffect(() => {
-    companionStore.speak("Benvenuto!", isDeviceLarge() ? "3xl" : "lg");
+    const loadAll = async () => {
+      const token = await getToken();
+      if (token) {
+        const dbUser = await getUser(token);
+        if (!dbUser) {
+          Alert.alert("Error connecting to Backend!");
+          return;
+        } else {
+          companionStore.speak(
+            user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
+            isDeviceLarge() ? "3xl" : "lg",
+          );
+        }
+      }
+    };
+
+    loadAll();
   }, []);
 
   return (

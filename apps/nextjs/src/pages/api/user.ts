@@ -18,7 +18,6 @@ export default async function handler(
         include: {
           customPictograms: true,
           diary: true,
-          books: true,
         },
         where: {
           clerkID: user,

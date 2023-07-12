@@ -139,6 +139,54 @@ export default function TalkingPage() {
     selectCategory(category == selectedCategory ? undefined : category);
   };
 
+  const getPictogramsForScrollView = () => {
+    return (
+      chunk(pictograms, pictogramStore.bigMode ? 4 : 8) as string[][]
+    ).map((wholeScreenPictograms, page) => (
+      <View
+        style={{ width: width * 0.84 }}
+        className="flex h-full flex-col"
+        key={page}
+      >
+        <View
+          style={{ height: pictogramStore.bigMode ? "100%" : "50%" }}
+          className="flex w-full flex-row"
+        >
+          {wholeScreenPictograms.slice(0, 4).map((el, i) => {
+            const pictogram = pictogramStore.getPictogram(el);
+            return (
+              <View key={`page${page}_${i}`} className="flex h-full w-1/4">
+                <PictogramCard
+                  full
+                  pictogram={pictogram}
+                  onPress={addPictogram}
+                  args={pictogram}
+                />
+              </View>
+            );
+          })}
+        </View>
+        {!pictogramStore.bigMode && (
+          <View className="flex h-[50%] w-full flex-row">
+            {wholeScreenPictograms.slice(4, 8).map((el, i) => {
+              const pictogram = pictogramStore.getPictogram(el);
+              return (
+                <View key={`row2_${i}`} className="flex h-full w-1/4">
+                  <PictogramCard
+                    full
+                    pictogram={pictogram}
+                    onPress={addPictogram}
+                    args={pictogram}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+    ));
+  };
+
   useEffect(() => {
     companionStore.hideAll();
     // In case of reload
@@ -163,11 +211,9 @@ export default function TalkingPage() {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      if (selectedCategory === "favourites")
-        setPictograms(pictogramStore.favourites);
-      else loadPictograms();
-    })();
+    if (selectedCategory === "favourites")
+      setPictograms(pictogramStore.favourites);
+    else loadPictograms();
   }, [selectedCategory]);
 
   // Read pictograms
@@ -207,7 +253,10 @@ export default function TalkingPage() {
         backdrop={false}
         defaultText="Cerca un pittogramma utilizzando la barra sopra"
       />
-      <View className="flex h-[23%] w-full flex-row items-center justify-center">
+      <View
+        style={{ height: pictogramStore.bigMode ? "28%" : "23%" }}
+        className="flex w-full flex-row items-center justify-center"
+      >
         {selectedPictograms.length > 0 ? (
           <View className="flex h-full w-full items-center justify-center">
             <Carousel
@@ -216,12 +265,12 @@ export default function TalkingPage() {
               pagingEnabled={true}
               style={{
                 width: width,
-                height: height * 0.23,
+                height: pictogramStore.bigMode ? height * 0.28 : height * 0.23,
                 justifyContent: "center",
                 alignItems: "center",
               }}
               width={104}
-              height={height * 0.22}
+              height={pictogramStore.bigMode ? height * 0.27 : height * 0.22}
               data={selectedPictograms}
               scrollAnimationDuration={1000}
               renderItem={(el) => (
@@ -242,7 +291,10 @@ export default function TalkingPage() {
           </Text>
         )}
       </View>
-      <View className="flex h-[18%] w-full items-center justify-center">
+      <View
+        style={{ height: pictogramStore.bigMode ? "24%" : "18%" }}
+        className="flex w-full items-center justify-center"
+      >
         <PictogramCategoryTabs
           selectedCategory={selectedCategory}
           categories={categoryStore.currentCategories}
@@ -250,7 +302,10 @@ export default function TalkingPage() {
           showFavourites
         />
       </View>
-      <View className="flex h-[59%] w-full flex-row items-center justify-center">
+      <View
+        style={{ height: pictogramStore.bigMode ? "48%" : "59%" }}
+        className="flex w-full flex-row items-center justify-center"
+      >
         <View className="flex h-full w-[6%] items-center justify-center">
           <View className="flex h-full w-full">
             <IconButton
@@ -269,49 +324,7 @@ export default function TalkingPage() {
             pagingEnabled
             className="flex h-full w-[84%] flex-row"
           >
-            {(chunk(pictograms, 8) as string[][]).map(
-              (wholeScreenPictograms, page) => (
-                <View
-                  style={{ width: width * 0.84 }}
-                  className="flex h-full flex-col"
-                  key={page}
-                >
-                  <View className="flex h-[50%] w-full flex-row">
-                    {wholeScreenPictograms.slice(0, 4).map((el, i) => {
-                      const pictogram = pictogramStore.getPictogram(el);
-                      return (
-                        <View
-                          key={`page${page}_${i}`}
-                          className="flex h-full w-1/4"
-                        >
-                          <PictogramCard
-                            full
-                            pictogram={pictogram}
-                            onPress={addPictogram}
-                            args={pictogram}
-                          />
-                        </View>
-                      );
-                    })}
-                  </View>
-                  <View className="flex h-[50%] w-full flex-row">
-                    {wholeScreenPictograms.slice(4, 8).map((el, i) => {
-                      const pictogram = pictogramStore.getPictogram(el);
-                      return (
-                        <View key={`row2_${i}`} className="flex h-full w-1/4">
-                          <PictogramCard
-                            full
-                            pictogram={pictogram}
-                            onPress={addPictogram}
-                            args={pictogram}
-                          />
-                        </View>
-                      );
-                    })}
-                  </View>
-                </View>
-              ),
-            )}
+            {getPictogramsForScrollView()}
           </ScrollView>
         ) : (
           <View className="h-full w-[84%] flex-row content-center items-center justify-center">
