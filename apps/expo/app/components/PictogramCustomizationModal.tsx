@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import Modal from "react-native-modal";
 import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "@clerk/clerk-expo";
 import { MaterialIcons } from "@expo/vector-icons";
 import ColorPicker, { HueSlider, Panel1 } from "reanimated-color-picker";
 
@@ -27,6 +28,7 @@ const PictogramCustomizationModal: React.FC<{
   isVisible: boolean;
   onClose: () => void;
 }> = ({ isVisible, onClose }) => {
+  const { getToken } = useAuth();
   const { width } = Dimensions.get("window");
 
   const categoryCols = 5;
@@ -95,7 +97,7 @@ const PictogramCustomizationModal: React.FC<{
   };
 
   // Add pictogram
-  const onConfirm = () => {
+  const onConfirm = async () => {
     if (!selectedImage && !selectedPictogram) {
       Alert.alert("Seleziona un pittogramma o un'immagine!");
       return;
@@ -104,13 +106,21 @@ const PictogramCustomizationModal: React.FC<{
       setTextError(true);
       return;
     }
-    pictogramStore.addCustomPictogram(
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Error creating pictogram");
+      close();
+      return;
+    }
+    const result = await pictogramStore.addCustomPictogram(
+      token,
       selectedPictogram?._id,
       selectedText,
       selectedImage,
       selectedCategories,
       selectedColor,
     );
+    if (!result) Alert.alert("Error creating pictogram");
     close();
   };
 

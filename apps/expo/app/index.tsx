@@ -37,10 +37,11 @@ const Index = () => {
             "Some features may not work properly",
           );
         } else {
-          pictogramStore.setFavourites(
+          if(dbUser.customPictograms) pictogramStore.parseBackendCustomPictograms(dbUser.customPictograms);
+          if(dbUser.favourites) pictogramStore.setFavourites(
             JSON.parse(dbUser.favourites) as string[],
           );
-          diaryStore.parseBackendDiary(dbUser.diary);
+          if(dbUser.diary) diaryStore.parseBackendDiary(dbUser.diary);
           console.log(dbUser);
         }
       }

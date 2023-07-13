@@ -3,10 +3,11 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 
 import {
+  type BackendCustomPictogram,
   type BackendDiaryPage,
   type BackendUserResponse,
 } from "../utils/types/backendTypes";
-import { type DiaryPage } from "../utils/types/commonTypes";
+import { CustomPictogram, type DiaryPage } from "../utils/types/commonTypes";
 
 const reqInstance = axios.create({
   baseURL: BACKEND_URL,
@@ -94,5 +95,37 @@ export const deleteDiaryPage = async (token: string, date: string) => {
   } catch (e) {
     console.log(e);
     return false;
+  }
+};
+
+export const postCustomPictogram = async (
+  token: string,
+  oldId?: string,
+  text?: string,
+  image?: string,
+  tags?: string[],
+  color?: string,
+) => {
+  try {
+    const { data } = await reqInstance.post(
+      `custompictogram`,
+      {
+        oldId: oldId,
+        text: text,
+        image: image,
+        tags: JSON.stringify(tags),
+        color: color,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return data.pictogram as BackendCustomPictogram;
+  } catch (e) {
+    console.log(e);
+    return undefined;
   }
 };

@@ -7,13 +7,17 @@ import { create } from "zustand";
 import dictionary from "../../assets/dictionaries/Dizionario_it.json";
 import {
   deleteDiaryPage,
+  postCustomPictogram,
   postDiaryPage,
   setBackendFavourites,
 } from "../hooks/useBackend";
 import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
 import { allCategories, baseCategories } from "../utils/categories";
 import { sortBySimilarity } from "../utils/commonFunctions";
-import { BackendDiaryPage } from "../utils/types/backendTypes";
+import {
+  BackendCustomPictogram,
+  BackendDiaryPage,
+} from "../utils/types/backendTypes";
 import {
   type Book,
   type CategoryType,
@@ -296,6 +300,9 @@ interface PictogramState {
   showColors: boolean;
   bigMode: boolean;
   load: () => Promise<void>;
+  parseBackendCustomPictograms: (
+    backendValues: BackendCustomPictogram[],
+  ) => void;
   save: () => Promise<void>;
   setBigMode: (value: boolean) => Promise<void>;
   setShowAdjectives: (value: boolean) => Promise<void>;
@@ -313,6 +320,7 @@ interface PictogramState {
   addFavourite: (token: string, id: string) => Promise<boolean>;
   removeFavourite: (id: string) => Promise<boolean>;
   addCustomPictogram: (
+    token: string,
     oldId?: string,
     text?: string,
     image?: string,
@@ -323,7 +331,6 @@ interface PictogramState {
 }
 
 type SavedPictograms = {
-  customPictograms: CustomPictogram[];
   showAdjectives: boolean;
   showColors: boolean;
   bigMode: boolean;
@@ -338,33 +345,43 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
   bigMode: false,
   load: async () => {
     const result = (await getJSONOrCreate(pictogramUri, {
-      customPictograms: [],
       showAdjectives: false,
       showColors: false,
       bigMode: false,
     } as SavedPictograms)) as SavedPictograms;
-    if (result && result.customPictograms) {
+    if (result) {
       set({
-        customPictograms: result.customPictograms,
         showAdjectives: result.showAdjectives,
         showColors: result.showColors,
         bigMode: result.bigMode,
       });
-      result.customPictograms.forEach((customPictogram) => {
-        if (customPictogram.oldId)
-          set((state) => ({
-            pictograms: state.pictograms.map((pictogram) =>
-              pictogram._id == customPictogram.oldId
-                ? { ...pictogram, customPictogram: customPictogram }
-                : pictogram,
-            ),
-          }));
-      });
     }
+  },
+  parseBackendCustomPictograms: (backendValues) => {
+    const parsedCustomPictograms = backendValues.map((el) => {
+      return {
+        _id: el.id,
+        oldId: el.oldId,
+        text: el.text,
+        image: el.image,
+        tags: el.tags ? JSON.parse(el.tags) : undefined,
+        color: el.color,
+      } as CustomPictogram;
+    });
+    set({ customPictograms: parsedCustomPictograms });
+    parsedCustomPictograms.forEach((customPictogram) => {
+      if (customPictogram.oldId)
+        set((state) => ({
+          pictograms: state.pictograms.map((pictogram) =>
+            pictogram._id == customPictogram.oldId
+              ? { ...pictogram, customPictogram: customPictogram }
+              : pictogram,
+          ),
+        }));
+    });
   },
   save: async () => {
     await saveToJSON(pictogramUri, {
-      customPictograms: get().customPictograms,
       showAdjectives: get().showAdjectives,
       showColors: get().showColors,
       bigMode: get().bigMode,
@@ -445,7 +462,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       .filter((el) => el) as Pictogram[];
   },
   setFavourites: (value) => {
-    set({ favourites: value });
+    if (value !== undefined && value !== null) set({ favourites: value });
   },
   addFavourite: async (token, id) => {
     if (!get().favourites.find((el) => el == id)) {
@@ -456,7 +473,7 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
       );
       if (result) {
         const dbFavourites = JSON.parse(result.favourites);
-        get().setFavourites(dbFavourites);
+        get().setFavourites(dbFavourites as string[]);
         return true;
       }
     }
@@ -476,34 +493,43 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     }
     return false;
   },
-  addCustomPictogram: async (oldId?, text?, image?, tags?, color?) => {
+  addCustomPictogram: async (token, oldId?, text?, image?, tags?, color?) => {
     // Only one customization per existing pictogram allowed
     if (oldId) {
       const oldPictogram = get().pictograms.find((el) => el._id == oldId);
       if (oldPictogram?.customPictogram) return false;
     }
-    const id = randomUUID();
-    const newCustomPictogram = {
-      _id: id,
-      oldId: oldId,
-      text: text,
-      image: image,
-      tags: tags,
-      color: color,
-    } as CustomPictogram;
-    set((state) => ({
-      customPictograms: [...state.customPictograms, newCustomPictogram],
-    }));
-    if (oldId)
+    const result = await postCustomPictogram(
+      token,
+      oldId,
+      text,
+      image,
+      tags,
+      color,
+    );
+    if (result) {
+      const newCustomPictogram = {
+        _id: result.id,
+        oldId: oldId,
+        text: text,
+        image: image,
+        tags: tags,
+        color: color,
+      } as CustomPictogram;
       set((state) => ({
-        pictograms: state.pictograms.map((pictogram) =>
-          pictogram._id == oldId
-            ? { ...pictogram, customPictogram: newCustomPictogram }
-            : pictogram,
-        ),
+        customPictograms: [...state.customPictograms, newCustomPictogram],
       }));
-    await get().save();
-    return true;
+      if (oldId)
+        set((state) => ({
+          pictograms: state.pictograms.map((pictogram) =>
+            pictogram._id == oldId
+              ? { ...pictogram, customPictogram: newCustomPictogram }
+              : pictogram,
+          ),
+        }));
+      return true;
+    }
+    return false;
   },
   removeCustomPictogram: async (id) => {
     const index = get().customPictograms.findIndex((el) => el._id == id);

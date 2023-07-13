@@ -27,14 +27,14 @@ export default async function handler(
       const { oldId, text, image, tags, color } = req.body;
       if (text === undefined && image === undefined) {
         res
-          .status(400)
+          .status(401)
           .json({ error: "Invalid required data, both text and image empty" });
         return;
       }
 
       const existingId = await prisma.customPictogram.findFirst({
         where: {
-          oldId: oldId,
+          oldId: oldId as string,
         },
       });
       if (existingId) {
