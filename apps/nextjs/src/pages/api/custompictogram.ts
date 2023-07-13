@@ -32,16 +32,19 @@ export default async function handler(
         return;
       }
 
-      const existingId = await prisma.customPictogram.findFirst({
-        where: {
-          oldId: oldId as string,
-        },
-      });
-      if (existingId) {
-        res.status(400).json({
-          error: "CustomPictogram associated to oldId already exists!",
+      if (oldId !== undefined) {
+        const existingId = await prisma.customPictogram.findFirst({
+          where: {
+            userId: dbUser.id,
+            oldId: oldId as string,
+          },
         });
-        return;
+        if (existingId) {
+          res.status(400).json({
+            error: "CustomPictogram associated to oldId already exists!",
+          });
+          return;
+        }
       }
 
       const createdPictogram = await prisma.customPictogram.create({
