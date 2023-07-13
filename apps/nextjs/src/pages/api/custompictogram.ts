@@ -24,7 +24,7 @@ export default async function handler(
         return;
       }
 
-      const { oldId, text, image } = req.body;
+      const { oldId, text, image, tags, color } = req.body;
       if (text === undefined && image === undefined) {
         res
           .status(400)
@@ -50,6 +50,8 @@ export default async function handler(
           oldId: oldId as string | undefined,
           text: text as string | undefined,
           image: image as string | undefined,
+          tags: tags as string | undefined,
+          color: color as string | undefined,
         },
       });
 

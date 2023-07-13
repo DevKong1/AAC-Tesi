@@ -5,7 +5,11 @@ import { sleep } from "@tanstack/query-core/build/lib/utils";
 import { create } from "zustand";
 
 import dictionary from "../../assets/dictionaries/Dizionario_it.json";
-import { postDiaryPage, setBackendFavourites } from "../hooks/useBackend";
+import {
+  deleteDiaryPage,
+  postDiaryPage,
+  setBackendFavourites,
+} from "../hooks/useBackend";
 import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
 import { allCategories, baseCategories } from "../utils/categories";
 import { sortBySimilarity } from "../utils/commonFunctions";
@@ -126,7 +130,6 @@ interface DiaryState {
   diary: DiaryPage[];
   readingSettings: ReadingSettings;
   parseBackendDiary: (backendValues: BackendDiaryPage[]) => void;
-  save: () => Promise<void>;
   getDiaryPage: (date: string) => DiaryPage | undefined;
   addPictogramsToPage: (
     token: string,
@@ -142,8 +145,7 @@ interface DiaryState {
     date: string,
     entryIndex: number,
     pictograms: string[],
-  ) => Promise<DiaryPage | undefined>;
-  removeDiaryPage: (date: string) => Promise<boolean>;
+  ) => Promise<boolean>;
   removePictogramFromPages: (pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
 }
 
@@ -158,9 +160,6 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
       } as DiaryPage;
     });
     set({ diary: newDiary });
-  },
-  save: async () => {
-    await saveToJSON(diaryUri, get().diary);
   },
   getDiaryPage: (date) => {
     return get().diary.find((el) => el.date == date);
@@ -211,28 +210,24 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
         const result = await postDiaryPage(token, newPage);
         if (result) {
           set({ diary: diaryCopy });
-          return newPage;
+          return true;
         }
       }
       // If the page is empty remove it
       else {
-        get().removeDiaryPage(date);
+        const result = await deleteDiaryPage(token, date);
+        if (result) {
+          set((state) => ({
+            diary: [
+              ...state.diary.slice(0, pageIndex),
+              ...state.diary.slice(pageIndex + 1),
+            ],
+          }));
+          return true;
+        }
       }
     }
-    return undefined;
-  },
-  removeDiaryPage: async (date) => {
-    const pageIndex = get().diary.findIndex((el) => el.date == date);
-    if (pageIndex != -1) {
-      set((state) => ({
-        diary: [
-          ...state.diary.slice(0, pageIndex),
-          ...state.diary.slice(pageIndex + 1),
-        ],
-      }));
-      await get().save();
-      return true;
-    } else return false;
+    return false;
   },
   removePictogramFromPages: async (toRemove) => {
     // Remove each occurency of given id

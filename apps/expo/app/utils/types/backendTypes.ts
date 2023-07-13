@@ -20,6 +20,8 @@ export interface BackendCustomPictogram {
   oldId?: string;
   text?: string;
   image?: string;
+  tags?: string; 
+  color?: string;
 }
 
 export interface BackendBook {

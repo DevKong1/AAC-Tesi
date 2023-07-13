@@ -84,13 +84,12 @@ export const postDiaryPage = async (token: string, page: DiaryPage) => {
 
 export const deleteDiaryPage = async (token: string, date: string) => {
   try {
-    const { data } = await reqInstance.delete(`diary`, {
+    await reqInstance.delete(`diary`, {
       headers: {
         Authorization: `Bearer ${token}`,
         date: date,
       },
     });
-    console.log(data.deleted);
     return true;
   } catch (e) {
     console.log(e);

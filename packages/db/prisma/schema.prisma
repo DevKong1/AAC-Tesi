@@ -37,6 +37,8 @@ model CustomPictogram {
     oldId      String?
     text       String?      @db.VarChar(128)
     image      String?      @db.MediumText
+    tags       String?
+    color      String?      @db.VarChar(12)
 
     @@index([userId])
 }
