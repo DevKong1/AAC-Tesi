@@ -4,7 +4,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import AddBookModal from "../components/AddBookModal";
 import BookSelectionModal from "../components/BookSelectionModal";
@@ -16,7 +16,9 @@ import PictogramCustomizationModal from "../components/PictogramCustomizationMod
 import PictogramSearchModal from "../components/PictogramSearchModal";
 import PictogramSelectionModal from "../components/PictogramSelectionModal";
 import SettingsButton from "../components/SettingsButton";
+import Spinner from "../components/Spinner";
 import {
+  useBackend,
   //  useApiStore,
   useBookStore,
   useCompanionStore,
@@ -28,10 +30,12 @@ export default function SettingsPage() {
   //  const apiStore = useApiStore();
   const companionStore = useCompanionStore();
   const pictogramStore = usePictogramStore();
+  const backendStore = useBackend();
   const bookStore = useBookStore();
   const router = useRouter();
 
   const [selectedMenu, setMenu] = useState("Impostazioni");
+  const [loading, setLoading] = useState(false);
 
   // General
   const [bigMode, setBigMode] = useState(pictogramStore.bigMode);
@@ -52,11 +56,15 @@ export default function SettingsPage() {
   const [showAddPictogramModal, setShowAddPictogramModal] = useState(false);
 
   // LOGOUT
-  const { signOut } = useAuth();
+  const { signOut, getToken } = useAuth();
 
   const addPictogram = async (pressed: Pictogram) => {
-    if (!(await pictogramStore.addFavourite(pressed._id)))
-      Alert.alert("Errore, pittoramma non aggiunto!");
+    setLoading(true);
+    setShowAddPictogramModal(false);
+    const token = await getToken();
+    if (token && !(await pictogramStore.addFavourite(token, pressed._id)))
+      Alert.alert("Errore, pittogramma non aggiunto!");
+    setLoading(false);
   };
 
   const removePictogram = async (pictogram: Pictogram) => {
@@ -97,6 +105,7 @@ export default function SettingsPage() {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        setLoading(false);
         if (selectedMenu != "Impostazioni") {
           setMenu("Impostazioni");
         } else {
@@ -163,27 +172,33 @@ export default function SettingsPage() {
             <View className="flex h-4/5 w-full">
               {pictogramStore.favourites.length > 0 ? (
                 <View className="flex h-full w-full items-center justify-center">
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    className="flex h-3/4"
-                  >
-                    {pictogramStore
-                      .getFavouritePictograms()
-                      .map((pictogram, i) => (
-                        <View
-                          className="h-44 w-44 items-center justify-center"
-                          key={i}
-                        >
-                          <PictogramCard
-                            radius={30}
-                            pictogram={pictogram}
-                            onPress={pictogramStore.removeFavourite}
-                            args={pictogram._id}
-                          />
-                        </View>
-                      ))}
-                  </ScrollView>
+                  {loading ? (
+                    <View className="flex h-3/4">
+                      <Spinner />
+                    </View>
+                  ) : (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      className="flex h-3/4"
+                    >
+                      {pictogramStore
+                        .getFavouritePictograms()
+                        .map((pictogram, i) => (
+                          <View
+                            className="h-44 w-44 items-center justify-center"
+                            key={i}
+                          >
+                            <PictogramCard
+                              radius={30}
+                              pictogram={pictogram}
+                              onPress={pictogramStore.removeFavourite}
+                              args={pictogram._id}
+                            />
+                          </View>
+                        ))}
+                    </ScrollView>
+                  )}
                   <View className="flex h-1/5 w-full items-center justify-center">
                     <Text className="text-default font-text text-center text-base lg:text-lg">
                       Premi su un pittogramma per rimuoverlo dai preferiti
@@ -327,6 +342,7 @@ export default function SettingsPage() {
                   color="#F69898"
                   onPress={async () => {
                     await signOut();
+                    backendStore.setLoaded(false);
                     companionStore.hideAll();
                     //apiStore.setLoaded(false);
                   }}

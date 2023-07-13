@@ -62,6 +62,36 @@ export default async function handler(
           ? res.status(200).json({ page: createdPage })
           : res.status(500).json({ error: "Error in diary page creation" });
       }
+    } else if (req.method === "DELETE") {
+      const dbUser = await prisma.user.findUnique({
+        where: {
+          clerkID: user,
+        },
+      });
+
+      if (!dbUser) {
+        res.status(401).json({ error: "Invalid user" });
+        return;
+      }
+
+      const { date } = req.headers;
+
+      const existingPage = await prisma.diaryPage.findFirst({
+        where: {
+          date: date as string,
+        },
+      });
+
+      if (existingPage) {
+        const deleted = await prisma.diaryPage.delete({
+          where: {
+            id: existingPage.id,
+          },
+        });
+        res.status(200).json({ deleted: deleted });
+      } else {
+        res.status(401).json({ error: "Invalid date" });
+      }
     } else res.status(400).json({ error: "Invalid method call" });
   } catch (err) {
     res.status(500).json({ error: "Failed to comunicate with db" });

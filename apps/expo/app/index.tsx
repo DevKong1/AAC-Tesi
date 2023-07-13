@@ -6,13 +6,21 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 
 import BottomIcons from "./components/BottomIcons";
 import PictogramCard from "./components/PictogramCard";
+import Spinner from "./components/Spinner";
 import { getUser } from "./hooks/useBackend";
-import { useCompanionStore, usePictogramStore } from "./store/store";
+import {
+  useBackend,
+  useCompanionStore,
+  useDiaryStore,
+  usePictogramStore,
+} from "./store/store";
 import { isDeviceLarge } from "./utils/commonFunctions";
 
 const Index = () => {
   const pictogramStore = usePictogramStore();
   const companionStore = useCompanionStore();
+  const diaryStore = useDiaryStore();
+  const backendStore = useBackend();
   const { user } = useUser();
   const { getToken } = useAuth();
   const router = useRouter();
@@ -20,22 +28,42 @@ const Index = () => {
   useEffect(() => {
     const loadAll = async () => {
       const token = await getToken();
-      if (token) {
-        const dbUser = await getUser(token);
+      const mail = user?.primaryEmailAddress;
+      if (token && mail) {
+        const dbUser = await getUser(token, mail.emailAddress);
         if (!dbUser) {
-          Alert.alert("Error connecting to Backend!");
-          return;
-        } else {
-          companionStore.speak(
-            user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
-            isDeviceLarge() ? "3xl" : "lg",
+          Alert.alert(
+            "Error connecting to Backend!",
+            "Some features may not work properly",
           );
+        } else {
+          pictogramStore.setFavourites(
+            JSON.parse(dbUser.favourites) as string[],
+          );
+          diaryStore.parseBackendDiary(dbUser.diary);
+          console.log(dbUser);
         }
       }
+      backendStore.setLoaded(true);
     };
 
-    loadAll();
+    if (!backendStore.loaded) {
+      loadAll();
+      companionStore.speak(
+        user?.firstName ? `Benvenuto, ${user?.firstName}!` : "Benvenuto!",
+        isDeviceLarge() ? "3xl" : "lg",
+      );
+    }
   }, []);
+
+  if (!backendStore.loaded)
+    return (
+      <SafeAreaView>
+        <View className="flex h-full w-full flex-col p-4">
+          <Spinner />
+        </View>
+      </SafeAreaView>
+    );
 
   return (
     <SafeAreaView>

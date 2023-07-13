@@ -7,7 +7,7 @@ import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { ClerkProvider, SignedIn, SignedOut, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
 import { CLERK_PUBLISHABLE_KEY, NODE_ENV } from "@env";
 
 import Companion from "./components/Companion";
@@ -29,7 +29,6 @@ const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
   const pictogramStore = usePictogramStore();
-  const diaryStore = useDiaryStore();
   const bookStore = useBookStore();
   const categoryStore = useCategoryStore();
 
@@ -46,7 +45,6 @@ const RootLayout = () => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         await useFonts();
         await pictogramStore.load();
-        await diaryStore.load();
         await bookStore.load();
         await categoryStore.load();
       } catch (e) {

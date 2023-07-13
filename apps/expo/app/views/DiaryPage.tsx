@@ -28,6 +28,8 @@ export default function DiaryPage() {
   const inputStore = useInputStore();
   const { getToken } = useAuth();
 
+  const [loading, setLoading] = useState(false);
+
   const [requestID, setReqId] = useState(undefined as string | undefined);
   const [currentPage, setPage] = useState(undefined as DiaryPage | undefined);
   const [readEntryIndex, setReadEntryIndex] = useState(
@@ -173,6 +175,7 @@ export default function DiaryPage() {
       if (currentPage && requestID && inputStore.id == requestID) {
         const token = await getToken();
         if (!token) return undefined;
+        setLoading(true);
         // Response to an addParagraph
         if (
           inputStore.command == "addParagraph" &&
@@ -187,28 +190,37 @@ export default function DiaryPage() {
             responseDate
           ) {
             // If page doesnt exist add it
-            if (
-              !diaryStore.getDiaryPage(responseDate) &&
-              currentPage.date == responseDate
-            ) {
-              if (
-                !(await diaryStore.addDiaryPage(
-                  //                token,
-                  currentPage,
-                ))
-              ) {
+            if (!diaryStore.getDiaryPage(responseDate)) {
+              const newPage = {
+                ...currentPage,
+                pictograms: [responsePictograms],
+              };
+              const addedPage = await diaryStore.addDiaryPage(token, newPage);
+              if (!addedPage) {
                 console.log("Error adding page");
-                return undefined;
+                setLoading(false);
+              } else {
+                inputStore.clear();
+                setReqId(undefined);
+                setLoading(false);
+                return addedPage.date;
+              }
+            } else {
+              const addedPage = await diaryStore.addPictogramsToPage(
+                token,
+                responseDate,
+                responsePictograms,
+              );
+              if (!addedPage) {
+                console.log("Error updating page");
+                setLoading(false);
+              } else {
+                inputStore.clear();
+                setReqId(undefined);
+                setLoading(false);
+                return addedPage.date;
               }
             }
-            await diaryStore.addPictogramsToPage(
-              //              token,
-              responseDate,
-              responsePictograms,
-            );
-            inputStore.clear();
-            setReqId(undefined);
-            return responseDate;
           }
         }
         // Response to a modifyEntry
@@ -225,17 +237,21 @@ export default function DiaryPage() {
             responseDate &&
             responseIndex != undefined
           ) {
-            const done = await diaryStore.updatePictogramsInPage(
-              //              token,
+            const updatedPage = await diaryStore.updatePictogramsInPage(
+              token,
               responseDate,
               responseIndex,
               responsePictograms,
             );
             inputStore.clear();
             setReqId(undefined);
-            if (done) return responseDate;
+            if (updatedPage) {
+              setLoading(false);
+              return responseDate;
+            }
           }
         }
+        setLoading(false);
         return undefined;
       }
     };
@@ -305,7 +321,7 @@ export default function DiaryPage() {
     return () => backHandler.remove();
   }, []);
 
-  if (!currentPage)
+  if (!currentPage || loading)
     return (
       <SafeAreaView className="h-full w-full items-center justify-center">
         <Spinner />
