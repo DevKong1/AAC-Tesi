@@ -36,7 +36,7 @@ export default async function handler(
         const existingId = await prisma.customPictogram.findFirst({
           where: {
             userId: dbUser.id,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             oldId: oldId.toString(),
           },
         });
@@ -51,7 +51,7 @@ export default async function handler(
       const createdPictogram = await prisma.customPictogram.create({
         data: {
           userId: dbUser.id,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
           oldId: oldId ? oldId.toString() : undefined,
           text: text as string | undefined,
           image: image as string | undefined,
