@@ -16,7 +16,4 @@ loro un supporto accessibile ed efficace all’apprendimento e alla comunicazion
 
 [![GitHub license](https://img.shields.io/github/license/mcnuggetboii/AAC-Tesi)](https://github.com/mcnuggetboii/AAC-Tesi/blob/main/LICENSE)
 ![GitHub last commit](https://img.shields.io/github/last-commit/mcnuggetboii/AAC-Tesi)
-[![GitHub Workflow Status]([https://img.shields.io/github/workflow/status/mcnuggetboii/AAC-Tesi/build-lint](https://img.shields.io/github/actions/workflow/status/mcnuggetboii/AAC-Tesi/ci.yml
-))
-](https://img.shields.io/github/actions/workflow/status/mcnuggetboii/AAC-Tesi/ci.yml
-)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/mcnuggetboii/AAC-Tesi/ci.yml)
