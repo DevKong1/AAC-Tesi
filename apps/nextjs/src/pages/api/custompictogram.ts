@@ -38,7 +38,7 @@ export default async function handler(
             userId: dbUser.id,
             oldId: oldId as string,
           },
-        }); 
+        });
         if (existingId) {
           res.status(400).json({
             error: "CustomPictogram associated to oldId already exists!",
@@ -61,8 +61,7 @@ export default async function handler(
       createdPictogram
         ? res.status(200).json({ pictogram: createdPictogram })
         : res.status(500).json({ error: "Error in pictogram creation" });
-    }
-    else if (req.method === "DELETE") {
+    } else if (req.method === "DELETE") {
       const dbUser = await prisma.user.findUnique({
         where: {
           clerkID: user,
@@ -74,20 +73,18 @@ export default async function handler(
         return;
       }
 
-      const { id } = req.body;
+      const { id } = req.headers;
       if (id === undefined) {
-        res
-          .status(401)
-          .json({ error: "Parameter \'id\' not found" });
+        res.status(401).json({ error: "Parameter 'id' not found" });
         return;
       }
 
       const deleted = await prisma.customPictogram.delete({
         where: {
-          id: id
-        }
-      })
- 
+          id: id as string,
+        },
+      });
+
       deleted
         ? res.status(200).json({ deleted: deleted })
         : res.status(401).json({ error: "CustomPictogram not found" });
