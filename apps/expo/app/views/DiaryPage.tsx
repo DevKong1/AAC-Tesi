@@ -237,7 +237,7 @@ export default function DiaryPage() {
             responseDate &&
             responseIndex != undefined
           ) {
-            const updatedPage = await diaryStore.updatePictogramsInPage(
+            const updatedPage = await diaryStore.updatePictogramsEntryInPage(
               token,
               responseDate,
               responseIndex,

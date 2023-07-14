@@ -1,4 +1,3 @@
-import { randomUUID } from "expo-crypto";
 import * as FileSystem from "expo-file-system";
 import * as Speech from "expo-speech";
 import { sleep } from "@tanstack/query-core/build/lib/utils";
@@ -16,8 +15,8 @@ import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
 import { allCategories, baseCategories } from "../utils/categories";
 import { sortBySimilarity } from "../utils/commonFunctions";
 import {
-  BackendCustomPictogram,
-  BackendDiaryPage,
+  type BackendCustomPictogram,
+  type BackendDiaryPage,
 } from "../utils/types/backendTypes";
 import {
   type Book,
@@ -28,7 +27,6 @@ import {
   type ReadingSettings,
 } from "../utils/types/commonTypes";
 
-const diaryUri = `${FileSystem.documentDirectory}diary.json`;
 const pictogramUri = `${FileSystem.documentDirectory}pictograms.json`;
 const booksUri = `${FileSystem.documentDirectory}books.json`;
 const categoriesUri = `${FileSystem.documentDirectory}categories.json`;
@@ -38,7 +36,7 @@ interface BackendState {
   setLoaded: (value: boolean) => void;
 }
 
-export const useBackend = create<BackendState>((set, get) => ({
+export const useBackend = create<BackendState>((set) => ({
   loaded: false,
   setLoaded: (value) => {
     set({ loaded: value });
@@ -156,7 +154,7 @@ interface DiaryState {
     date: string,
     pictograms: string[][],
   ) => Promise<boolean>;
-  removePictogramFromPages: (token: string, pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
+  removePictogramFromPages: (token: string, pictogram: string) => void; // Used when a custom pictogram is removed
 }
 
 export const useDiaryStore = create<DiaryState>((set, get) => ({
@@ -269,19 +267,14 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
     }
     return false;
   },
-  removePictogramFromPages: async (token, toRemove) => {
+  removePictogramFromPages: (token, toRemove) => {
     // Remove each occurency of given id
     get().diary.forEach(async (page) => {
       const pagePictograms = page.pictograms.slice();
-      console.log("PAGE", pagePictograms);
-      const filteredPictograms = pagePictograms.map((row) =>
-        row.filter((entry) => {
-          entry != toRemove;
-        }),
-      );
-      console.log("Filtered", filteredPictograms);
+      const filteredPictograms = pagePictograms.map((row) => {
+        return row.filter((entry) => entry != toRemove);
+      });
       const newPictograms = filteredPictograms.filter((row) => row.length > 0);
-      console.log("NEW", newPictograms);
 
       if (JSON.stringify(pagePictograms) !== JSON.stringify(newPictograms))
         await get().setPictogramsInPage(token, page.date, newPictograms);

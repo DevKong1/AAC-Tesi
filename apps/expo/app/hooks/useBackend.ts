@@ -7,7 +7,7 @@ import {
   type BackendDiaryPage,
   type BackendUserResponse,
 } from "../utils/types/backendTypes";
-import { CustomPictogram, type DiaryPage } from "../utils/types/commonTypes";
+import { type DiaryPage } from "../utils/types/commonTypes";
 
 const reqInstance = axios.create({
   baseURL: BACKEND_URL,

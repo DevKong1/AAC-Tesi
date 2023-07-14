@@ -79,6 +79,7 @@ const PictogramCard: React.FC<{
       return {
         uri: "data:image/jpeg;base64," + pictogram.customPictogram.image,
       };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return isNaN(+pictogram._id) || !pictograms[+pictogram._id]
       ? pictograms[3418]
       : pictograms[+pictogram._id];

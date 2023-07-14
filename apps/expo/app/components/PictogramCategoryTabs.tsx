@@ -13,6 +13,7 @@ const PictogramCategoryTab: React.FC<{
   setCategory?: (category: string) => void;
 }> = ({ value, text, isSelected, pictogram, setCategory }) => {
   const getPictogramImage = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return !pictogram || isNaN(+pictogram) || !pictograms[+pictogram]
       ? pictograms[3418]
       : pictograms[+pictogram];

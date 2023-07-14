@@ -37,9 +37,7 @@ const BottomIcons: React.FC<{
           color={iconColor}
         />
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={async () => await companionStore.changeBubble()}
-      >
+      <TouchableOpacity onPress={() => companionStore.changeBubble()}>
         <MaterialIcons
           style={shadowStyle.icon}
           name={companionStore.bubbleOn ? "chat" : "chat-bubble"}

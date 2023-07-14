@@ -37,12 +37,15 @@ const Index = () => {
             "Some features may not work properly",
           );
         } else {
-          if(dbUser.customPictograms) pictogramStore.parseBackendCustomPictograms(dbUser.customPictograms);
-          if(dbUser.favourites) pictogramStore.setFavourites(
-            JSON.parse(dbUser.favourites) as string[],
-          );
-          if(dbUser.diary) diaryStore.parseBackendDiary(dbUser.diary);
-          console.log(dbUser);
+          if (dbUser.customPictograms)
+            pictogramStore.parseBackendCustomPictograms(
+              dbUser.customPictograms,
+            );
+          if (dbUser.favourites)
+            pictogramStore.setFavourites(
+              JSON.parse(dbUser.favourites) as string[],
+            );
+          if (dbUser.diary) diaryStore.parseBackendDiary(dbUser.diary);
         }
       }
       backendStore.setLoaded(true);
