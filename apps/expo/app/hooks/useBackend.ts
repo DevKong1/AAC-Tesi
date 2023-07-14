@@ -129,3 +129,19 @@ export const postCustomPictogram = async (
     return undefined;
   }
 };
+
+export const removeCustomPictogram = async (token: string, id: string) => {
+  try {
+    const { data } = await reqInstance.delete(`custompictogram`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        id: id,
+      },
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return data.deleted as BackendCustomPictogram;
+  } catch (e) {
+    console.log(e);
+    return undefined;
+  }
+};

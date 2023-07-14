@@ -36,7 +36,7 @@ export default async function handler(
         const existingId = await prisma.customPictogram.findFirst({
           where: {
             userId: dbUser.id,
-            oldId: oldId as string,
+            oldId: oldId.toString(),
           },
         });
         if (existingId) {

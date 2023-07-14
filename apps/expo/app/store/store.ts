@@ -9,6 +9,7 @@ import {
   deleteDiaryPage,
   postCustomPictogram,
   postDiaryPage,
+  removeCustomPictogram,
   setBackendFavourites,
 } from "../hooks/useBackend";
 import { getJSONOrCreate, saveToJSON } from "../hooks/useStorage";
@@ -144,13 +145,18 @@ interface DiaryState {
     token: string,
     page: DiaryPage,
   ) => Promise<DiaryPage | undefined>;
-  updatePictogramsInPage: (
+  updatePictogramsEntryInPage: (
     token: string,
     date: string,
     entryIndex: number,
     pictograms: string[],
   ) => Promise<boolean>;
-  removePictogramFromPages: (pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
+  setPictogramsInPage: (
+    token: string,
+    date: string,
+    pictograms: string[][],
+  ) => Promise<boolean>;
+  removePictogramFromPages: (token: string, pictogram: string) => Promise<void>; // Used when a custom pictogram is removed
 }
 
 export const useDiaryStore = create<DiaryState>((set, get) => ({
@@ -198,7 +204,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
     }
     return undefined;
   },
-  updatePictogramsInPage: async (token, date, entryIndex, pictograms) => {
+  updatePictogramsEntryInPage: async (token, date, entryIndex, pictograms) => {
     const pageIndex = get().diary.findIndex((el) => el.date == date);
     if (pageIndex != -1) {
       const diaryCopy = get().diary.slice();
@@ -233,27 +239,53 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
     }
     return false;
   },
-  removePictogramFromPages: async (toRemove) => {
-    // Remove each occurency of given id
-    get().diary.forEach((page) => {
-      page.pictograms.forEach((row) => {
-        let i = row.length;
-        while (i--) {
-          if (row[i] == toRemove) {
-            row.splice(i, 1);
-          }
+  setPictogramsInPage: async (token, date, pictograms) => {
+    const pageIndex = get().diary.findIndex((el) => el.date == date);
+    if (pageIndex != -1) {
+      const diaryCopy = get().diary.slice();
+      if (pictograms.length > 0) {
+        diaryCopy[pageIndex]!.pictograms = pictograms;
+        const newPage = {
+          date: date,
+          pictograms: pictograms,
+        } as DiaryPage;
+        const result = await postDiaryPage(token, newPage);
+        if (result) {
+          set({ diary: diaryCopy });
+          return true;
         }
-      });
-
-      // Remove empty rows
-      let i = page.pictograms.length;
-      while (i--) {
-        if (page.pictograms[i]!.length <= 0) {
-          page.pictograms.splice(i, 1);
+      } else {
+        const result = await deleteDiaryPage(token, date);
+        if (result) {
+          set((state) => ({
+            diary: [
+              ...state.diary.slice(0, pageIndex),
+              ...state.diary.slice(pageIndex + 1),
+            ],
+          }));
+          return true;
         }
       }
+    }
+    return false;
+  },
+  removePictogramFromPages: async (token, toRemove) => {
+    // Remove each occurency of given id
+    get().diary.forEach(async (page) => {
+      const pagePictograms = page.pictograms.slice();
+      console.log("PAGE", pagePictograms);
+      const filteredPictograms = pagePictograms.map((row) =>
+        row.filter((entry) => {
+          entry != toRemove;
+        }),
+      );
+      console.log("Filtered", filteredPictograms);
+      const newPictograms = filteredPictograms.filter((row) => row.length > 0);
+      console.log("NEW", newPictograms);
+
+      if (JSON.stringify(pagePictograms) !== JSON.stringify(newPictograms))
+        await get().setPictogramsInPage(token, page.date, newPictograms);
     });
-    await get().save();
   },
 }));
 
@@ -318,7 +350,7 @@ interface PictogramState {
   getCustomPictograms: () => Pictogram[];
   setFavourites: (value: string[]) => void;
   addFavourite: (token: string, id: string) => Promise<boolean>;
-  removeFavourite: (id: string) => Promise<boolean>;
+  removeFavourite: (token: string, id: string) => Promise<boolean>;
   addCustomPictogram: (
     token: string,
     oldId?: string,
@@ -327,7 +359,7 @@ interface PictogramState {
     tags?: string[],
     color?: string,
   ) => Promise<boolean>;
-  removeCustomPictogram: (id: string) => Promise<boolean>;
+  removeCustomPictogram: (token: string, id: string) => Promise<boolean>;
 }
 
 type SavedPictograms = {
@@ -479,17 +511,22 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     }
     return false;
   },
-  removeFavourite: async (id) => {
+  removeFavourite: async (token, id) => {
     const index = get().favourites.findIndex((el) => el == id);
     if (index != -1) {
-      set((state) => ({
-        favourites: [
-          ...state.favourites.slice(0, index),
-          ...state.favourites.slice(index + 1),
-        ],
-      }));
-      await get().save();
-      return true;
+      const newFavourites = [
+        ...get().favourites.slice(0, index),
+        ...get().favourites.slice(index + 1),
+      ];
+      const result = await setBackendFavourites(
+        token,
+        JSON.stringify(newFavourites),
+      );
+      if (result) {
+        const dbFavourites = JSON.parse(result.favourites);
+        get().setFavourites(dbFavourites as string[]);
+        return true;
+      }
     }
     return false;
   },
@@ -531,12 +568,13 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
     }
     return false;
   },
-  removeCustomPictogram: async (id) => {
+  removeCustomPictogram: async (token, id) => {
     const index = get().customPictograms.findIndex((el) => el._id == id);
     if (index != -1) {
       const customPictogram = get().customPictograms[index]!;
       // If it was also a favorite remove
-      if (get().favourites.find((el) => el == id)) get().removeFavourite(id);
+      if (get().favourites.find((el) => el == id))
+        get().removeFavourite(token, id);
       // If it was a new pictogram also remove all references, otherwise swap it back to the normal one
       if (customPictogram.oldId) {
         set((state) => ({
@@ -546,14 +584,16 @@ export const usePictogramStore = create<PictogramState>((set, get) => ({
               : pictogram,
           ),
         }));
-      } else useDiaryStore.getState().removePictogramFromPages(id);
-      set((state) => ({
-        customPictograms: [
-          ...state.customPictograms.slice(0, index),
-          ...state.customPictograms.slice(index + 1),
-        ],
-      }));
-      await get().save();
+      } else useDiaryStore.getState().removePictogramFromPages(token, id);
+      const result = await removeCustomPictogram(token, customPictogram._id);
+      if (result) {
+        set((state) => ({
+          customPictograms: [
+            ...state.customPictograms.slice(0, index),
+            ...state.customPictograms.slice(index + 1),
+          ],
+        }));
+      }
       return true;
     }
     return false;

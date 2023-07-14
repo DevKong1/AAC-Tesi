@@ -68,12 +68,33 @@ export default function SettingsPage() {
   };
 
   const removePictogram = async (pictogram: Pictogram) => {
-    if (pictogram.customPictogram)
+    if (pictogram.customPictogram) {
+      const token = await getToken();
+      if (!token) {
+        Alert.alert("Errore generazione richiesta");
+        return;
+      }
       (await pictogramStore.removeCustomPictogram(
+        token,
         pictogram.customPictogram._id,
       ))
         ? null
         : Alert.alert("Errore rimozione pittogramma!");
+    }
+  };
+
+  const pressedRemoveFavourite = async (pictogram: Pictogram) => {
+    setLoading(true);
+    const token = await getToken();
+    if (!token) {
+      Alert.alert("Errore generazione richiesta");
+      setLoading(false);
+      return;
+    }
+    (await pictogramStore.removeFavourite(token, pictogram._id))
+      ? null
+      : Alert.alert("Errore rimozione preferito!");
+    setLoading(false);
   };
 
   const removeBook = async (book: Book) => {
@@ -172,33 +193,26 @@ export default function SettingsPage() {
             <View className="flex h-4/5 w-full">
               {pictogramStore.favourites.length > 0 ? (
                 <View className="flex h-full w-full items-center justify-center">
-                  {loading ? (
-                    <View className="flex h-3/4">
-                      <Spinner />
-                    </View>
-                  ) : (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      className="flex h-3/4"
-                    >
-                      {pictogramStore
-                        .getFavouritePictograms()
-                        .map((pictogram, i) => (
-                          <View
-                            className="h-44 w-44 items-center justify-center"
-                            key={i}
-                          >
-                            <PictogramCard
-                              radius={30}
-                              pictogram={pictogram}
-                              onPress={pictogramStore.removeFavourite}
-                              args={pictogram._id}
-                            />
-                          </View>
-                        ))}
-                    </ScrollView>
-                  )}
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    className="flex h-3/4"
+                  >
+                    {pictogramStore
+                      .getFavouritePictograms()
+                      .map((pictogram, i) => (
+                        <View
+                          className="h-44 w-44 items-center justify-center"
+                          key={i}
+                        >
+                          <PictogramCard
+                            radius={30}
+                            pictogram={pictogram}
+                            onPress={() => pressedRemoveFavourite(pictogram)}
+                          />
+                        </View>
+                      ))}
+                  </ScrollView>
                   <View className="flex h-1/5 w-full items-center justify-center">
                     <Text className="text-default font-text text-center text-base lg:text-lg">
                       Premi su un pittogramma per rimuoverlo dai preferiti
@@ -353,6 +367,15 @@ export default function SettingsPage() {
         );
     }
   };
+
+  if (loading)
+    return (
+      <SafeAreaView>
+        <View className="flex h-full w-full flex-col">
+          <Spinner />
+        </View>
+      </SafeAreaView>
+    );
 
   return (
     <SafeAreaView>
