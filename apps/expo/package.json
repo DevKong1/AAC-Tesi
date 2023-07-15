@@ -13,7 +13,6 @@
     "FIXME(no-work):type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@acme/api": "*",
     "@acme/tailwind-config": "*",
     "@clerk/clerk-expo": "^0.18.2",
     "@react-native-community/datetimepicker": "6.7.3",
