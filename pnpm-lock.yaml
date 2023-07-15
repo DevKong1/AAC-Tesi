@@ -26,7 +26,6 @@ importers:
 
   apps/expo:
     specifiers:
-      '@acme/api': '*'
       '@acme/tailwind-config': '*'
       '@babel/core': ^7.20.0
       '@babel/preset-env': ^7.20.0
@@ -51,6 +50,7 @@ importers:
       expo-av: ^13.2.1
       expo-cli: ^6.3.2
       expo-crypto: ^12.2.1
+      expo-dev-client: ~2.2.1
       expo-document-picker: ~11.2.2
       expo-file-system: ^15.2.2
       expo-font: ^11.1.1
@@ -83,7 +83,6 @@ importers:
       typescript: ^4.9.5
       zustand: ^4.3.5
     dependencies:
-      '@acme/api': link:../../packages/api
       '@acme/tailwind-config': link:../../packages/config/tailwind
       '@clerk/clerk-expo': 0.18.2_dyclr3qj323vxvwxeav3ns5wki
       '@react-native-community/datetimepicker': 6.7.3
@@ -101,6 +100,7 @@ importers:
       expo-av: 13.2.1_expo@48.0.4
       expo-cli: 6.3.2_expo@48.0.4
       expo-crypto: 12.2.1_expo@48.0.4
+      expo-dev-client: 2.2.1_expo@48.0.4
       expo-document-picker: 11.2.2_expo@48.0.4
       expo-file-system: 15.2.2_expo@48.0.4
       expo-font: 11.1.1_expo@48.0.4
@@ -182,52 +182,6 @@ importers:
       eslint-config-acme: link:../../packages/config/eslint
       postcss: 8.4.21
       tailwindcss: 3.2.7_postcss@8.4.21
-      typescript: 4.9.5
-
-  packages/api:
-    specifiers:
-      '@acme/auth': '*'
-      '@acme/db': '*'
-      '@trpc/client': ^10.12.0
-      '@trpc/server': ^10.12.0
-      eslint: ^8.34.0
-      eslint-config-acme: 0.0.0
-      superjson: 1.12.2
-      typescript: ^4.9.5
-      zod: ^3.20.6
-    dependencies:
-      '@acme/auth': link:../auth
-      '@acme/db': link:../db
-      '@trpc/client': 10.12.0_@trpc+server@10.12.0
-      '@trpc/server': 10.12.0
-      superjson: 1.12.2
-      zod: 3.20.6
-    devDependencies:
-      eslint: 8.34.0
-      eslint-config-acme: link:../config/eslint
-      typescript: 4.9.5
-
-  packages/auth:
-    specifiers:
-      '@acme/db': '*'
-      '@next-auth/prisma-adapter': ^1.0.5
-      eslint: ^8.34.0
-      eslint-config-acme: 0.0.0
-      next: ^13.2.0
-      next-auth: ^4.19.2
-      react: 18.2.0
-      react-dom: 18.2.0
-      typescript: ^4.9.5
-    dependencies:
-      '@acme/db': link:../db
-      '@next-auth/prisma-adapter': 1.0.5_next-auth@4.19.2
-      next: 13.2.0_biqbaboplfbrettd7655fr4n2y
-      next-auth: 4.19.2_f4d7icgk4i3oippbo5yzyh5rhq
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    devDependencies:
-      eslint: 8.34.0
-      eslint-config-acme: link:../config/eslint
       typescript: 4.9.5
 
   packages/config/eslint:
@@ -7264,6 +7218,48 @@ packages:
       expo: 48.0.4_@babel+core@7.20.12
     dev: false
 
+  /expo-dev-client/2.2.1_expo@48.0.4:
+    resolution: {integrity: sha512-BDhKyni82LiT6PypgBns1/FLqo3cGDBluaj4/Pojx9P7x9iwOFcesepO8r6BCWb4LuBjdB+z2yQ1fMXxzNC3qQ==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 48.0.4_@babel+core@7.20.12
+      expo-dev-launcher: 2.2.1_expo@48.0.4
+      expo-dev-menu: 2.2.0_expo@48.0.4
+      expo-dev-menu-interface: 1.1.1_expo@48.0.4
+      expo-manifests: 0.5.2
+      expo-updates-interface: 0.9.3_expo@48.0.4
+    dev: false
+
+  /expo-dev-launcher/2.2.1_expo@48.0.4:
+    resolution: {integrity: sha512-TP9SOrNIKF5Whju7uhtBsJeOvf9idUSg7snhHNVRpm2mA5kReckeD3PFv4HsvBHdnrfoslpeq4spOdS6UUx3XA==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 48.0.4_@babel+core@7.20.12
+      expo-dev-menu: 2.2.0_expo@48.0.4
+      resolve-from: 5.0.0
+      semver: 7.3.8
+    dev: false
+
+  /expo-dev-menu-interface/1.1.1_expo@48.0.4:
+    resolution: {integrity: sha512-doT+7WrSBnxCcTGZw9QIEZoL+43U4RywbG8XZwbhkcsFWGsh9scp0y/bv3ieFHxRtIdImxbxOoYh7fy1O6g28w==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 48.0.4_@babel+core@7.20.12
+    dev: false
+
+  /expo-dev-menu/2.2.0_expo@48.0.4:
+    resolution: {integrity: sha512-ImRUD7IVyLme7t3S+pNsOOgCBorkriVNo+ryEmkAjzRTKlpiklhoc1GEdQUU3qvO6e66gUguMbs4wnaP6o4NEw==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 48.0.4_@babel+core@7.20.12
+      expo-dev-menu-interface: 1.1.1_expo@48.0.4
+      semver: 7.3.8
+    dev: false
+
   /expo-document-picker/11.2.2_expo@48.0.4:
     resolution: {integrity: sha512-EeonRKxkK9E20LEAh93IvlwFjNkUCJKnhBEama9PmIDYWW7RyANZ8eP9C2PupThTDbivzRDNp7Ec7dIeyDAWjw==}
     peerDependencies:
@@ -7307,6 +7303,10 @@ packages:
       expo-image-loader: 4.1.1_expo@48.0.4
     dev: false
 
+  /expo-json-utils/0.5.1:
+    resolution: {integrity: sha512-Y5boshyf40vPjwxNnOIfacZPNkOymecZRQ1k+TSXlq6gnw5XRsnM5hnP0VLVYhdv8x+9CX6E1fDsDUNvsK38Dg==}
+    dev: false
+
   /expo-keep-awake/12.0.1_expo@48.0.4:
     resolution: {integrity: sha512-hqeCnb4033TyuZaXs93zTK7rjVJ3bywXATyMmKmKkLEsH2PKBAl/VmjlCOPQL/2Ncqz6aj7Wo//tjeJTARBD4g==}
     peerDependencies:
@@ -7334,6 +7334,12 @@ packages:
     transitivePeerDependencies:
       - expo
       - supports-color
+    dev: false
+
+  /expo-manifests/0.5.2:
+    resolution: {integrity: sha512-WnsTlE2le3pV/B/AJPKTOSjb2K9AT1mPDCfQxTQ/KMCwF95saoXYt2OPF3hxZNaMAV6VIAhXgd5Y6wpcH9ruPQ==}
+    dependencies:
+      expo-json-utils: 0.5.1
     dev: false
 
   /expo-modules-autolinking/0.8.1:
@@ -7458,6 +7464,14 @@ packages:
 
   /expo-status-bar/1.4.4:
     resolution: {integrity: sha512-5DV0hIEWgatSC3UgQuAZBoQeaS9CqeWRZ3vzBR9R/+IUD87Adbi4FGhU10nymRqFXOizGsureButGZIXPs7zEA==}
+    dev: false
+
+  /expo-updates-interface/0.9.3_expo@48.0.4:
+    resolution: {integrity: sha512-zBkJmLP5Bmcz2s14PZDcHFzRjnyiG/TwlQfIvpnV4NS+EYyR4vgbC0J3zUEi7Vvhm5m4gjsTpU6X1oKn6br+HQ==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 48.0.4_@babel+core@7.20.12
     dev: false
 
   /expo-web-browser/12.1.1_expo@48.0.4:
