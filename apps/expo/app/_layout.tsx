@@ -33,9 +33,7 @@ const RootLayout = () => {
 
   const windowHeight = useWindowDimensions().height;
   const clerkPublicKey =
-    NODE_ENV !== "production"
-      ? CLERK_PUBLISHABLE_KEY
-      : Constants.expoConfig?.extra?.clerkPublicKey;
+    "pk_test_Y2FsbS1wbGF0eXB1cy02LmNsZXJrLmFjY291bnRzLmRldiQ";
 
   useEffect(() => {
     async function prepare() {

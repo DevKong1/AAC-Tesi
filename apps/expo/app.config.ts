@@ -35,7 +35,6 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   },
   extra: {
     huggingfaceBearer: process.env.HUGGINGFACE_BEARER,
-    clerkPublicKey: process.env.CLERK_PUBLISHABLE_KEY,
     eas: {
       projectId: "54f2c5c2-fdf7-4aad-9c34-811de23d0762",
     },
