@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
-import { CLERK_PUBLISHABLE_KEY, NODE_ENV } from "@env";
 
 import Companion from "./components/Companion";
 import SignInWithOAuth from "./components/SignInWithOAuth";

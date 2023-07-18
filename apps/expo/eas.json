@@ -11,13 +11,17 @@
       }
     },
     "preview": {
-      "ios": {
-        "simulator": true,
-        "resourceClass": "m1-medium"
-      },
       "android": {
         "buildType": "apk"
       }
+    },
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview3": {
+      "developmentClient": true
     },
     "production": {
       "developmentClient": false,
